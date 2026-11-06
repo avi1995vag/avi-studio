@@ -1,6 +1,7 @@
 """Retrieve a publisher's public share photo as a workflow artifact."""
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
 from io import BytesIO
 from pathlib import Path
@@ -28,6 +29,7 @@ class SharePhoto(HTMLParser):
     def __init__(self):
         super().__init__()
         self.images = {}
+        self.text = {}
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
@@ -38,6 +40,8 @@ class SharePhoto(HTMLParser):
             key, url = 'image_src', attributes.get('href')
         else:
             return
+        if url and key in ('og:title', 'og:description', 'description', 'og:type'):
+            self.text.setdefault(key, ' '.join(url.split()))
         if url and key in ('og:image:secure_url', 'og:image', 'og:image:url', 'twitter:image', 'twitter:image:src', 'image_src'):
             self.images.setdefault(key, url.strip())
 
@@ -81,6 +85,55 @@ def get_public(url, hosts, *, photo=False):
                     break
             return bytes(buffer), url, response.encoding
     raise ValueError('The publisher redirected too many times.')
+
+
+def enrich_feed_metadata(snapshot):
+    """Add public metadata for recent exact publisher links in the feed snapshot."""
+    grouped = {}
+    for items in snapshot['feeds'].values():
+        for entry in items[:4]:
+            link = entry.get('link', '')
+            try:
+                validate_url(link, PUBLISHERS)
+            except ValueError:
+                continue
+            if len(entry.get('description', '').split()) >= 14 and entry.get('extractedImage'):
+                continue
+            grouped.setdefault(link, []).append(entry)
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        selected = list(grouped)[:32]
+        for link, metadata in zip(selected, pool.map(public_article_metadata, selected)):
+            if not metadata:
+                continue
+            description, images = metadata
+            for entry in grouped[link]:
+                if len(description.split()) >= 12 and len(description) > len(entry.get('description', '')):
+                    entry['description'] = description[:1000]
+                if images and not entry.get('extractedImage'):
+                    entry['extractedImage'] = images[0]
+    return snapshot
+
+
+def public_article_metadata(link):
+    try:
+        page, canonical, encoding = get_public(link, PUBLISHERS)
+        original, final = urlsplit(link), urlsplit(canonical)
+        if original.hostname.removeprefix('www.') != final.hostname.removeprefix('www.') or original.path.rstrip('/') != final.path.rstrip('/'):
+            return None
+        parser = SharePhoto()
+        parser.feed(page.decode(encoding or 'utf-8', errors='replace'))
+        if not parser.text.get('og:title'):
+            return None
+        description = parser.text.get('og:description') or parser.text.get('description', '')
+        images = []
+        for url in parser.urls(canonical):
+            try:
+                images.append(validate_url(url, PHOTO_HOSTS))
+            except ValueError:
+                continue
+        return description, images
+    except (requests.RequestException, ValueError, LookupError, KeyError):
+        return None
 
 
 def save_article_photo(article, output):

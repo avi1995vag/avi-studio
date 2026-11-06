@@ -6,6 +6,7 @@ on:
       - assets/**
       - build_site.py
       - feeds.py
+      - article_photo.py
       - requirements.txt
       - .github/workflows/pages.yml
   workflow_dispatch:

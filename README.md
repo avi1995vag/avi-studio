@@ -15,6 +15,10 @@ AvI Studio is an editorial workspace for 4:5 carousels and single posters. GitHu
 
 Open **Single poster → Edit Poster → Poster image → Use article photo**. The studio first looks for an exact feed match and then checks the article's public share image if the publisher allows browser access. **Import image** accepts a direct image URL. Stock search uses a separate Pexels key.
 
+Automatic selection first tries the original publisher photo. A Serper key in **Integrations** enables exact-source matching and selectable Google Images results. Without a key, **Open Google Images** still opens the query, and the studio can automatically attach a relevant public-domain or CC0 Wikimedia Commons photo with its source link. Related images are identified separately from publisher photos.
+
+The scheduled feed build adds public share metadata for a bounded set of recent publisher articles. The browser can also use an accessible publisher excerpt or, with Serper configured, an indexed excerpt that matches the exact article URL when Gemini cannot open the page.
+
 For a publisher that blocks browser use, use **Open publisher photo** to save and upload the file, or choose **Download via workflow → Run workflow** and paste the public article URL. Download the `article-photo` artifact, extract `article-photo.jpg`, and use **Upload image**. The workflow supports the publishers listed in `article_photo.py` and needs repository write access to run. The artifact also includes the source and photo URLs.
 
 ## GitHub setup

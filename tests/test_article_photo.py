@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from article_photo import PUBLISHERS, SharePhoto, save_article_photo, validate_url
+from article_photo import PUBLISHERS, SharePhoto, enrich_feed_metadata, save_article_photo, validate_url
 
 
 class ArticlePhotoTests(unittest.TestCase):
@@ -27,6 +27,20 @@ class ArticlePhotoTests(unittest.TestCase):
                      'http://indiatoday.in/path', 'https://indiatoday.in:444/path', 'https://127.0.0.1/path'):
             with self.subTest(link=link), self.assertRaises(ValueError):
                 validate_url(link, PUBLISHERS)
+
+    def test_feed_enrichment_keeps_existing_photo_and_ignores_unknown_publishers(self):
+        good = {'link':'https://indiatoday.in/story/1','description':'Short','extractedImage':''}
+        existing = {'link':'https://indiatoday.in/story/2','description':'Short','extractedImage':'https://example.com/existing.jpg'}
+        unknown = {'link':'https://example.com/story','description':'Short','extractedImage':''}
+        snapshot = {'feeds': {'fixture':[good,existing,unknown]}}
+        excerpt = 'An exact publisher excerpt contains enough words for an editor to write a useful short poster.'
+        photo = 'https://images.indiatoday.in/photo.jpg'
+        with patch('article_photo.public_article_metadata', return_value=(excerpt,[photo])) as read:
+            enrich_feed_metadata(snapshot)
+        self.assertEqual(read.call_count, 2)
+        self.assertEqual((good['description'],good['extractedImage']), (excerpt,photo))
+        self.assertEqual(existing['extractedImage'], 'https://example.com/existing.jpg')
+        self.assertEqual(unknown['extractedImage'], '')
 
     def test_workflow_writes_decoded_jpeg_with_attribution(self):
         article = 'https://www.indiatoday.in/world/story'

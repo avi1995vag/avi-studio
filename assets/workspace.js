@@ -26,7 +26,7 @@ function activateDraft(mode) {
   const link = document.getElementById('draftSource');
   const check = document.getElementById('approvePosterSource');
   const labels = {article:'Publisher article read',feed:'Matching feed excerpt',excerpt:'Your pasted excerpt',
-    'link-draft':'Headline only · source review required',checked:'Source checked by you'};
+    'link-draft':'Headline only · source review required',checked:'Source checked by you','publisher-excerpt':'Publisher excerpt','google-excerpt':'Google excerpt for the same article'};
   document.getElementById('draftSourcePanel').hidden = !href;
   document.getElementById('draftSourceLabel').textContent = labels[source?.kind] || 'Original source';
   link.hidden = !href;
@@ -38,7 +38,7 @@ function activateDraft(mode) {
 function normalizedFrame(frame) {
   if(!frame || typeof frame !== 'object') throw new Error('Draft contains an invalid frame.');
   const clean = {layout: frameLayouts.has(frame.layout) ? frame.layout : 'minimal'};
-  for(const field of ['title','body','imageQuery','category','ticker','location','source','articleUrl','_lang']){
+  for(const field of ['title','body','imageQuery','category','ticker','location','source','articleUrl','_lang','photoSource','photoLabel']){
     if(typeof frame[field] === 'string') clean[field] = frame[field].slice(0, 4000);
   }
   clean.title ??= '';
@@ -106,7 +106,7 @@ async function hydrateDraft(draft) {
   draftCaptions[kind] = draft.caption.slice(0, 12000);
   const source = draft.source;
   const link = safeWebUrl(source?.link);
-  const kindOfSource = ['article','feed','excerpt','link-draft','checked'].includes(source?.kind) ? source.kind : '';
+  const kindOfSource = ['article','feed','excerpt','link-draft','checked','publisher-excerpt','google-excerpt'].includes(source?.kind) ? source.kind : '';
   draftSources[kind] = link ? {link,kind:kindOfSource,name:typeof source.name==='string' ? source.name.slice(0,120) : ''} : null;
   if(kind === draftKind) document.getElementById('caption').value = draftCaptions[kind];
   if(kind === 'poster') {
@@ -115,7 +115,7 @@ async function hydrateDraft(draft) {
     document.getElementById('posterLang').value = lang;
     if(posterSlide){
       resetPosterPhoto();
-      if(images[0]) applyPosterPhoto(images[0],'Image restored with the draft.',posterPhotoAttempt);
+      if(images[0]) applyPosterPhoto(images[0],posterSlide.photoLabel || 'Image restored with the draft.',posterPhotoAttempt,posterSlide.photoSource);
       else drawSlideOnCanvas(document.getElementById('posterCanvas'), posterSlide, 0, lang);
       openPosterEditor();
     }
@@ -386,6 +386,9 @@ async function configureWorkflowLinks() {
 async function initWorkspace() {
   initializeCreativeTools();
   loadSettings();
+  const autoPhoto = document.getElementById('posterAutoPhoto');
+  autoPhoto.checked = lsGet('app_posterAutoPhoto')!=='false';
+  autoPhoto.onchange = () => lsSet('app_posterAutoPhoto',String(autoPhoto.checked));
   for(const [id,options] of [['posterExportSize',['portrait','square','story']],['posterExportFormat',['jpeg','png']]]){
     const field = document.getElementById(id);
     const saved = lsGet('app_' + id);

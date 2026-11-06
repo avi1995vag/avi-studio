@@ -38,6 +38,11 @@
     <p class="helper">Keys entered here stay in this tab. Use the Automation workspace to manage scheduled publishing.</p>
   <div class="sec">🔑 API Keys & Integrations</div>
   <div class="field">
+    <label for="serperKey">Google Images API key (Serper)</label>
+    <input id="serperKey" type="password" autocomplete="off" placeholder="Optional · paste Serper API key">
+    <p class="helper">Enables Google results inside the studio. <a href="https://serper.dev/" target="_blank" rel="noopener noreferrer">Get a Serper key ↗</a></p>
+  </div>
+  <div class="field">
     <label for="pexelsKey">Pexels API Key</label>
     <input id="pexelsKey" type="password" placeholder="Paste Pexels API Key...">
   </div>
@@ -198,7 +203,7 @@
       </div>
       <div class="field" style="margin-top:8px;"><label for="aiVisualStyle">Carousel Visual Style</label>
         <select id="aiVisualStyle">
-          <option value="ai" selected>Pexels illustrations when available</option>
+          <option value="ai" selected>Automatic photos (Commons, then Pexels)</option>
           <option value="none">Typography only</option>
         </select>
       </div>
@@ -410,9 +415,17 @@
           <button class="btn-sm" onclick="clearPosterImage()">Clear</button>
           <input type="file" id="posterImgUpload" accept="image/*" hidden>
         </div>
+        <div class="photo-actions photo-search-options">
+          <label><input id="posterAutoPhoto" type="checkbox" checked> Auto-fill photo after generation</label>
+          <button class="btn-sm" onclick="autoFillPosterPhoto()">Find photo automatically</button>
+          <button class="btn-sm" onclick="searchGooglePosterPhotos()">Find Google images</button>
+          <a id="openGoogleImages" class="action-link" href="https://www.google.com/imghp" target="_blank" rel="noopener noreferrer">Open Google Images ↗</a>
+        </div>
+        <div id="googleImageResults" class="google-image-results" hidden></div>
         <div class="photo-result">
           <img id="posterImgPreview" class="preview-img" alt="Current poster image" hidden>
           <p id="posterPhotoStatus" class="helper" role="status">Add the source photo or upload an image file.</p>
+          <a id="posterPhotoCredit" class="helper" target="_blank" rel="noopener noreferrer" hidden>Photo source ↗</a>
         </div>
         <div id="posterPhotoRecovery" class="photo-actions" hidden>
           <a id="openPosterPhoto" class="action-link" target="_blank" rel="noopener noreferrer" hidden>Open publisher photo ↗</a>
@@ -427,7 +440,7 @@
           </div>
         </div>
         <div class="field">
-          <label for="posterEditImgQuery">Stock photo search · Pexels</label>
+          <label for="posterEditImgQuery">Photo search terms</label>
           <div class="row">
             <div class="field"><input id="posterEditImgQuery" placeholder="e.g. city skyline"></div>
             <button class="btn-sm" onclick="refreshPosterImage()">Search stock photos</button>
@@ -655,6 +668,7 @@
 </div>
 
 <script src="./assets/creative.js"></script>
+<script src="./assets/photo-search.js"></script>
 <script src="./assets/studio.js"></script>
 <script src="./assets/workspace.js"></script>
 </body>

@@ -235,3 +235,10 @@ canvas.preview.selected { border-color: #77a868; outline: 2px solid var(--accent
 .photo-result .helper { flex: 1; }
 .photo-result .helper[data-warning=true] { color: var(--accent4); }
 .poster-image-tools .field { margin-top: 8px; }
+
+.photo-search-options { margin-top: 10px; }
+.photo-search-options label { margin: 0; display: inline-flex; align-items: center; gap: 6px; }
+.google-image-results { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 8px; margin-top: 10px; }
+.google-image-result { display: grid; gap: 5px; border: 1px solid var(--border); border-radius: var(--r); padding: 6px; min-width: 0; }
+.google-image-result img { width: 100%; height: 90px; object-fit: cover; display: block; border-radius: 5px; margin-bottom: 4px; }
+.google-image-result span { display: block; font-size: 12px; overflow-wrap: anywhere; }
