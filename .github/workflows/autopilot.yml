@@ -1,0 +1,117 @@
+name: AvI Autopilot
+on:
+  schedule:
+    - cron: '17 8 * * *'
+      timezone: Asia/Kolkata
+    - cron: '23 13 * * *'
+      timezone: Asia/Kolkata
+    - cron: '37 19 * * *'
+      timezone: Asia/Kolkata
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Prepare a sample, draft from a real feed, or publish to Instagram
+        type: choice
+        options: [sample, draft, publish]
+        default: sample
+      category:
+        description: News feed
+        type: choice
+        options: [INDIA, KARNATAKA, BENGALURU, BUSINESS, SPORTS, AI, GLOBAL, US, KANNADA_KARNATAKA, KANNADA_BENGALURU, PRAJAVANI, KANNADAPRABHA, TV9_KANNADA, VIJAY_KARNATAKA, ET_KANNADA, POLITICS]
+        default: INDIA
+      language:
+        description: Output language
+        type: choice
+        options: [English, Kannada]
+        default: English
+      theme:
+        description: Carousel palette
+        type: choice
+        options: [ink, paper, signal]
+        default: ink
+      slides:
+        description: Number of slides (2–10)
+        type: number
+        default: 5
+
+permissions: {}
+
+concurrency:
+  group: avi-autopilot
+  cancel-in-progress: false
+
+jobs:
+  run:
+    if: >-
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      (github.event_name == 'workflow_dispatch' ||
+       vars.AUTOPILOT_SCHEDULE == 'draft' || vars.AUTOPILOT_SCHEDULE == 'publish')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install runtime and fonts
+        run: |
+          python -m pip install -r requirements.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-dejavu-core fonts-noto-core libraqm0
+      - name: Run the pipeline
+        env:
+          RUN_MODE: ${{ inputs.mode }}
+          CATEGORY: ${{ inputs.category }}
+          LANGUAGE: ${{ inputs.language }}
+          THEME: ${{ inputs.theme }}
+          SLIDES: ${{ inputs.slides }}
+          SCHEDULE: ${{ github.event.schedule }}
+          AUTOPILOT_SCHEDULE: ${{ vars.AUTOPILOT_SCHEDULE }}
+          PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_BUSINESS_ID: ${{ secrets.INSTAGRAM_BUSINESS_ID }}
+          META_API_VERSION: ${{ vars.META_API_VERSION }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == schedule ]]; then
+            RUN_MODE="$AUTOPILOT_SCHEDULE"
+            case "$SCHEDULE" in
+              '17 8 * * *') CATEGORY=INDIA; LANGUAGE=English ;;
+              '23 13 * * *') CATEGORY=KANNADA_KARNATAKA; LANGUAGE=Kannada ;;
+              '37 19 * * *') CATEGORY=GLOBAL; LANGUAGE=English ;;
+              *) echo "Unknown schedule"; exit 1 ;;
+            esac
+          fi
+          args=(--category "${CATEGORY:-INDIA}" --language "${LANGUAGE:-English}" --theme "${THEME:-ink}" --slides "${SLIDES:-5}")
+          case "$RUN_MODE" in
+            sample) args+=(--sample) ;;
+            draft) ;;
+            publish)
+              if [[ "$PUBLISH_ENABLED" != true ]]; then
+                echo 'Set the repository variable PUBLISH_ENABLED=true to enable live Instagram publishing.'
+                exit 1
+              fi
+              args+=(--publish)
+              ;;
+            *) echo "Unknown run mode"; exit 1 ;;
+          esac
+          python main.py "${args[@]}"
+      - name: Save slides, caption, and editable draft
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: avi-draft-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/
+          if-no-files-found: ignore
+          retention-days: 14

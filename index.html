@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AvI Studio | Editorial workspace</title>
+<meta name="theme-color" content="#f6f5ef">
+<meta name="description" content="Create, edit and publish editorial carousels and single posters.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/studio.css">
+</head>
+<body>
+
+<a class="skip-link" href="#workspace">Skip to workspace</a>
+<div id="protocolWarning" role="status">Open the studio through GitHub Pages or a local HTTP server to load its data files.</div>
+<div class="dashboard">
+<header class="topbar">
+  <div class="logo"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 23 15.9 7 25 23h-4.7l-4.4-8.5-4.3 8.5z"/><path d="M13.7 23h4.6v-4h-4.6z"/></svg></span> AvI <span>Studio</span></div>
+  <span class="header-division" aria-hidden="true"></span><span class="top-context">EDITORIAL WORKSPACE</span>
+  <div class="spacer"></div>
+  <div class="status-pill" role="status"><span class="s-dot"></span><span id="sysStatus">READY</span></div>
+  <button class="btn-sm header-button" onclick="switchMode('scheduler')">GitHub Actions <span aria-hidden="true">↗</span></button>
+</header>
+<aside class="col sidebar" aria-label="Workspace navigation and settings">
+  <div class="sec sidebar-label">Workspace</div>
+  <nav class="tabs" aria-label="Workspace tools">
+<button class="tab-btn active" data-mode="carousel" aria-pressed="true" onclick="switchMode('carousel')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="11" height="14" rx="2"/><path d="M17 7h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1"/></svg>Carousel</button>
+<button class="tab-btn" data-mode="news" aria-pressed="false" onclick="switchMode('news')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>News desk</button>
+<button class="tab-btn" data-mode="breaking" aria-pressed="false" onclick="switchMode('breaking')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-12h-7z"/></svg>Breaking</button>
+<button class="tab-btn" data-mode="poster" aria-pressed="false" onclick="switchMode('poster')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 16-5-5-8 10"/></svg>Single poster</button>
+<button class="tab-btn" data-mode="scheduler" aria-pressed="false" onclick="switchMode('scheduler')"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Automation</button>
+  </nav>
+  <div class="sec sidebar-label settings-label">Preferences</div>
+  <details class="settings-block" id="integrationSettings">
+    <summary>Integrations</summary>
+    <p class="helper">Keys entered here stay in this tab. Configure unattended publishing in GitHub.</p>
+  <div class="sec">🔑 API Keys & Integrations</div>
+  <div class="field">
+    <label for="pexelsKey">Pexels API Key</label>
+    <input id="pexelsKey" type="password" placeholder="Paste Pexels API Key...">
+  </div>
+  <div class="field">
+    <label for="geminiKey">Gemini API Key</label>
+    <input id="geminiKey" type="password" placeholder="AIzaSy…">
+    <div class="rt-notice" style="margin-top:5px;">Required for AI generation.</div>
+  </div>
+  <hr>
+  <div class="sec">📘 Meta / Facebook Direct Post</div>
+  <div class="field">
+    <label>Meta Access Token</label>
+    <div class="row">
+      <div class="field" style="margin:0;"><input id="accessToken" type="password" placeholder="EAAi… long-lived token"></div>
+      <button class="btn-sm btn-p" onclick="verifyToken()">AUTH</button>
+    </div>
+  </div>
+  <div class="field"><label for="userId">Instagram Business ID</label><input id="userId" type="text" placeholder="Auto-filled after AUTH…"></div>
+  <div class="row">
+    <div class="field"><label for="cloudName">Cloud Name</label><input id="cloudName" placeholder="my-cloud"></div>
+    <div class="field"><label for="uploadPreset">Upload Preset</label><input id="uploadPreset" placeholder="preset"></div>
+  </div>
+
+  <hr>
+  <div class="sec">📡 Zernio Integration</div>
+  <div class="field">
+    <label>Zernio API Key</label>
+    <div class="row">
+      <div class="field" style="margin:0;"><input id="zernioApiKey" type="password" placeholder="Bearer Key..."></div>
+      <button class="btn-sm btn-p" onclick="fetchZernioProfiles()">Fetch Accounts</button>
+    </div>
+  </div>
+  <div class="field">
+    <label>Target Social Platforms</label>
+    <div id="zernioProfilesList" style="font-size:11px; color:var(--muted2); max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding:4px; border:1px solid var(--border); border-radius:6px; background:var(--bg3);">
+      [ Click "Fetch Accounts" to view linked profiles ]
+    </div>
+  </div>
+
+  </details>
+  <details class="settings-block">
+  <summary>Brand & layouts</summary>
+  <div class="field">
+    <label for="defaultCoverLayout">Default Cover Layout (Slide 1)</label>
+    <select id="defaultCoverLayout" onchange="saveDefaultLayouts()">
+      <option value="brief">AvI Brief</option>
+      <option value="cover">Cover (Gradient & Background Image)</option>
+      <option value="magazine">Magazine (Top Image, Bottom Text)</option>
+      <option value="split">Split (Left Text, Right Image)</option>
+      <option value="text-focus">Glass (Glass Panel Overlay)</option>
+      <option value="news-card">News Card (Modern Press Card)</option>
+      <option value="minimal">Minimal (High-Contrast Text)</option>
+      <option value="tweet">Quote Card (Tweet layout)</option>
+      <option value="hero-split">Hero Split (Left Card, Right Image)</option>
+      <option value="minimal-quote">Minimal Quote (Quotation marks)</option>
+      <option value="dateline">Dateline Banner (Red bar + date strip)</option>
+      <option value="spotlight">Spotlight (Person/Subject focus)</option>
+      <option value="world-update">World Update (Dark navy global)</option>
+      <option value="breaking-banner">Breaking Banner (Bold red alert)</option>
+      <option value="editorial">Editorial (Newspaper two-panel grid)</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="defaultInnerLayout">Default Inner Layouts</label>
+    <select id="defaultInnerLayout" onchange="saveDefaultLayouts()">
+      <option value="news-card" selected>News Card (Modern Press Card)</option>
+      <option value="split">Split (Left Text, Right Image)</option>
+      <option value="text-focus">Glass (Glass Panel Overlay)</option>
+      <option value="minimal">Minimal (High-Contrast Text)</option>
+      <option value="magazine">Magazine (Top Image, Bottom Text)</option>
+      <option value="tweet">Quote Card (Tweet layout)</option>
+      <option value="stats">Stats (Horizontal bars)</option>
+      <option value="timeline">Timeline (Vertical path)</option>
+      <option value="chart-bar">Bar Chart (Numerical values)</option>
+      <option value="hero-split">Hero Split (Left Card, Right Image)</option>
+      <option value="minimal-quote">Minimal Quote (Quotation marks)</option>
+      <option value="dateline">Dateline Banner (Red bar + date strip)</option>
+      <option value="spotlight">Spotlight (Person/Subject focus)</option>
+      <option value="world-update">World Update (Dark navy global)</option>
+      <option value="breaking-banner">Breaking Banner (Bold red alert)</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Author Avatar</label>
+    <div class="upload-row">
+      <img id="avatarPreview" class="preview-img round" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
+      <button class="btn-sm" onclick="document.getElementById('avatarUpload').click()" style="flex:1;">📎 Upload Avatar</button>
+      <input type="file" id="avatarUpload" accept="image/*" style="display:none;">
+    </div>
+  </div>
+  <div class="field"><label for="handleText">Handle / Username</label><input id="handleText" placeholder="@yourhandle"></div>
+
+  <hr>
+  <div class="sec">🌈 Themes</div>
+  <div class="theme-grid" id="themeGrid">
+    <button class="theme-chip active" data-theme="ink" onclick="setTheme('ink')" aria-pressed="true" style="background:#151b1a;color:#e0f39c;">Ink</button>
+    <button class="theme-chip" data-theme="paper" onclick="setTheme('paper')" aria-pressed="false" style="background:#f7f3e8;color:#146048;">Paper</button>
+    <button class="theme-chip" data-theme="signal" onclick="setTheme('signal')" aria-pressed="false" style="background:#211a27;color:#ffd0ad;">Signal</button>
+    <button class="theme-chip" data-theme="dark" onclick="setTheme('dark')" style="background:#0f0f14;color:#5865f2;" aria-pressed="false">🌙 Dark</button>
+    <button class="theme-chip" data-theme="light" onclick="setTheme('light')" style="background:#f8fafc;color:#0284c7;" aria-pressed="false">☀️ Light</button>
+    <button class="theme-chip" data-theme="cyber" onclick="setTheme('cyber')" style="background:#050505;color:#39ff14;" aria-pressed="false">⚡ Cyber</button>
+    <button class="theme-chip" data-theme="neon" onclick="setTheme('neon')" style="background:#130026;color:#b026ff;" aria-pressed="false">🟣 Neon</button>
+    <button class="theme-chip" data-theme="sunset" onclick="setTheme('sunset')" style="background:#2a0800;color:#ff5e00;" aria-pressed="false">🌇 Sunset</button>
+    <button class="theme-chip" data-theme="elegant" onclick="setTheme('elegant')" style="background:#1c1b18;color:#d4af37;" aria-pressed="false">✨ Gold</button>
+    <button class="theme-chip" data-theme="ocean" onclick="setTheme('ocean')" style="background:#001f3f;color:#39cccc;" aria-pressed="false">🌊 Ocean</button>
+    <button class="theme-chip" data-theme="forest" onclick="setTheme('forest')" style="background:#0b2b1a;color:#4ade80;" aria-pressed="false">🌲 Forest</button>
+    <button class="theme-chip" data-theme="synthwave" onclick="setTheme('synthwave')" style="background:#2b0042;color:#ff007f;" aria-pressed="false">📻 Synth</button>
+    <button class="theme-chip" data-theme="newspaper" onclick="setTheme('newspaper')" style="background:#fafaf5;color:#c41e3a;" aria-pressed="false">📰 Press</button>
+  </div>
+
+  <hr>
+  <div class="sec">Default Text Sizes</div>
+  <div class="config-card">
+    <div class="config-card-title"><span></span>Applied to all new slides & posters</div>
+    <div class="field">
+      <label for="globalTitleSize">Default Title Size <span class="size-badge" id="titleSizeBadge">1.0×</span></label>
+      <input type="range" id="globalTitleSize" min="0.6" max="1.8" step="0.05" value="1.0"
+        oninput="defaultTitleSize=parseFloat(this.value);document.getElementById('titleSizeBadge').textContent=parseFloat(this.value).toFixed(2)+'×'">
+    </div>
+    <div class="field">
+      <label for="globalBodySize">Default Body Size <span class="size-badge" id="bodySizeBadge">1.0×</span></label>
+      <input type="range" id="globalBodySize" min="0.6" max="1.8" step="0.05" value="1.0"
+        oninput="defaultBodySize=parseFloat(this.value);document.getElementById('bodySizeBadge').textContent=parseFloat(this.value).toFixed(2)+'×'">
+    </div>
+  </div>
+  <button onclick="saveSettings()" class="btn-p" style="margin-top:10px;">Save preferences</button>
+  </details>
+  <div class="sidebar-note"><span class="s-dot"></span><span>GitHub Pages studio</span></div>
+</aside>
+
+<main class="col col-mid" id="workspace" tabindex="-1">
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow" id="workspaceKicker">01 / CREATE</p>
+      <h1 id="workspaceTitle">Carousel Studio</h1>
+      <p id="workspaceSubtitle">Turn one idea into an editorial carousel, then refine each frame before you publish.</p>
+    </div>
+    <svg class="hero-art" viewBox="0 0 300 168" fill="none" aria-hidden="true">
+      <path d="M11 30H289M11 84H289M11 138H289M46 10V158M102 10V158M158 10V158M214 10V158M270 10V158" stroke="#587063" stroke-opacity=".34"/>
+      <g transform="rotate(13 197 92)"><rect x="156" y="36" width="82" height="112" rx="5" fill="#749989" stroke="#a8c4ad"/><path d="M170 56h53M170 112h45M170 121h34" stroke="#243f36" stroke-width="2"/></g>
+      <g transform="rotate(-11 133 84)"><rect x="92" y="22" width="87" height="124" rx="5" fill="#e1ecad"/><path d="M105 41h45M105 115h58M105 124h41" stroke="#244136" stroke-width="2"/><circle cx="136" cy="78" r="22" stroke="#244136"/><ellipse cx="136" cy="78" rx="22" ry="10" stroke="#244136"/><ellipse cx="136" cy="78" rx="10" ry="22" stroke="#244136"/><circle cx="136" cy="78" r="4" fill="#244136"/></g>
+      <circle cx="53" cy="110" r="4" fill="#dce99a"/><path d="M248 43h12m-6-6v12" stroke="#dce99a"/>
+    </svg>
+  </section>
+
+  <!-- CAROUSEL PANEL -->
+  <div id="carouselPanel" class="panel active">
+    <div class="mode-badge"><div class="mb-dot" style="background:var(--accent)"></div>Composition</div>
+    <div class="gen-area">
+      <div class="field"><label for="aiTopic">Topic / Idea</label><input id="aiTopic" placeholder="e.g. 5 psychological hacks for productivity"></div>
+      <div class="row">
+        <div class="field"><label for="aiLanguage">Language</label>
+          <select id="aiLanguage"><option value="English">English</option><option value="Kannada">Kannada (ಕನ್ನಡ)</option></select>
+        </div>
+        <div class="field"><label for="slideCount">Slides</label>
+          <select id="slideCount"><option value="5">5</option><option value="7" selected>7</option><option value="10">10</option></select>
+        </div>
+      </div>
+      <div class="field" style="margin-top:8px;"><label for="aiVisualStyle">Carousel Visual Style</label>
+        <select id="aiVisualStyle">
+          <option value="ai" selected>Pexels illustrations when available</option>
+          <option value="none">Typography only</option>
+        </select>
+      </div>
+      <div class="compose-actions">
+        <button id="aiBtn" class="btn-p" onclick="generateAI()">Generate carousel</button>
+        <button id="testBtn" onclick="generateTestCarousel()">Load sample</button>
+        <button onclick="addBlankSlide()">Add blank slide</button>
+      </div>
+    </div>
+    <div class="section-heading"><h2>Frames</h2><span>1080 × 1350 / 4:5</span></div>
+    <div class="slides-grid" id="slidesGrid"></div>
+  </div>
+
+  <!-- NEWS PANEL -->
+  <div id="newsPanel" class="panel">
+    <div class="mode-badge"><div class="mb-dot" style="background:var(--accent2)"></div>Feed catalog</div>
+    <div class="gen-area">
+      <div class="row">
+        <div class="field"><label for="newsFeedSelect">Region / Topic</label>
+          <select id="newsFeedSelect" onchange="latestNews=[];renderNewsResults([]);document.getElementById('feedStatus').textContent='';">
+            <option value="INDIA">🇮🇳 India Top News</option>
+            <option value="KARNATAKA">🟡🔴 Karnataka</option>
+            <option value="BENGALURU">🏙️ Bengaluru</option>
+            <option value="POLITICS">⚖️ Indian Politics</option>
+            <option value="BUSINESS">📈 Business</option>
+            <option value="SPORTS">🏏 Sports</option>
+            <option value="AI">🤖 AI & Tech</option>
+            <option value="GLOBAL">🌍 Global</option>
+            <option value="US">🇺🇸 US News</option>
+            <optgroup label="── ಕನ್ನಡ ──">
+              <option value="KANNADA_KARNATAKA">🟡🔴 ಕರ್ನಾಟಕ ಸುದ್ದಿ (Kannada)</option>
+              <option value="KANNADA_BENGALURU">🏙️ ಬೆಂಗಳೂರು ಸುದ್ದಿ</option>
+              <option value="PRAJAVANI">📰 ಪ್ರಜಾವಾಣಿ</option>
+              <option value="KANNADAPRABHA">📰 ಕನ್ನಡಪ್ರಭ</option>
+              <option value="TV9_KANNADA">📺 TV9 ಕನ್ನಡ</option>
+              <option value="VIJAY_KARNATAKA">📰 ವಿಜಯ ಕರ್ನಾಟಕ</option>
+              <option value="ET_KANNADA">📊 ET ಕನ್ನಡ</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field"><label for="newsLangSelect">Language</label>
+          <select id="newsLangSelect"><option value="English">English</option><option value="Kannada">Kannada (ಕನ್ನಡ)</option></select>
+        </div>
+        <button class="btn-sm btn-p" onclick="fetchLiveNews()" style="margin-bottom:0;">🔍 Fetch</button>
+      </div>
+      <div style="margin-top:9px;">
+        <button class="btn-p" onclick="generateTop10NewsCarousel()">🔥 Auto-Build Top 10 News Carousel</button>
+      </div>
+      <div style="margin-top:7px;font-size:10px;color:var(--muted2);font-family:var(--font-mono);background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;">💡 Click any generated slide to set a custom image via Upload/URL</div>
+    </div>
+    <p class="helper" id="feedStatus" aria-live="polite"></p>
+    <div class="slides-grid" id="newsSlidesGrid"></div>
+    <div id="newsResults"></div>
+  </div>
+
+  <!-- BREAKING PANEL -->
+  <div id="breakingPanel" class="panel">
+    <div class="mode-badge"><div class="mb-dot" style="background:var(--accent4);animation:blink .8s infinite;"></div>Breaking News Deep-Dive</div>
+    <div class="rt-notice">Uses Gemini Search grounding</div>
+    <div class="gen-area">
+      <div class="field"><label for="breakingTopic">Breaking News Topic</label><input id="breakingTopic" placeholder="e.g. India Budget 2025, IPL Final…"></div>
+      <div class="row">
+        <div class="field"><label for="breakingLang">Language</label>
+          <select id="breakingLang"><option value="English">English</option><option value="Kannada">Kannada (ಕನ್ನಡ)</option></select>
+        </div>
+        <div class="field"><label for="breakingAngle">Angle</label>
+          <select id="breakingAngle">
+            <option value="EXPLAINER">📖 Full Explainer</option>
+            <option value="TIMELINE">⏱️ Timeline</option>
+            <option value="IMPACT">💥 Impact Analysis</option>
+            <option value="REACTIONS">💬 Reactions</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-d" onclick="generateBreakingCarousel()">🔴 Generate Breaking Carousel</button>
+      <div style="margin-top:7px;font-size:10px;color:var(--muted2);font-family:var(--font-mono);background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;">💡 Click any generated slide to override its image via file or URL</div>
+    </div>
+    <div id="breakingPlaceholder" style="color:var(--muted);text-align:center;margin-top:40px;font-size:12px;font-family:var(--font-mono);">[ Enter topic above ]</div>
+    <div class="slides-grid" id="breakingSlidesGrid"></div>
+  </div>
+
+  <!-- POSTER PANEL -->
+  <div id="posterPanel" class="panel">
+    <div class="mode-badge"><div class="mb-dot" style="background:var(--accent3)"></div>Single Poster Generator</div>
+    <div class="gen-area">
+      <div class="field">
+        <label for="posterInput">Topic / Text / URL</label>
+        <textarea id="posterInput" rows="3" placeholder="Paste an article URL, headline, or source notes…"></textarea>
+      </div>
+      <div class="row">
+        <div class="field"><label for="posterLang">Language</label>
+          <select id="posterLang"><option value="English">English</option><option value="Kannada">Kannada (ಕನ್ನಡ)</option><option value="Bilingual">Bilingual (EN + KN)</option></select>
+        </div>
+        <div class="field"><label for="posterType">Poster Type</label>
+          <select id="posterType">
+            <option value="news">📰 News Announcement</option>
+            <option value="breaking">🔴 Breaking Alert</option>
+            <option value="quote">💬 Quote Card</option>
+            <option value="stats">📊 Stats Highlight</option>
+            <option value="promo">🎯 Promo / Event</option>
+            <option value="explainer">🔍 Explainer</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label for="posterLayout">Poster Layout</label>
+        <select id="posterLayout">
+          <optgroup label="── News Layouts ──">
+            <option value="news-card">📰 News Card</option>
+            <option value="breaking-banner">🔴 Breaking Banner</option>
+            <option value="dateline">📅 Dateline Banner</option>
+            <option value="editorial">📋 Editorial (Two-panel)</option>
+            <option value="magazine">🗞️ Magazine</option>
+            <option value="spotlight">🔦 Spotlight</option>
+            <option value="world-update">🌍 World Update</option>
+          </optgroup>
+          <optgroup label="── Creative Layouts ──">
+            <option value="brief">AvI Brief</option>
+            <option value="cover">🖼️ Cover (Full Bleed)</option>
+            <option value="split">↔️ Split</option>
+            <option value="hero-split">🃏 Hero Split</option>
+            <option value="text-focus">🔮 Glass Overlay</option>
+            <option value="minimal">⬛ Minimal</option>
+            <option value="tweet">💬 Quote Card</option>
+            <option value="minimal-quote">❝ Minimal Quote</option>
+          </optgroup>
+          <optgroup label="── Data Layouts ──">
+            <option value="stats">📊 Stats Bars</option>
+            <option value="chart-bar">📈 Bar Chart</option>
+            <option value="timeline">⏱️ Timeline</option>
+          </optgroup>
+        </select>
+      </div>
+      <button class="btn-p" onclick="generateSinglePoster()">Generate poster</button>
+      <button onclick="createBlankPoster()" style="margin-top:8px;">Start with a blank poster</button>
+      <button style="margin-top:7px;background:var(--bg3);border-color:var(--border);color:var(--text);" onclick="downloadSinglePoster()">⬇ Download Poster (JPG)</button>
+    </div>
+    <div class="poster-canvas-wrap" hidden>
+      <canvas aria-label="Poster preview" id="posterCanvas" width="1080" height="1350"></canvas>
+    </div>
+    <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);text-align:center;margin-top:6px;">1080 × 1350 px — Instagram/Facebook Portrait</div>
+
+    <!-- POSTER EDITOR -->
+    <div id="posterEditor" style="display:none;background:rgba(88,101,242,.04);padding:14px;border:1px solid rgba(88,101,242,.25);border-radius:13px;margin-top:14px;">
+      <div style="font-family:var(--font-head);font-size:12px;font-weight:800;color:var(--accent);margin-bottom:11px;">✏️ Edit Poster</div>
+      <div class="field"><label for="posterEditLayout">🎨 Switch Layout</label>
+        <select id="posterEditLayout" onchange="switchPosterLayout(this.value)">
+          <optgroup label="── News Layouts ──">
+            <option value="news-card">📰 News Card</option>
+            <option value="breaking-banner">🔴 Breaking Banner</option>
+            <option value="dateline">📅 Dateline Banner</option>
+            <option value="editorial">📋 Editorial (Two-panel)</option>
+            <option value="magazine">🗞️ Magazine</option>
+            <option value="spotlight">🔦 Spotlight</option>
+            <option value="world-update">🌍 World Update</option>
+          </optgroup>
+          <optgroup label="── Creative Layouts ──">
+            <option value="brief">AvI Brief</option>
+            <option value="cover">🖼️ Cover (Full Bleed)</option>
+            <option value="split">↔️ Split</option>
+            <option value="hero-split">🃏 Hero Split</option>
+            <option value="text-focus">🔮 Glass Overlay</option>
+            <option value="minimal">⬛ Minimal</option>
+            <option value="tweet">💬 Quote Card</option>
+            <option value="minimal-quote">❝ Minimal Quote</option>
+          </optgroup>
+          <optgroup label="── Data Layouts ──">
+            <option value="stats">📊 Stats Bars</option>
+            <option value="chart-bar">📈 Bar Chart</option>
+            <option value="timeline">⏱️ Timeline</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field"><label for="posterEditTitle">Title</label><input id="posterEditTitle" oninput="applyPosterEdit('title',this.value)"></div>
+      <div class="field"><label for="posterEditBody">Body Text</label><textarea id="posterEditBody" rows="3" oninput="applyPosterEdit('body',this.value)"></textarea></div>
+      <div class="row" style="margin-top:6px;">
+        <div class="field"><label for="posterEditTitleColor">Title Color</label><input type="color" id="posterEditTitleColor" onchange="applyPosterEdit('titleColor',this.value)"></div>
+        <div class="field"><label for="posterEditBodyColor">Body Color</label><input type="color" id="posterEditBodyColor" onchange="applyPosterEdit('bodyColor',this.value)"></div>
+        <div class="field"><label for="posterEditAccentColor">Accent Color</label><input type="color" id="posterEditAccentColor" onchange="applyPosterEdit('accentColor',this.value)"></div>
+      </div>
+      <div class="row" style="margin-top:6px;">
+        <div class="field"><label for="posterEditTitleSize">Title Size</label><input type="range" id="posterEditTitleSize" min="0.5" max="2.0" step="0.05" value="1.0" oninput="applyPosterEdit('titleSize',parseFloat(this.value))"></div>
+        <div class="field"><label for="posterEditBodySize">Body Size</label><input type="range" id="posterEditBodySize" min="0.5" max="2.0" step="0.05" value="1.0" oninput="applyPosterEdit('bodySize',parseFloat(this.value))"></div>
+      </div>
+      <div class="field" style="margin-top:8px;"><label>🔍 Custom Image Search</label>
+        <div class="row">
+          <div class="field" style="margin:0;"><input id="posterEditImgQuery" aria-label="Poster image search" placeholder="e.g. Virat Kohli batting 2025"></div>
+          <button class="btn-sm btn-p" onclick="refreshPosterImage()">↻</button>
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <label style="font-size:11px;color:var(--muted2);font-weight:600;">📁 Upload Custom Image</label>
+        <div class="upload-row" style="margin-top:4px;">
+          <img id="posterImgPreview" class="preview-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="width:44px;height:44px;border-radius:6px;">
+          <button class="btn-sm" onclick="document.getElementById('posterImgUpload').click()" style="flex:1;">📎 Upload Image</button>
+          <input type="file" id="posterImgUpload" accept="image/*" style="display:none;">
+        </div>
+        <button class="btn-sm" style="margin-top:4px;width:100%;background:rgba(255,60,92,.1);border-color:var(--accent2);color:var(--accent2);" onclick="clearPosterImage()">✕ Clear Image</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCHEDULER PANEL -->
+  <div id="schedulerPanel" class="panel">
+    <div class="mode-badge"><span class="mb-dot"></span>GitHub Actions</div>
+    <div class="gen-area automation-card">
+      <div class="section-heading"><h2>Scheduled editions</h2><span id="automationMode">Schedule off</span></div>
+      <p class="helper">Run a sample, prepare a draft from the news, or publish to Instagram from GitHub Actions. The studio can be closed while the workflow runs.</p>
+      <dl class="edition-list">
+        <div><dt>08:17 IST</dt><dd>India brief</dd></div>
+        <div><dt>13:23 IST</dt><dd>Karnataka brief · Kannada</dd></div>
+        <div><dt>19:37 IST</dt><dd>World brief</dd></div>
+      </dl>
+      <div class="action-links">
+        <a class="action-link" id="workflowLink" target="_blank" rel="noopener" hidden>Open workflow ↗</a>
+        <a class="action-link" id="setupLink" target="_blank" rel="noopener" hidden>Setup guide ↗</a>
+      </div>
+      <p class="helper" id="workflowHint">Open this repository’s Actions tab and select AvI Autopilot.</p>
+    </div>
+    <div class="mode-badge"><span class="mb-dot"></span>Personal planner</div>
+    <div class="gen-area">
+      <p class="helper">Keep a list of ideas and preferred times in this browser. Run a slot to prepare content for review.</p>
+      <div id="scheduleSlotsList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px; max-height:350px; overflow-y:auto; padding-right:4px;"></div>
+      
+      <hr>
+      <div class="sec">Add New Scheduled Slot</div>
+      <div class="row" style="flex-wrap:wrap; gap:8px;">
+        <div class="field" style="min-width:110px; flex:1;"><label for="schedTime">Time (HH:MM AM/PM)</label><input id="schedTime" placeholder="06:00 AM"></div>
+        <div class="field" style="min-width:180px; flex:2;"><label for="schedAction">Action Type</label>
+          <select id="schedAction">
+            <option value="MOTIVATIONAL">💡 AI Motivational Carousel</option>
+            <option value="NEWS_INDIA">🇮🇳 Top 10 News (India)</option>
+            <option value="NEWS_KARNATAKA">🟡🔴 Top 10 News (Karnataka)</option>
+            <option value="NEWS_BENGALURU">🏙️ Top 10 News (Bengaluru)</option>
+            <option value="NEWS_WORLD">🌍 Top 10 News (World)</option>
+            <option value="NEWS_BUSINESS">📈 Top 10 News (Business)</option>
+            <option value="NEWS_SPORTS">🏏 Top 10 News (Sports)</option>
+            <option value="NEWS_US">🇺🇸 Top 10 News (US)</option>
+            <option value="EXPLAINER">📖 Deep Explainer</option>
+            <optgroup label="── ಕನ್ನಡ ──">
+              <option value="NEWS_KANNADA_KARNATAKA">🟡🔴 ಕರ್ನಾಟಕ (Kannada)</option>
+              <option value="NEWS_PRAJAVANI">📰 ಪ್ರಜಾವಾಣಿ</option>
+              <option value="NEWS_KANNADAPRABHA">📰 ಕನ್ನಡಪ್ರಭ</option>
+              <option value="NEWS_TV9_KANNADA">📺 TV9 ಕನ್ನಡ</option>
+              <option value="NEWS_VIJAY_KARNATAKA">📰 ವಿಜಯ ಕರ್ನಾಟಕ</option>
+              <option value="NEWS_ET_KANNADA">📊 ET ಕನ್ನಡ</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-top:8px;" id="schedTopicField">
+        <label for="schedTopic">Custom Topic (Only used for Motivational / Explainer slots)</label>
+        <input id="schedTopic" placeholder="e.g. Atomic Habits, Global AI Policy...">
+      </div>
+      <button class="btn-p" onclick="addScheduleSlot()" style="margin-top:8px;">➕ Add to planner</button>
+    </div>
+
+    <!-- MOTIVATIONAL SHEET SECTION -->
+    <div class="sec">💡 Topic library</div>
+    <div class="gen-area">
+      <p style="font-size:11px;color:var(--muted2);margin-bottom:12px;">Pre-defined list of motivational topics. Click "Use" to copy to Generator, or "Run" to trigger immediately.</p>
+      <div style="max-height:300px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; padding:8px; background:var(--bg3); margin-bottom:12px;">
+        <table style="width:100%; border-collapse:collapse; font-size:11px; color:var(--text);" id="motiSheetTable">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border); text-align:left; color:var(--muted2);">
+              <th style="padding:6px;">Topic</th>
+              <th style="padding:6px; text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="motiSheetBody"></tbody>
+        </table>
+      </div>
+      <div class="row">
+        <div class="field"><input id="newMotiTopic" aria-label="New topic" placeholder="Enter custom motivational topic..."></div>
+        <button class="btn-sm btn-p" onclick="addMotiTopic()">Add Topic</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<aside class="col inspector" aria-label="Draft and publishing controls">
+  <div class="inspector-heading">
+    <p class="eyebrow">STUDIO DESK</p>
+    <h2>Draft &amp; delivery</h2>
+    <p class="helper">Review the caption, then export or publish.</p>
+  </div>
+  <div class="draft-actions">
+    <button class="btn-sm" onclick="saveDraftFile()">Export draft</button>
+    <button class="btn-sm" onclick="document.getElementById('draftFile').click()">Import draft</button>
+    <input type="file" id="draftFile" accept=".json,application/json" hidden>
+  </div>
+  <p class="helper draft-state" id="draftState" role="status">Drafts autosave on this device</p>
+  <a id="draftSource" target="_blank" rel="noopener" hidden>Open draft source ↗</a>
+
+  <div class="slide-editor" id="slideEditor">
+    <div style="font-family:var(--font-head);font-size:12px;font-weight:800;color:var(--accent);margin-bottom:11px;" id="editorTitle">Edit Slide</div>
+    <div class="slide-tools">
+      <button class="btn-sm" onclick="editSlideOrder(-1)" aria-label="Move slide earlier">←</button>
+      <button class="btn-sm" onclick="editSlideOrder(1)" aria-label="Move slide later">→</button>
+      <button class="btn-sm" onclick="duplicateSlide()">Duplicate</button>
+      <button class="btn-sm" onclick="removeSlide()">Remove</button>
+    </div>
+    <div class="field"><label for="editTitle">Title</label><input id="editTitle" oninput="applyEdit('title',this.value)"></div>
+    <div class="field"><label for="editBody">Body</label><textarea id="editBody" rows="3" oninput="applyEdit('body',this.value)"></textarea></div>
+    <div class="field"><label for="editLayout">Layout</label>
+      <select id="editLayout" onchange="applyEdit('layout',this.value);document.getElementById('chartEditorPanel').style.display=this.value==='chart-bar'?'block':'none'">
+        <option value="brief">AvI Brief</option>
+        <option value="cover">Cover</option>
+        <option value="cta">Closing / call to action</option>
+        <option value="split">Split</option>
+        <option value="text-focus">Glass</option>
+        <option value="magazine">Magazine</option>
+        <option value="minimal">Minimal</option>
+        <option value="tweet">Quote Card</option>
+        <option value="stats">Stats</option>
+        <option value="timeline">Timeline</option>
+        <option value="news-card">News Card</option>
+        <option value="chart-bar">Bar Chart</option>
+        <option value="hero-split">Hero Split (Left Card, Right Image)</option>
+        <option value="minimal-quote">Minimal Quote (Quotation marks)</option>
+        <option value="dateline">Dateline Banner</option>
+        <option value="spotlight">Spotlight</option>
+        <option value="world-update">World Update</option>
+        <option value="breaking-banner">Breaking Banner</option>
+        <option value="editorial">Editorial (Two-panel grid)</option>
+      </select>
+    </div>
+    
+    <!-- Text Sizing Adjustments -->
+    <div class="row" style="margin-top:8px;">
+      <div class="field"><label for="editTitleSize">Title Size Multiplier</label><input type="range" id="editTitleSize" min="0.5" max="2.0" step="0.1" value="1.0" oninput="applySizeEdit('titleSize', this.value)"></div>
+      <div class="field"><label for="editBodySize">Body Size Multiplier</label><input type="range" id="editBodySize" min="0.5" max="2.0" step="0.1" value="1.0" oninput="applySizeEdit('bodySize', this.value)"></div>
+    </div>
+    
+    <!-- Design & Color Customization -->
+    <div class="row" style="margin-top:8px;">
+      <div class="field"><label for="editTitleColor">Title Color</label><input type="color" id="editTitleColor" onchange="applyColorEdit('titleColor', this.value)"></div>
+      <div class="field"><label for="editBodyColor">Body Color</label><input type="color" id="editBodyColor" onchange="applyColorEdit('bodyColor', this.value)"></div>
+      <div class="field"><label for="editAccentColor">Accent Color</label><input type="color" id="editAccentColor" onchange="applyColorEdit('accentColor', this.value)"></div>
+    </div>
+
+    <div class="field" style="margin-top:10px;">
+      <label>Image Search Term</label>
+      <div class="row">
+        <div class="field" style="margin:0;"><input id="editImgSource"></div>
+        <button class="btn-sm" onclick="forceRefreshImage()">↻</button>
+      </div>
+    </div>
+    <!-- CHART DATA EDITOR -->
+    <div id="chartEditorPanel" style="display:none;margin-top:8px;">
+      <label style="margin-bottom:6px;display:block;">📊 Chart Data (label:value per line)</label>
+      <textarea id="editChartData" rows="5" style="font-family:var(--font-mono);font-size:11px;" placeholder="BJP:140&#10;Congress:99&#10;AAP:22&#10;Others:41" oninput="applyChartEdit(this.value)"></textarea>
+    </div>
+    <!-- IMAGE OVERRIDE -->
+    <div id="imgOverridePanel" style="display:none;margin-top:10px;">
+      <div class="sec" style="margin-bottom:8px;">Custom Image Override</div>
+      <!-- URL input -->
+      <div class="field" style="margin-bottom:6px;">
+        <label>📎 Paste Image URL</label>
+        <div class="row">
+          <div class="field" style="margin:0;"><input id="overrideUrlInput" placeholder="https://example.com/image.jpg" oninput="previewOverrideUrl()"></div>
+          <button class="btn-sm btn-p" onclick="applyUrlOverride()">Use</button>
+        </div>
+      </div>
+      <!-- File upload -->
+      <div class="upload-row" style="margin-bottom:6px;">
+        <img id="overridePreview" class="preview-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="width:44px;height:44px;border-radius:6px;">
+        <div style="flex:1;">
+          <button class="btn-sm" onclick="document.getElementById('overrideFileInput').click()" style="width:100%;margin-bottom:4px;">📁 Upload Image File</button>
+          <div style="font-size:9.5px;color:var(--muted);font-family:var(--font-mono);">JPG, PNG, WebP supported</div>
+        </div>
+        <input type="file" id="overrideFileInput" accept="image/*" style="display:none;">
+      </div>
+      <button class="btn-sm" style="background:rgba(255,60,92,.1);border-color:var(--accent2);color:var(--accent2);width:100%;" onclick="clearImageOverride()">✕ Clear Override</button>
+    </div>
+  </div>
+
+  <div class="field caption-area">
+    <label for="caption">Caption</label>
+    <textarea id="caption" rows="5" oninput="updateCharCount()" placeholder="Caption with hashtags…"></textarea>
+    <span class="char-count" id="charCount">0 / 2200</span>
+  </div>
+
+  <div class="delivery-actions">
+    <button class="deploy-btn-zip btn-p" onclick="downloadCurrentDesign()">Download artwork</button>
+    <button onclick="copyCaption()">Copy caption</button>
+  </div>
+  <details class="settings-block publish-settings">
+    <summary>Publish manually</summary>
+    <p class="helper">Use credentials from Integrations to publish the current design.</p>
+    <button id="deployBothBtn" onclick="handleDeployBoth()">Post to Instagram + Facebook</button>
+    <button id="deployZernioBtn" onclick="handleDeployZernio()">Post via Zernio</button>
+  </details>
+  <details class="settings-block activity-settings" id="activitySettings">
+    <summary>Activity log <span id="activityIndicator"></span></summary>
+    <div class="terminal" id="terminalLog" role="log" aria-label="Studio activity"></div>
+  </details>
+</aside>
+
+
+</div>
+
+<script src="./assets/studio.js"></script>
+<script src="./assets/workspace.js"></script>
+</body>
+</html>

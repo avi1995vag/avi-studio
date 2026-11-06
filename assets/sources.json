@@ -1,0 +1,66 @@
+{
+  "INDIA": [
+    "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms",
+    "https://www.thehindu.com/news/national/feeder/default.rss"
+  ],
+  "KARNATAKA": [
+    "https://news.google.com/rss/search?q=Karnataka+news&ceid=IN:en&hl=en-IN&gl=IN",
+    "https://news.google.com/rss/search?q=Karnataka&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "BENGALURU": [
+    "https://news.google.com/rss/search?q=Bengaluru+news&ceid=IN:en&hl=en-IN&gl=IN",
+    "https://news.google.com/rss/search?q=Bangalore+today&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "POLITICS": [
+    "https://timesofindia.indiatimes.com/rssfeeds/1221656.cms",
+    "https://news.google.com/rss/search?q=India+politics&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "BUSINESS": [
+    "https://economictimes.indiatimes.com/rssfeedstopstories.cms",
+    "https://news.google.com/rss/search?q=India+business&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "SPORTS": [
+    "https://timesofindia.indiatimes.com/rssfeeds/4719148.cms",
+    "https://news.google.com/rss/search?q=India+sports+cricket&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "AI": [
+    "https://feeds.feedburner.com/TechCrunch",
+    "https://news.google.com/rss/search?q=artificial+intelligence+tech&ceid=US:en&hl=en-US&gl=US"
+  ],
+  "GLOBAL": [
+    "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "https://news.google.com/rss/search?q=world+news&ceid=US:en&hl=en-US&gl=US"
+  ],
+  "US": [
+    "https://news.google.com/rss/search?q=USA+news&ceid=US:en&hl=en-US&gl=US"
+  ],
+  "KANNADA_KARNATAKA": [
+    "https://www.sumanasa.com/feed",
+    "https://news.google.com/rss/search?q=Karnataka+Kannada+news&ceid=IN:en&hl=en-IN&gl=IN",
+    "https://news.google.com/rss/search?q=Karnataka&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "KANNADA_BENGALURU": [
+    "https://www.sumanasa.com/feed",
+    "https://news.google.com/rss/search?q=Bengaluru+Kannada&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "PRAJAVANI": [
+    "https://www.prajavani.net/feed",
+    "https://news.google.com/rss/search?q=Prajavani+Karnataka+news&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "KANNADAPRABHA": [
+    "https://kannadaprabha.com/feed",
+    "https://news.google.com/rss/search?q=KannadaPrabha+news&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "TV9_KANNADA": [
+    "https://www.tv9kannada.com/feed",
+    "https://news.google.com/rss/search?q=TV9+Kannada+news&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "VIJAY_KARNATAKA": [
+    "https://vijaykarnataka.com/feed",
+    "https://news.google.com/rss/search?q=Vijay+Karnataka+news&ceid=IN:en&hl=en-IN&gl=IN"
+  ],
+  "ET_KANNADA": [
+    "https://news.google.com/rss/search?q=ET+Kannada+economic&ceid=IN:en&hl=en-IN&gl=IN",
+    "https://economictimes.indiatimes.com/rssfeedstopstories.cms"
+  ]
+}
