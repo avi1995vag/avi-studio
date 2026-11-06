@@ -114,9 +114,9 @@ async function hydrateDraft(draft) {
     posterImageCache = images[0] ? {'poster-main': images[0]} : {};
     document.getElementById('posterLang').value = lang;
     if(posterSlide){
-      if(images[0]) document.getElementById('posterImgPreview').src = images[0].src;
-      else document.getElementById('posterImgPreview').removeAttribute('src');
-      drawSlideOnCanvas(document.getElementById('posterCanvas'), posterSlide, 0, lang);
+      resetPosterPhoto();
+      if(images[0]) applyPosterPhoto(images[0],'Image restored with the draft.',posterPhotoAttempt);
+      else drawSlideOnCanvas(document.getElementById('posterCanvas'), posterSlide, 0, lang);
       openPosterEditor();
     }
   } else {
@@ -377,6 +377,7 @@ async function configureWorkflowLinks() {
     const guide = document.getElementById('setupLink');
     workflow.href = base + '/actions/workflows/autopilot.yml';
     guide.href = base + '#github-setup';
+    document.getElementById('photoWorkflowLink').href = base + '/actions/workflows/article-photo.yml';
     workflow.hidden = guide.hidden = false;
     document.getElementById('workflowHint').textContent = 'In the publishing dashboard, select Run workflow and choose a run mode.';
   } catch {}

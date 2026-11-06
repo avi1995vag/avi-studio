@@ -1,0 +1,123 @@
+"""Retrieve a publisher's public share photo as a workflow artifact."""
+
+import argparse
+from html.parser import HTMLParser
+from io import BytesIO
+from pathlib import Path
+from urllib.parse import urljoin, urlsplit
+
+import requests
+from PIL import Image, ImageOps
+
+# A fixed host list keeps the manual workflow from acting as a general network proxy.
+PUBLISHERS = {
+    'vijaykarnataka.com', 'vijaykarnataka.indiatimes.com', 'timesofindia.indiatimes.com',
+    'economictimes.indiatimes.com', 'thehindu.com', 'bbc.com', 'bbc.co.uk', 'tv9kannada.com',
+    'prajavani.net', 'kannadaprabha.com', 'indiatoday.in', 'abplive.com', 'timesnowworld.com',
+}
+PHOTO_HOSTS = PUBLISHERS | {
+    'static.toiimg.com', 'timesofindia.indiatimes.com', 'img.etimg.com', 'img1.etimg.com',
+    'th-i.thgim.com', 'ichef.bbci.co.uk', 'cf-images.assettype.com',
+    'gumlet.assettype.com', 'images.tv9kannada.com', 'static.tv9kannada.com',
+    'images.indiatoday.in', 'akm-img-a-in.tosshub.com', 'feeds.abplive.com',
+    'images.news18.com', 'images.timesnownews.com', 'static.india.com',
+}
+
+
+class SharePhoto(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.images = {}
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if tag == 'meta':
+            key = (attributes.get('property') or attributes.get('name') or '').lower()
+            url = attributes.get('content')
+        elif tag == 'link' and (attributes.get('rel') or '').lower() == 'image_src':
+            key, url = 'image_src', attributes.get('href')
+        else:
+            return
+        if url and key in ('og:image:secure_url', 'og:image', 'og:image:url', 'twitter:image', 'twitter:image:src', 'image_src'):
+            self.images.setdefault(key, url.strip())
+
+    def urls(self, base):
+        order = ('og:image:secure_url', 'og:image', 'og:image:url', 'twitter:image', 'twitter:image:src', 'image_src')
+        return list(dict.fromkeys(urljoin(base, self.images[key]) for key in order if key in self.images))
+
+
+def validate_url(url, hosts):
+    parts = urlsplit(url)
+    host = (parts.hostname or '').lower().removeprefix('www.')
+    if (parts.scheme != 'https' or host not in hosts or parts.username is not None
+            or parts.port not in (None, 443) or len(url) > 2048):
+        raise ValueError('This link is outside the supported publisher or image hosts.')
+    return url
+
+
+def get_public(url, hosts, *, photo=False):
+    for _ in range(5):
+        validate_url(url, hosts)
+        with requests.get(url, timeout=(5, 8), allow_redirects=False, stream=True,
+                          headers={'User-Agent': 'AvIStudio/1.0 (article photo importer)'}) as response:
+            if response.is_redirect:
+                url = urljoin(url, response.headers['Location'])
+                continue
+            response.raise_for_status()
+            content_type = response.headers.get('Content-Type', '').split(';')[0].lower()
+            if photo and not content_type.startswith('image/'):
+                raise ValueError('The publisher photo URL did not return an image.')
+            if not photo and content_type not in {'text/html', 'application/xhtml+xml'}:
+                raise ValueError('The publisher URL did not return an article page.')
+            buffer = bytearray()
+            limit = 15_000_000 if photo else 800_000
+            for chunk in response.iter_content(16_384):
+                buffer.extend(chunk)
+                if len(buffer) > limit:
+                    if photo:
+                        raise ValueError('The publisher photo exceeds 15 MB.')
+                    return bytes(buffer[:limit]), url, response.encoding
+                if not photo and b'</head' in bytes(buffer[-len(chunk)-8:]).lower():
+                    break
+            return bytes(buffer), url, response.encoding
+    raise ValueError('The publisher redirected too many times.')
+
+
+def save_article_photo(article, output):
+    page, canonical, encoding = get_public(article, PUBLISHERS)
+    parser = SharePhoto()
+    parser.feed(page.decode(encoding or 'utf-8', errors='replace'))
+    for candidate in parser.urls(canonical):
+        try:
+            data, photo_url, _ = get_public(candidate, PHOTO_HOSTS, photo=True)
+            with Image.open(BytesIO(data), formats=('JPEG', 'PNG', 'WEBP', 'GIF', 'AVIF')) as image:
+                if image.width * image.height > 24_000_000 or min(image.size) < 120:
+                    continue
+                art = ImageOps.exif_transpose(image).convert('RGB')
+                art.thumbnail((2400, 2400))
+        except (requests.RequestException, OSError, ValueError, Image.DecompressionBombError):
+            continue
+        output.mkdir(parents=True, exist_ok=True)
+        art.save(output / 'article-photo.jpg', quality=93, optimize=True)
+        (output / 'source.txt').write_text(f'Article: {canonical}\nPhoto: {photo_url}\n', encoding='utf-8')
+        return
+    raise ValueError('No downloadable share photo was found on the supported publisher hosts.')
+
+
+def main():
+    args = argparse.ArgumentParser(description=__doc__)
+    args.add_argument('--url', required=True)
+    args.add_argument('--output', type=Path, default=Path('output/article-photo'))
+    options = args.parse_args()
+    try:
+        save_article_photo(options.url.strip(), options.output)
+    except requests.RequestException as error:
+        code = error.response.status_code if error.response is not None else 'unavailable'
+        args.exit(1, f'The publisher could not be reached (HTTP {code}). Save the photo from the publisher page if it is available there.\n')
+    except (OSError, ValueError) as error:
+        args.exit(1, str(error) + '\n')
+    print('Article photo ready. Download the artifact and upload the JPEG in the poster editor.')
+
+
+if __name__ == '__main__':
+    main()

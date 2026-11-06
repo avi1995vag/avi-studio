@@ -402,21 +402,38 @@
         <div class="field"><label for="posterEditBodySize">Body Size</label><input type="range" id="posterEditBodySize" min="0.5" max="2.0" step="0.05" value="1.0" oninput="applyPosterEdit('bodySize',parseFloat(this.value))"></div>
       </div>
       <div id="posterCropControls" class="photo-controls"></div>
-      <div class="field" style="margin-top:8px;"><label>Custom image search</label>
-        <div class="row">
-          <div class="field" style="margin:0;"><input id="posterEditImgQuery" aria-label="Poster image search" placeholder="e.g. Virat Kohli batting 2025"></div>
-          <button class="btn-sm btn-p" onclick="refreshPosterImage()">↻</button>
+      <section class="poster-image-tools" aria-labelledby="posterImageTitle">
+        <h3 id="posterImageTitle">Poster image</h3>
+        <div class="photo-actions">
+          <button id="articlePhotoBtn" class="btn-sm btn-p" onclick="usePosterArticlePhoto()">Use article photo</button>
+          <button class="btn-sm" onclick="document.getElementById('posterImgUpload').click()">Upload image</button>
+          <button class="btn-sm" onclick="clearPosterImage()">Clear</button>
+          <input type="file" id="posterImgUpload" accept="image/*" hidden>
         </div>
-      </div>
-      <div style="margin-top:8px;">
-        <label style="font-size:11px;color:var(--muted2);font-weight:600;">📁 Upload Custom Image</label>
-        <div class="upload-row" style="margin-top:4px;">
-          <img id="posterImgPreview" class="preview-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="width:44px;height:44px;border-radius:6px;">
-          <button class="btn-sm" onclick="document.getElementById('posterImgUpload').click()" style="flex:1;">📎 Upload Image</button>
-          <input type="file" id="posterImgUpload" accept="image/*" style="display:none;">
+        <div class="photo-result">
+          <img id="posterImgPreview" class="preview-img" alt="Current poster image" hidden>
+          <p id="posterPhotoStatus" class="helper" role="status">Add the source photo or upload an image file.</p>
         </div>
-        <button class="btn-sm" style="margin-top:4px;width:100%;background:rgba(255,60,92,.1);border-color:var(--accent2);color:var(--accent2);" onclick="clearPosterImage()">✕ Clear Image</button>
-      </div>
+        <div id="posterPhotoRecovery" class="photo-actions" hidden>
+          <a id="openPosterPhoto" class="action-link" target="_blank" rel="noopener noreferrer" hidden>Open publisher photo ↗</a>
+          <a id="photoWorkflowLink" class="action-link" target="_blank" rel="noopener noreferrer" hidden>Download via workflow ↗</a>
+        </div>
+        <p id="photoWorkflowHint" class="helper" hidden>Run the workflow with the public article link. Download its artifact and upload the JPEG here.</p>
+        <div class="field">
+          <label for="posterDirectImg">Direct image URL</label>
+          <div class="row">
+            <div class="field"><input id="posterDirectImg" type="url" placeholder="https://publisher.example/photo.jpg"></div>
+            <button class="btn-sm" onclick="importPosterImageUrl()">Import image</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="posterEditImgQuery">Stock photo search · Pexels</label>
+          <div class="row">
+            <div class="field"><input id="posterEditImgQuery" placeholder="e.g. city skyline"></div>
+            <button class="btn-sm" onclick="refreshPosterImage()">Search stock photos</button>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 

@@ -305,13 +305,15 @@ async function fetchSmartImage(slide, articleImage){
   } catch { return null; }
 }
 
-async function findStockImage(query, cacheKey){
-  const key = document.getElementById('pexelsKey').value.trim();
+async function findStockImage(query, cacheKey, feedback){
+  const key = document.getElementById('pexelsKey').value.trim().replace(/^['"]|['"]$/g,'').replace(/^Bearer\s+/i,'').trim();
   if(!query || !key) return null;
   try {
     const url = 'https://api.pexels.com/v1/search?orientation=portrait&per_page=5&query=' + encodeURIComponent(query.slice(0,120));
     const response = await fetch(url, {headers: {Authorization:key}, signal: AbortSignal.timeout(8500)});
-    if(!response.ok) throw new Error('HTTP ' + response.status);
+    if(response.status===401) throw new Error('Pexels rejected this API key (401). Replace it in Integrations with the active key from Pexels.');
+    if(response.status===429) throw new Error('Pexels search is rate-limited. You can still use an article photo or upload a file.');
+    if(!response.ok) throw new Error('Pexels search returned HTTP ' + response.status + '.');
     const {photos=[]} = await response.json();
     for(const photo of photos){
       const imageUrl = safeWebUrl(photo.src?.large || photo.src?.original);
@@ -323,7 +325,10 @@ async function findStockImage(query, cacheKey){
         return image;
       } catch {}
     }
-  } catch(error) { log('Pexels search unavailable: ' + error.message, 'warn'); }
+  } catch(error) {
+    if(feedback) feedback(error.message);
+    else log(error.message,'warn');
+  }
   return null;
 }
 
@@ -2287,15 +2292,11 @@ function headlineFromLink(link){
   return slug.split(' ').length>=4 ? slug[0].toUpperCase()+slug.slice(1,180) : '';
 }
 
-async function findPosterFeedEntry(url){
+async function findPosterFeedEntry(url, qualifies){
   try {
     const {feeds} = await loadFeeds();
     const key = sourceKey(url);
-    return Object.values(feeds).flat().find(article => {
-      const description = article.description?.trim() || '';
-      return sourceKey(article.link)===key && description.split(/\s+/).length>=12 &&
-        description.toLowerCase()!==article.title.trim().toLowerCase();
-    }) || null;
+    return Object.values(feeds).flat().find(article => sourceKey(article.link)===key && qualifies(article)) || null;
   } catch { return null; }
 }
 
@@ -2339,7 +2340,7 @@ function commitPoster(copy, settings, source){
     source:source?.name,titleSize:defaultTitleSize,bodySize:defaultBodySize});
   posterSlide = {...frame,id:'poster-1',cacheKey:'poster-main'};
   posterImageCache = {};
-  document.getElementById('posterImgPreview').removeAttribute('src');
+  resetPosterPhoto();
   const caption = typeof copy.caption==='string' ? copy.caption.trim().slice(0,1500) : frame.title;
   document.getElementById('caption').value = caption + (source?.link ? '\n\nSource: ' + source.link : '');
   updateCharCount();
@@ -2375,7 +2376,10 @@ async function generateSinglePoster(){
   showPosterSourceStatus(url && !notes ? 'Looking for this article…' : 'Writing from your supplied text…');
   let source, entry;
   try {
-    if(url && !notes) entry = await findPosterFeedEntry(url);
+    if(url && !notes) entry = await findPosterFeedEntry(url,article => {
+      const description = article.description?.trim() || '';
+      return description.split(/\s+/).length>=12 && description.toLowerCase()!==article.title.trim().toLowerCase();
+    });
     const readUrl = url && !notes && !entry ? url : null;
     source = url ? {link:url,kind:notes ? 'excerpt' : entry ? 'feed' : 'article',
       name:entry?.source || new URL(url).hostname.replace(/^www\./,'')} : null;
@@ -2389,14 +2393,8 @@ async function generateSinglePoster(){
     const message = {excerpt:'Poster written from your excerpt.',feed:'Poster written from the matching feed excerpt.',
       article:'Poster written from the publisher article.'};
     showPosterSourceStatus(message[source?.kind] || 'Poster ready to edit.');
-    const image = entry?.extractedImage && safeWebUrl(entry.extractedImage)
-      ? await loadImg(entry.extractedImage,null,5000).catch(()=>null)
-      : url ? null : await findStockImage(frame.imageQuery,null);
-    if(image && posterSlide===frame && !posterImageCache['poster-main']){
-      posterImageCache['poster-main'] = image;
-      document.getElementById('posterImgPreview').src = image.src;
-      drawSlideOnCanvas(document.getElementById('posterCanvas'),frame,0,settings.language);
-    }
+    if(url) void usePosterArticlePhoto();
+    else if(frame.imageQuery && document.getElementById('pexelsKey').value.trim()) void searchPosterStock(frame.imageQuery);
     log('Poster ready to edit.','ok');
   } catch(error) {
     if(input.value.trim()!==raw) return;
@@ -2435,6 +2433,7 @@ async function startLinkPoster(){
     'Check the original article, then replace this note with verified details.',caption:''};
   commitPoster(copy,settings,{link:url,kind:'link-draft',name:new URL(url).hostname.replace(/^www\./,'')});
   showPosterSourceStatus('Headline-only draft created. Check the original article before publishing.','warning');
+  void usePosterArticlePhoto();
 }
 
 function approveLinkSource(){
@@ -2537,51 +2536,161 @@ function applyPosterEdit(field, val){
   drawSlideOnCanvas(canvas, posterSlide, 0, document.getElementById('posterLang').value);
 }
 
-async function refreshPosterImage(){
+let posterPhotoAttempt = 0;
+
+function showPosterPhoto(message, warning=false, link='', recovery=false){
+  const status = document.getElementById('posterPhotoStatus');
+  status.textContent = message;
+  status.dataset.warning = String(warning);
+  const openPhoto = document.getElementById('openPosterPhoto');
+  const workflow = document.getElementById('photoWorkflowLink');
+  openPhoto.hidden = !link;
+  if(link) openPhoto.href = link;
+  workflow.hidden = !recovery || !workflow.hasAttribute('href');
+  document.getElementById('photoWorkflowHint').hidden = workflow.hidden;
+  document.getElementById('posterPhotoRecovery').hidden = !link && workflow.hidden;
+}
+
+function resetPosterPhoto(){
+  ++posterPhotoAttempt;
+  const preview = document.getElementById('posterImgPreview');
+  preview.hidden = true;
+  preview.removeAttribute('src');
+  document.getElementById('posterDirectImg').value = '';
+  showPosterPhoto('Add the source photo or upload an image file.');
+}
+
+function applyPosterPhoto(image, message, attempt){
+  if(attempt!==posterPhotoAttempt || !posterSlide) return false;
+  posterImageCache['poster-main'] = image;
+  const preview = document.getElementById('posterImgPreview');
+  preview.src = image.src;
+  preview.hidden = false;
+  drawSlideOnCanvas(document.getElementById('posterCanvas'),posterSlide,0,document.getElementById('posterLang').value);
+  showPosterPhoto(message);
+  return true;
+}
+
+async function readArticleImageLinks(url){
+  try {
+    const response = await fetch(url,{credentials:'omit',signal:AbortSignal.timeout(6500)});
+    if(!response.ok || !/^(text\/html|application\/xhtml\+xml)\b/i.test(response.headers.get('content-type') || '')) return [];
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let html = '', total = 0;
+    try {
+      while(total<700000 && !/<\/head[\s>]/i.test(html)){
+        const {value,done} = await reader.read();
+        if(done) break;
+        total += value.length;
+        html += decoder.decode(value,{stream:true});
+      }
+    } finally { await reader.cancel().catch(()=>{}); }
+    const head = document.createElement('template');
+    head.innerHTML = html.slice(0,700000).split(/<\/head[\s>]/i)[0];
+    const tags = ['meta[property="og:image:secure_url"]','meta[property="og:image"]','meta[property="og:image:url"]',
+      'meta[name="twitter:image"]','meta[name="twitter:image:src"]','link[rel="image_src"]'];
+    return tags.flatMap(tag => {
+      const node = head.content.querySelector(tag);
+      const value = node?.getAttribute('content') || node?.getAttribute('href');
+      if(!value) return [];
+      try {
+        const image = safeWebUrl(new URL(value,response.url || url).href);
+        return image ? [image] : [];
+      } catch { return []; }
+    });
+  } catch { return []; }
+}
+
+async function usePosterArticlePhoto(){
+  if(!posterSlide) return;
+  const link = safeWebUrl(draftSources.poster?.link || document.getElementById('posterInput').value.trim());
+  if(!link) return showPosterPhoto('Add an article link, paste a direct image URL, or upload an image.',true);
+  const attempt = ++posterPhotoAttempt;
+  showPosterPhoto('Looking for the publisher photo…');
+  const entry = await findPosterFeedEntry(link,item=>Boolean(safeWebUrl(item.extractedImage)));
+  const feedImage = safeWebUrl(entry?.extractedImage);
+  if(feedImage && attempt===posterPhotoAttempt){
+    const image = await loadImg(feedImage,null,5500).catch(()=>null);
+    if(image) return applyPosterPhoto(image,'Publisher photo added from the news feed.',attempt);
+  }
+  if(attempt!==posterPhotoAttempt) return;
+  const other = await readArticleImageLinks(link);
+  for(const url of [...new Set(other)].filter(url=>url!==feedImage).slice(0,3)){
+    if(attempt!==posterPhotoAttempt) return;
+    const image = await loadImg(url,null,4500).catch(()=>null);
+    if(image) return applyPosterPhoto(image,'Publisher photo added from the article page.',attempt);
+  }
+  if(attempt!==posterPhotoAttempt) return;
+  const candidate = feedImage || other[0];
+  showPosterPhoto(candidate
+    ? 'The publisher photo could not be used in the export. Open and save it, then upload the file.'
+    : 'No photo was available from this link. Save the image from the article and upload it here, or try the download workflow.',
+    true,candidate,true);
+}
+
+async function importPosterImageUrl(){
+  if(!posterSlide) return;
+  const url = safeWebUrl(document.getElementById('posterDirectImg').value.trim());
+  if(!url) return showPosterPhoto('Paste a direct HTTP or HTTPS image URL.',true);
+  const attempt = ++posterPhotoAttempt;
+  showPosterPhoto('Importing photo…');
+  const image = await loadImg(url,null,7000).catch(()=>null);
+  if(attempt!==posterPhotoAttempt) return;
+  if(image) applyPosterPhoto(image,'Photo imported and ready to export.',attempt);
+  else showPosterPhoto('This image URL cannot be used in the export. Open and save the photo, then upload the file.',true,url);
+}
+
+async function searchPosterStock(query){
+  if(!query) return showPosterPhoto('Enter a search term for a stock photo.',true);
+  if(!document.getElementById('pexelsKey').value.trim()){
+    document.getElementById('integrationSettings').open = true;
+    return showPosterPhoto('Add your Pexels key in Integrations for stock search. Article photos and uploads work without it.',true);
+  }
+  const attempt = ++posterPhotoAttempt;
+  showPosterPhoto('Searching Pexels for a stock illustration…');
+  let failure;
+  const image = await findStockImage(query,null,error=>{ failure = error; });
+  if(attempt!==posterPhotoAttempt) return;
+  if(image) applyPosterPhoto(image,'Stock illustration added from Pexels.',attempt);
+  else showPosterPhoto(failure || 'No usable stock photo matched this search. Try a different search or upload a file.',true);
+}
+
+function refreshPosterImage(){
   if(!posterSlide) return;
   const query = document.getElementById('posterEditImgQuery').value.trim();
-  if(!query) return log('Enter an image search term.', 'err');
-  if(!document.getElementById('pexelsKey').value.trim()) return log('Add a Pexels key in Integrations to search for stock images.', 'err');
-  const current = posterSlide;
-  current.imageQuery = query;
+  posterSlide.imageQuery = query;
   queueDraftSave();
-  const image = await findStockImage(query, null);
-  if(current !== posterSlide) return;
-  if(!image) return log('No browser-compatible stock image found.', 'warn');
-  posterImageCache['poster-main'] = image;
-  document.getElementById('posterImgPreview').src = image.src;
-  drawSlideOnCanvas(document.getElementById('posterCanvas'), posterSlide, 0, document.getElementById('posterLang').value);
+  return searchPosterStock(query);
 }
 
 function clearPosterImage(){
+  if(!posterSlide) return;
   delete posterImageCache['poster-main'];
   delete imageCache['poster-main'];
-  document.getElementById('posterImgPreview').src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
-  const canvas = document.getElementById('posterCanvas');
-  drawSlideOnCanvas(canvas, posterSlide, 0, document.getElementById('posterLang').value);
-  log('🧹 Poster image cleared.','info');
+  resetPosterPhoto();
+  drawSlideOnCanvas(document.getElementById('posterCanvas'),posterSlide,0,document.getElementById('posterLang').value);
+  showPosterPhoto('Image cleared. You can add another photo.');
 }
 
-document.getElementById('posterImgUpload').addEventListener('change', function(e){
-  if(!e.target.files[0] || !posterSlide) return;
-  const original = posterSlide;
+document.getElementById('posterImgUpload').addEventListener('change',async event=>{
+  const file = event.target.files[0];
+  event.target.value = '';
+  if(!file || !posterSlide) return;
+  if(file.size>15_000_000) return showPosterPhoto('Choose an image file under 15 MB.',true);
+  const attempt = ++posterPhotoAttempt;
   const reader = new FileReader();
-  reader.onload = function(ev){
-    const img = new Image();
-    img.onload = function(){
-      if(original !== posterSlide) return;
-      posterImageCache['poster-main'] = img;
-      document.getElementById('posterImgPreview').src = ev.target.result;
-      const canvas = document.getElementById('posterCanvas');
-      drawSlideOnCanvas(canvas, posterSlide, 0, document.getElementById('posterLang').value);
-      log('✅ Custom image applied to poster.','ok');
-    };
-    img.src = ev.target.result;
+  reader.onload = async () => {
+    const image = await loadImg(reader.result,null,5000).catch(()=>null);
+    if(attempt!==posterPhotoAttempt) return;
+    if(image) applyPosterPhoto(image,'Image uploaded and ready to export.',attempt);
+    else showPosterPhoto('This file could not be decoded. Try a JPEG, PNG, or WebP.',true);
   };
-  reader.readAsDataURL(e.target.files[0]);
-  e.target.value = '';
+  reader.onerror = () => {
+    if(attempt===posterPhotoAttempt) showPosterPhoto('This file could not be read.',true);
+  };
+  reader.readAsDataURL(file);
 });
-
 
 /* ═══════════════════════════════════════════════════════════
    META TOKEN AUTH (rebuilt)
