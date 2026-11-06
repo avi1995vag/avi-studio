@@ -14,14 +14,14 @@
 <body>
 
 <a class="skip-link" href="#workspace">Skip to workspace</a>
-<div id="protocolWarning" role="status">Open the studio through GitHub Pages or a local HTTP server to load its data files.</div>
+<div id="protocolWarning" role="status">Open the hosted studio or use a local HTTP server to load its data files.</div>
 <div class="dashboard">
 <header class="topbar">
   <div class="logo"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 23 15.9 7 25 23h-4.7l-4.4-8.5-4.3 8.5z"/><path d="M13.7 23h4.6v-4h-4.6z"/></svg></span> AvI <span>Studio</span></div>
   <span class="header-division" aria-hidden="true"></span><span class="top-context">EDITORIAL WORKSPACE</span>
   <div class="spacer"></div>
   <div class="status-pill" role="status"><span class="s-dot"></span><span id="sysStatus">READY</span></div>
-  <button class="btn-sm header-button" onclick="switchMode('scheduler')">GitHub Actions <span aria-hidden="true">↗</span></button>
+  <button class="btn-sm header-button" onclick="switchMode('scheduler')">Automation</button>
 </header>
 <aside class="col sidebar" aria-label="Workspace navigation and settings">
   <div class="sec sidebar-label">Workspace</div>
@@ -35,7 +35,7 @@
   <div class="sec sidebar-label settings-label">Preferences</div>
   <details class="settings-block" id="integrationSettings">
     <summary>Integrations</summary>
-    <p class="helper">Keys entered here stay in this tab. Configure unattended publishing in GitHub.</p>
+    <p class="helper">Keys entered here stay in this tab. Use the Automation workspace to manage scheduled publishing.</p>
   <div class="sec">🔑 API Keys & Integrations</div>
   <div class="field">
     <label for="pexelsKey">Pexels API Key</label>
@@ -165,7 +165,7 @@
   </div>
   <button onclick="saveSettings()" class="btn-p" style="margin-top:10px;">Save preferences</button>
   </details>
-  <div class="sidebar-note"><span class="s-dot"></span><span>GitHub Pages studio</span></div>
+  <div class="sidebar-note"><span class="s-dot"></span><span>AvI editorial studio</span></div>
 </aside>
 
 <main class="col col-mid" id="workspace" tabindex="-1">
@@ -286,7 +286,20 @@
     <div class="gen-area">
       <div class="field">
         <label for="posterInput">Topic / Text / URL</label>
-        <textarea id="posterInput" rows="3" placeholder="Paste an article URL, headline, or source notes…"></textarea>
+        <textarea id="posterInput" rows="3" aria-describedby="posterSourceStatus" placeholder="Paste an article URL, headline, or source notes…"></textarea>
+      </div>
+      <div id="posterSourceStatus" class="source-status" role="status" hidden></div>
+      <details id="posterSourceDetails" class="source-details">
+        <summary>Add a source excerpt</summary>
+        <p class="helper">Paste the relevant text from the article. The studio will use it to write the poster and keep the original link.</p>
+        <div class="field">
+          <label for="posterSourceText">Article excerpt or reporting notes</label>
+          <textarea id="posterSourceText" rows="4" maxlength="8000" placeholder="Paste the facts you want the poster to use…"></textarea>
+        </div>
+      </details>
+      <div class="source-recovery" id="posterSourceRecovery" hidden>
+        <button id="posterLinkDraftBtn" class="btn-sm" onclick="startLinkPoster()">Start a headline-only draft</button>
+        <p class="helper">Creates an editable draft using the headline in the link. Review it against the source before publishing.</p>
       </div>
       <div class="row">
         <div class="field"><label for="posterLang">Language</label>
@@ -331,14 +344,20 @@
           </optgroup>
         </select>
       </div>
-      <button class="btn-p" onclick="generateSinglePoster()">Generate poster</button>
-      <button onclick="createBlankPoster()" style="margin-top:8px;">Start with a blank poster</button>
-      <button style="margin-top:7px;background:var(--bg3);border-color:var(--border);color:var(--text);" onclick="downloadSinglePoster()">⬇ Download Poster (JPG)</button>
+      <div class="compose-actions">
+        <button id="posterGenerateBtn" class="btn-p" onclick="generateSinglePoster()">Generate poster</button>
+        <button id="posterBlankBtn" onclick="createBlankPoster()">Start with a blank poster</button>
+        <button id="posterSampleBtn" onclick="loadCreativeSample()">Try a design sample</button>
+      </div>
     </div>
+    <section class="creative-gallery" aria-labelledby="creativeGalleryTitle">
+      <div class="section-heading"><h2 id="creativeGalleryTitle">Layout gallery</h2><span>Choose a template</span></div>
+      <div id="creativeTemplates" class="creative-templates"></div>
+    </section>
     <div class="poster-canvas-wrap" hidden>
       <canvas aria-label="Poster preview" id="posterCanvas" width="1080" height="1350"></canvas>
     </div>
-    <div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);text-align:center;margin-top:6px;">1080 × 1350 px — Instagram/Facebook Portrait</div>
+
 
     <!-- POSTER EDITOR -->
     <div id="posterEditor" style="display:none;background:rgba(88,101,242,.04);padding:14px;border:1px solid rgba(88,101,242,.25);border-radius:13px;margin-top:14px;">
@@ -382,7 +401,8 @@
         <div class="field"><label for="posterEditTitleSize">Title Size</label><input type="range" id="posterEditTitleSize" min="0.5" max="2.0" step="0.05" value="1.0" oninput="applyPosterEdit('titleSize',parseFloat(this.value))"></div>
         <div class="field"><label for="posterEditBodySize">Body Size</label><input type="range" id="posterEditBodySize" min="0.5" max="2.0" step="0.05" value="1.0" oninput="applyPosterEdit('bodySize',parseFloat(this.value))"></div>
       </div>
-      <div class="field" style="margin-top:8px;"><label>🔍 Custom Image Search</label>
+      <div id="posterCropControls" class="photo-controls"></div>
+      <div class="field" style="margin-top:8px;"><label>Custom image search</label>
         <div class="row">
           <div class="field" style="margin:0;"><input id="posterEditImgQuery" aria-label="Poster image search" placeholder="e.g. Virat Kohli batting 2025"></div>
           <button class="btn-sm btn-p" onclick="refreshPosterImage()">↻</button>
@@ -402,10 +422,10 @@
 
   <!-- SCHEDULER PANEL -->
   <div id="schedulerPanel" class="panel">
-    <div class="mode-badge"><span class="mb-dot"></span>GitHub Actions</div>
+    <div class="mode-badge"><span class="mb-dot"></span>Publishing workflow</div>
     <div class="gen-area automation-card">
       <div class="section-heading"><h2>Scheduled editions</h2><span id="automationMode">Schedule off</span></div>
-      <p class="helper">Run a sample, prepare a draft from the news, or publish to Instagram from GitHub Actions. The studio can be closed while the workflow runs.</p>
+      <p class="helper">Run a sample, prepare a draft from the news, or publish to Instagram. The studio can be closed while the workflow runs.</p>
       <dl class="edition-list">
         <div><dt>08:17 IST</dt><dd>India brief</dd></div>
         <div><dt>13:23 IST</dt><dd>Karnataka brief · Kannada</dd></div>
@@ -415,7 +435,7 @@
         <a class="action-link" id="workflowLink" target="_blank" rel="noopener" hidden>Open workflow ↗</a>
         <a class="action-link" id="setupLink" target="_blank" rel="noopener" hidden>Setup guide ↗</a>
       </div>
-      <p class="helper" id="workflowHint">Open this repository’s Actions tab and select AvI Autopilot.</p>
+      <p class="helper" id="workflowHint">Open the publishing dashboard and select AvI Autopilot.</p>
     </div>
     <div class="mode-badge"><span class="mb-dot"></span>Personal planner</div>
     <div class="gen-area">
@@ -491,7 +511,11 @@
     <input type="file" id="draftFile" accept=".json,application/json" hidden>
   </div>
   <p class="helper draft-state" id="draftState" role="status">Drafts autosave on this device</p>
-  <a id="draftSource" target="_blank" rel="noopener" hidden>Open draft source ↗</a>
+  <div id="draftSourcePanel" class="draft-source-panel" hidden>
+    <p id="draftSourceLabel" class="helper"></p>
+    <a id="draftSource" target="_blank" rel="noopener" hidden>Open draft source ↗</a>
+    <button id="approvePosterSource" class="btn-sm" onclick="approveLinkSource()" hidden>I’ve checked the source</button>
+  </div>
 
   <div class="slide-editor" id="slideEditor">
     <div style="font-family:var(--font-head);font-size:12px;font-weight:800;color:var(--accent);margin-bottom:11px;" id="editorTitle">Edit Slide</div>
@@ -582,6 +606,18 @@
     <span class="char-count" id="charCount">0 / 2200</span>
   </div>
 
+  <div id="artworkOptions" class="artwork-options" hidden>
+    <div class="field"><label for="posterExportSize">Output size</label>
+      <select id="posterExportSize">
+        <option value="portrait">Portrait · 1080 × 1350</option>
+        <option value="square">Square fit · 1080 × 1080</option>
+        <option value="story">Story fit · 1080 × 1920</option>
+      </select>
+    </div>
+    <div class="field"><label for="posterExportFormat">File format</label>
+      <select id="posterExportFormat"><option value="jpeg">JPEG</option><option value="png">PNG</option></select>
+    </div>
+  </div>
   <div class="delivery-actions">
     <button class="deploy-btn-zip btn-p" onclick="downloadCurrentDesign()">Download artwork</button>
     <button onclick="copyCaption()">Copy caption</button>
@@ -601,6 +637,7 @@
 
 </div>
 
+<script src="./assets/creative.js"></script>
 <script src="./assets/studio.js"></script>
 <script src="./assets/workspace.js"></script>
 </body>

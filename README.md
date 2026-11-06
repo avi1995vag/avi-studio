@@ -7,7 +7,8 @@ AvI Studio is an editorial workspace for 4:5 carousels and single posters. GitHu
 - Start with an offline sample, a blank design, a Gemini prompt or a news headline. The browser supports English, Kannada and bilingual output in the modes that offer it.
 - Select a frame to edit its text, layout, colors, size or image. Move, duplicate or remove frames in the inspector. Upload an image directly, or provide an image URL whose server allows cross-origin browser access. An optional Pexels key enables stock search.
 - The browser autosaves the current carousel and poster separately on this device. Export a JSON draft to move it to another browser or keep a backup. Import the `draft.json` from an Actions run to edit that run's content and palette. Download a JPEG poster or a ZIP with carousel JPEGs and the caption.
-- The News Desk uses a snapshot rebuilt by GitHub Actions every four hours and shows its update time. Source feeds can be edited in `assets/sources.json`. To generate from an article URL, the browser uses Gemini URL Context. Paste source text when Gemini cannot retrieve the page.
+- The layout gallery previews Signal Wire, Cutout Cover, Quote Prism, and Field Notes. Poster photo controls adjust zoom and crop. Poster downloads support JPEG or PNG in portrait, square fit, and story fit.
+- The News Desk uses a snapshot rebuilt by GitHub Actions every four hours and shows its update time. Source feeds can be edited in `assets/sources.json`. Poster links use a matching feed excerpt or Gemini URL Context. When the article is unavailable, paste a source excerpt or start a headline-only draft and check it against the original before publishing.
 - Browser keys are used for the current tab. Manual Meta and Zernio publishing use the credentials entered in Integrations and a Cloudinary unsigned upload preset. Keep the Cloudinary API secret in GitHub Actions secrets. The unattended workflow publishes to Instagram through Meta.
 
 ## GitHub setup

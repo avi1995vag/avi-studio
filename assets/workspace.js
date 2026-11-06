@@ -2,7 +2,7 @@
 const draftCaptions = {carousel: '', poster: ''};
 const draftSources = {carousel: null, poster: null};
 const persistedImages = new WeakMap();
-const frameLayouts = new Set(['brief','cover','cta','split','text-focus','magazine','minimal','tweet','stats','timeline','news-card','chart-bar','hero-split','minimal-quote','dateline','spotlight','world-update','breaking-banner','editorial']);
+const frameLayouts = new Set(['brief','cover','cta','split','text-focus','magazine','minimal','tweet','stats','timeline','news-card','chart-bar','hero-split','minimal-quote','dateline','spotlight','world-update','breaking-banner','editorial',...Object.keys(CREATIVE_TEMPLATES)]);
 let draftKind = 'carousel';
 let draftDB;
 let draftTimer;
@@ -21,10 +21,18 @@ function activateDraft(mode) {
     caption.value = draftCaptions[kind];
     updateCharCount();
   }
-  const source = document.getElementById('draftSource');
-  const href = safeWebUrl(draftSources[draftKind]?.link);
-  source.hidden = !href;
-  if(href) source.href = href;
+  const source = draftSources[draftKind];
+  const href = safeWebUrl(source?.link);
+  const link = document.getElementById('draftSource');
+  const check = document.getElementById('approvePosterSource');
+  const labels = {article:'Publisher article read',feed:'Matching feed excerpt',excerpt:'Your pasted excerpt',
+    'link-draft':'Headline only · source review required',checked:'Source checked by you'};
+  document.getElementById('draftSourcePanel').hidden = !href;
+  document.getElementById('draftSourceLabel').textContent = labels[source?.kind] || 'Original source';
+  link.hidden = !href;
+  check.hidden = draftKind!=='poster' || source?.kind!=='link-draft';
+  if(href) link.href = href;
+  document.getElementById('artworkOptions').hidden = draftKind!=='poster';
 }
 
 function normalizedFrame(frame) {
@@ -40,6 +48,9 @@ function normalizedFrame(frame) {
   }
   for(const field of ['titleSize','bodySize']){
     if(typeof frame[field] === 'number' && Number.isFinite(frame[field])) clean[field] = Math.max(.5, Math.min(2, frame[field]));
+  }
+  for(const [field,min,max] of [['photoX',0,1],['photoY',0,1],['photoZoom',1,2.5]]){
+    if(Number.isFinite(frame[field])) clean[field] = Math.max(min,Math.min(max,frame[field]));
   }
   if(Array.isArray(frame.chartData)){
     clean.chartData = frame.chartData.slice(0,15).filter(item =>
@@ -93,7 +104,10 @@ async function hydrateDraft(draft) {
   const lang = ['English','Kannada','Bilingual'].includes(draft.lang) ? draft.lang : 'English';
   const kind = draft.mode;
   draftCaptions[kind] = draft.caption.slice(0, 12000);
-  draftSources[kind] = safeWebUrl(draft.source?.link) ? {link:safeWebUrl(draft.source.link)} : null;
+  const source = draft.source;
+  const link = safeWebUrl(source?.link);
+  const kindOfSource = ['article','feed','excerpt','link-draft','checked'].includes(source?.kind) ? source.kind : '';
+  draftSources[kind] = link ? {link,kind:kindOfSource,name:typeof source.name==='string' ? source.name.slice(0,120) : ''} : null;
   if(kind === draftKind) document.getElementById('caption').value = draftCaptions[kind];
   if(kind === 'poster') {
     posterSlide = clean[0] ? {...clean[0], id:'poster-1', cacheKey:'poster-main'} : null;
@@ -205,15 +219,11 @@ function addBlankSlide() {
 
 function createBlankPoster(){
   if(posterSlide && !window.confirm('Replace your current poster with a blank one?')) return;
-  posterSlide = {id:'poster-1',cacheKey:'poster-main',layout:'brief',title:'Your headline',body:'Add the details here.'};
-  posterImageCache = {};
-  draftSources.poster = null;
-  switchMode('poster');
-  document.getElementById('posterImgPreview').removeAttribute('src');
-  document.getElementById('caption').value = '';
-  updateCharCount();
-  drawSlideOnCanvas(document.getElementById('posterCanvas'), posterSlide, 0, document.getElementById('posterLang').value);
-  openPosterEditor();
+  const settings = getPosterSettings();
+  const lang = settings.language;
+  const title = lang === 'Kannada' ? 'ನಿಮ್ಮ ಶೀರ್ಷಿಕೆ' : 'Your headline';
+  commitPoster({title,body:'',caption:''},settings,null);
+  showPosterSourceStatus('Blank poster ready. Add your own headline, details, and image.');
 }
 
 function editSlideOrder(direction) {
@@ -297,24 +307,52 @@ function zipArtwork(files) {
   return new Blob([...local,...central,end.buffer], {type:'application/zip'});
 }
 
-function canvasJpeg(canvas) {
+function encodeArtwork(canvas, type='image/jpeg') {
   return new Promise((resolve,reject) => canvas.toBlob(blob =>
-    blob ? resolve(blob) : reject(new Error('Canvas export failed.')), 'image/jpeg', .93));
+    blob ? resolve(blob) : reject(new Error('Canvas export failed.')), type, .93));
+}
+
+function fitPosterExport(canvas, height, theme){
+  if(height===canvas.height) return canvas;
+  const out = document.createElement('canvas');
+  out.width = CANVAS_W; out.height = height;
+  const context = out.getContext('2d');
+  context.fillStyle = theme.bg2;
+  context.fillRect(0,0,out.width,out.height);
+  const scale = Math.min(out.width/canvas.width,out.height/canvas.height);
+  const w = Math.round(canvas.width*scale), h = Math.round(canvas.height*scale);
+  const x = Math.floor((out.width-w)/2), y = Math.floor((out.height-h)/2);
+  context.drawImage(canvas,x,y,w,h);
+  if(y>=50){
+    context.fillStyle = theme.accent;
+    context.fillRect(64,y-23,78,3);
+    context.fillRect(out.width-142,y+h+20,78,3);
+  }
+  return out;
+}
+
+async function downloadSinglePoster(){
+  if(!posterSlide) return log('Create a poster first.','err');
+  try {
+    const mode = document.getElementById('posterExportSize').value;
+    const format = document.getElementById('posterExportFormat').value;
+    const height = {portrait:1350,square:1080,story:1920}[mode];
+    const canvas = fitPosterExport(document.getElementById('posterCanvas'),height,THEMES[activeTheme]);
+    const artwork = await encodeArtwork(canvas,'image/' + format);
+    downloadBlob(artwork,`avi-poster-${mode}.${format==='png' ? 'png' : 'jpg'}`);
+    log('Poster downloaded.','ok');
+  } catch(error){ log(error.message,'err'); }
 }
 
 async function downloadCurrentDesign() {
-  if(draftKind === 'poster') {
-    if(!posterSlide) return log('Create a poster first.', 'err');
-    downloadSinglePoster();
-    return;
-  }
+  if(draftKind === 'poster') return downloadSinglePoster();
   if(!slides.length) return log('Add a frame first.', 'err');
   try {
     const canvas = document.createElement('canvas');
     canvas.width = CANVAS_W; canvas.height = CANVAS_H;
     const images = slides.map((frame,index) => {
       drawSlide(canvas,frame,index);
-      return canvasJpeg(canvas);
+      return encodeArtwork(canvas);
     });
     const files = await Promise.all(images.map(async (image,index) => ({
       name:'slide-' + String(index+1).padStart(2,'0') + '.jpg',
@@ -340,12 +378,19 @@ async function configureWorkflowLinks() {
     workflow.href = base + '/actions/workflows/autopilot.yml';
     guide.href = base + '#github-setup';
     workflow.hidden = guide.hidden = false;
-    document.getElementById('workflowHint').textContent = 'In GitHub, select Run workflow and choose a run mode.';
+    document.getElementById('workflowHint').textContent = 'In the publishing dashboard, select Run workflow and choose a run mode.';
   } catch {}
 }
 
 async function initWorkspace() {
+  initializeCreativeTools();
   loadSettings();
+  for(const [id,options] of [['posterExportSize',['portrait','square','story']],['posterExportFormat',['jpeg','png']]]){
+    const field = document.getElementById(id);
+    const saved = lsGet('app_' + id);
+    if(options.includes(saved)) field.value = saved;
+    field.onchange = () => lsSet('app_' + id,field.value);
+  }
   try {
     const saved = await workspaceRecord();
     if(saved){
@@ -363,6 +408,7 @@ async function initWorkspace() {
   studioReady = true;
   configureWorkflowLinks();
   document.fonts.ready.then(() => {
+    updateCreativeGallery();
     buildGrid();
     if(posterSlide) drawSlideOnCanvas(document.getElementById('posterCanvas'), posterSlide, 0, document.getElementById('posterLang').value);
   });

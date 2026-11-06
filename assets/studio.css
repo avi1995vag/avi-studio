@@ -202,3 +202,28 @@ canvas.preview.selected { border-color: #77a868; outline: 2px solid var(--accent
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Poster sources, layout previews, and export preferences */
+.source-status { margin: 0 0 12px; padding: 10px 12px; border-radius: var(--r); background: var(--bg3); font-size: 13px; }
+.source-status[data-tone="warning"], .draft-source-panel:has(#approvePosterSource:not([hidden])) { background: #faf0d7; color: #633f12; }
+.source-details { margin: 0 0 14px; }
+.source-details summary { color: var(--accent); font-weight: 650; width: fit-content; }
+.source-details .helper { margin-top: 9px; }
+.source-recovery { margin-bottom: 14px; }
+.draft-source-panel { padding: 8px 11px; margin-bottom: 12px; border-radius: var(--r); background: var(--bg3); }
+.draft-source-panel .helper, .draft-source-panel #draftSource { margin: 0 0 4px; }
+.draft-source-panel button { display: flex; margin: 5px 0 0; }
+.creative-gallery { margin: 0 0 24px; scroll-margin-top: 80px; }
+.creative-templates { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.creative-template { display: grid; justify-items: start; align-content: start; gap: 7px; text-align: left; padding: 8px; min-width: 0; }
+.creative-template[aria-pressed=true] { background: var(--bg4); border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.creative-template canvas { display: block; width: 100%; aspect-ratio: 4/5; height: auto; border-radius: 5px; }
+.creative-template span { padding-inline: 2px; }
+.photo-controls { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; padding-top: 10px; }
+.photo-controls legend { grid-column: 1/-1; font-weight: 650; }
+.photo-controls input { accent-color: var(--accent); }
+.artwork-options { display: grid; grid-template-columns: minmax(0,1.6fr) minmax(0,1fr); gap: 8px; }
+.artwork-options select { padding-inline: 5px; font-size: 12px; }
+@media (max-width: 740px) {
+  .creative-templates { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
