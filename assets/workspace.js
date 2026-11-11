@@ -43,6 +43,8 @@ function normalizedFrame(frame) {
   }
   clean.title ??= '';
   clean.body ??= '';
+  if(Object.hasOwn(POSTER_PALETTES,frame.posterPalette)) clean.posterPalette = frame.posterPalette;
+  if(Object.hasOwn(PHOTO_FINISHES,frame.photoFinish)) clean.photoFinish = frame.photoFinish;
   for(const field of ['titleColor','bodyColor','accentColor']){
     if(typeof frame[field] === 'string' && /^#[0-9a-f]{6}$/i.test(frame[field])) clean[field] = frame[field];
   }
@@ -337,7 +339,7 @@ async function downloadSinglePoster(){
     const mode = document.getElementById('posterExportSize').value;
     const format = document.getElementById('posterExportFormat').value;
     const height = {portrait:1350,square:1080,story:1920}[mode];
-    const canvas = fitPosterExport(document.getElementById('posterCanvas'),height,THEMES[activeTheme]);
+    const canvas = fitPosterExport(document.getElementById('posterCanvas'),height,posterTheme(posterSlide.posterPalette));
     const artwork = await encodeArtwork(canvas,'image/' + format);
     downloadBlob(artwork,`avi-poster-${mode}.${format==='png' ? 'png' : 'jpg'}`);
     log('Poster downloaded.','ok');

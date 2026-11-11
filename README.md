@@ -8,7 +8,7 @@ AvI Studio is an editorial workspace for 4:5 carousels and single posters. GitHu
 - Select a frame to edit its text, layout, colors, size or image. Move, duplicate or remove frames in the inspector. Upload an image directly, or provide an image URL whose server allows cross-origin browser access. An optional Pexels key enables stock search.
 - The browser autosaves the current carousel and poster separately on this device. Export a JSON draft to move it to another browser or keep a backup. Import the `draft.json` from an Actions run to edit that run's content and palette. Download a JPEG poster or a ZIP with carousel JPEGs and the caption.
 
-In **Single poster**, the layout gallery shows a selectable thumbnail for every layout. Choosing one updates the large preview and keeps your draft text and image.
+In **Single poster**, the layout gallery shows a selectable thumbnail for every layout. Choosing one updates the large preview and keeps your draft text and image. Use **Poster palette** and **Photo finish** below the preview to style the poster. Drafts keep these choices and apply them to exports while preserving the original photo.
 
 Open **AI Image Generator** to create an image without an account, a personal API key, or a local model download. The prompt goes to AI Horde's free community queue. Download the finished image as WebP or use it in your current poster.
 - The layout gallery previews Signal Wire, Cutout Cover, Quote Prism, and Field Notes. Poster photo controls adjust zoom and crop. Poster downloads support JPEG or PNG in portrait, square fit, and story fit.

@@ -157,7 +157,10 @@ function setTheme(k){
   });
   liveUpdate();
   updateCreativeGallery();
-  if(posterSlide) drawSlideOnCanvas(document.getElementById('posterCanvas'), posterSlide, 0, document.getElementById('posterLang').value);
+  if(posterSlide){
+    syncPosterColorInputs();
+    drawSlideOnCanvas(document.getElementById('posterCanvas'), posterSlide, 0, document.getElementById('posterLang').value);
+  }
 }
 function updateCharCount(){
   const counter=document.getElementById('charCount');
@@ -841,12 +844,12 @@ function drawSlide(canvas,slide,idx,{image,count=slides.length}={}){
   const TF=isKan?'"Anek Kannada",sans-serif':'"Montserrat",sans-serif';
   const BF=isKan?'"Hubballi",sans-serif':'"Inter",sans-serif';
   const isLast=idx===count-1;
-  const th=THEMES[activeTheme]||THEMES.dark;
+  const th=posterTheme(slide.posterPalette);
   ctx.fillStyle=th.bg; ctx.fillRect(0,0,W,H);
   
   const layout=slide.layout||'news-card';
   const ck=slide.cacheKey||slide.id;
-  const img=image ?? (slideImageOverrides[ck]||imageCache[ck]);
+  const img=finishPhoto(image === undefined ? (slideImageOverrides[ck]||imageCache[ck]) : image,slide.photoFinish);
   
   try{
     if(Object.hasOwn(CREATIVE_TEMPLATES,layout)) drawCreativeFrame(ctx,slide,idx,count,th,img,TF,BF);
@@ -1339,9 +1342,10 @@ function drawMinimalQuote(ctx,slide,idx,W,H,th,img,TF,BF,isLast){
 function drawEditorial(ctx,slide,idx,W,H,th,img,TF,BF,isLast){
   try {
     const acc = slide.accentColor || getCategoryStyle(slide.category||'NEWS').bg;
-    const paperBg = (activeTheme === 'newspaper' || activeTheme === 'light') ? '#fafaf5' : th.bg;
-    const paperText = (activeTheme === 'newspaper' || activeTheme === 'light') ? '#13120e' : th.text;
-    const paperSub = (activeTheme === 'newspaper' || activeTheme === 'light') ? '#4a3f35' : (th.sub||'#94a3b8');
+    const studioPaper = (!slide.posterPalette || slide.posterPalette==='studio') && ['newspaper','light'].includes(activeTheme);
+    const paperBg = studioPaper ? '#fafaf5' : th.bg;
+    const paperText = studioPaper ? '#13120e' : th.text;
+    const paperSub = studioPaper ? '#4a3f35' : (th.sub||'#94a3b8');
     ctx.fillStyle = paperBg; ctx.fillRect(0,0,W,H);
 
     // ── Top brand bar ──
@@ -2344,7 +2348,9 @@ function commitPoster(copy, settings, source){
   document.getElementById('posterLang').value = settings.language;
   document.getElementById('posterLayout').value = settings.layout;
   const frame = normalizedFrame({...copy,layout:settings.layout,category:copy.category || settings.type.toUpperCase(),
-    source:source?.name,titleSize:defaultTitleSize,bodySize:defaultBodySize});
+    source:source?.name,titleSize:defaultTitleSize,bodySize:defaultBodySize,
+    posterPalette:posterSlide ? posterSlide.posterPalette : samplePalette,
+    photoFinish:posterSlide ? posterSlide.photoFinish : samplePhotoFinish});
   posterSlide = {...frame,id:'poster-1',cacheKey:'poster-main'};
   posterImageCache = {};
   resetPosterPhoto();
@@ -2498,13 +2504,6 @@ function drawSlideOnCanvas(canvas, slide, idx, language){
   const ck = slide.cacheKey || slide.id;
   const posterImg = posterImageCache[ck] || null;
 
-  // Always inject poster image into imageCache before drawing
-  if(posterImg){
-    imageCache[ck] = posterImg;
-  } else {
-    delete imageCache[ck];
-  }
-
   // Tag slide with its language for font selection
   slide._lang = language;
 
@@ -2514,10 +2513,7 @@ function drawSlideOnCanvas(canvas, slide, idx, language){
   offscreen.width = CANVAS_W;
   offscreen.height = CANVAS_H;
 
-  const oldSlides = slides;
-  slides = [slide];
-  drawSlide(offscreen, slide, 0);
-  slides = oldSlides;
+  drawSlide(offscreen,slide,idx,{image:posterImg,count:1});
   if(draftSources.poster?.kind==='link-draft'){
     const ctx = offscreen.getContext('2d');
     ctx.fillStyle = '#533a14'; ctx.fillRect(0, CANVAS_H-44, CANVAS_W, 44);
@@ -2531,8 +2527,6 @@ function drawSlideOnCanvas(canvas, slide, idx, language){
   displayCtx.clearRect(0, 0, CANVAS_W, CANVAS_H);
   displayCtx.drawImage(offscreen, 0, 0);
 
-  // Keep image in cache while poster is active, clean up after
-  if(!posterImg) delete imageCache[ck];
   queueDraftSave();
 }
 
@@ -2560,9 +2554,13 @@ function openPosterEditor(){
   // Also update the global size badges to reflect current poster sizes
   const tsb = document.getElementById('titleSizeBadge'); if(tsb) tsb.textContent = parseFloat(ts).toFixed(2)+'×';
   const bsb = document.getElementById('bodySizeBadge'); if(bsb) bsb.textContent = parseFloat(bs).toFixed(2)+'×';
-  document.getElementById('posterEditTitleColor').value = posterSlide.titleColor || '#ffffff';
-  document.getElementById('posterEditBodyColor').value = posterSlide.bodyColor || '#94a3b8';
-  const th = THEMES[activeTheme] || THEMES.dark;
+  syncPosterColorInputs();
+}
+
+function syncPosterColorInputs(){
+  const th = posterTheme(posterSlide.posterPalette);
+  document.getElementById('posterEditTitleColor').value = posterSlide.titleColor || th.text;
+  document.getElementById('posterEditBodyColor').value = posterSlide.bodyColor || th.sub;
   document.getElementById('posterEditAccentColor').value = posterSlide.accentColor || th.accent;
 }
 

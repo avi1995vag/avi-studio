@@ -7,8 +7,64 @@ const CREATIVE_TEMPLATES = {
   'broadsheet': {label:'Broadsheet', title:'A city finds its rhythm', body:'An early look at the spaces and people reshaping the city.', category:'THE EDITION'},
   'orbit-cover': {label:'Orbit Cover', title:'A world in motion', body:'A closer look at how small changes set larger things in motion.', category:'IN FOCUS'},
   'color-block': {label:'Color Block', title:'Make room for change', body:'Fresh ideas for a familiar place and the people who make it home.', category:'PERSPECTIVE'},
-  'film-strip': {label:'Film Strip', title:'Where the light falls', body:'A visual dispatch from the quieter side of the city.', category:'PHOTO DISPATCH'}
+  'film-strip': {label:'Film Strip', title:'Where the light falls', body:'A visual dispatch from the quieter side of the city.', category:'PHOTO DISPATCH'},
+  'front-page': {label:'Front Page', title:'The city edition', body:'Reporting from the streets, squares and skylines that shape the day.', category:'THE DAILY EDITION'},
+  'gallery-diptych': {label:'Gallery Diptych', title:'Two views of one place', body:'A study in distance, texture and the shapes we notice when we slow down.', category:'PHOTO STUDY'},
+  'bold-type': {label:'Bold Type', title:'New ideas take shape', body:'A headline-led design with space for the detail that matters most.', category:'THE BIG IDEA'}
 };
+
+const POSTER_PALETTES = {
+  studio: {label:'Studio theme'},
+  linen: {label:'Linen',bg:'#f5ead8',bg2:'#e6d6bb',panel:'#e6d6bb',text:'#242319',sub:'#514431',accent:'#86431f'},
+  midnight: {label:'Midnight',bg:'#121a32',bg2:'#233054',panel:'#233054',text:'#edf1ff',sub:'#c1cbed',accent:'#a5b7ff'},
+  terracotta: {label:'Terracotta',bg:'#351d1a',bg2:'#5c3028',panel:'#5c3028',text:'#fff0de',sub:'#ead0bd',accent:'#ffb287'},
+  jade: {label:'Jade',bg:'#112921',bg2:'#21483b',panel:'#21483b',text:'#f0f7e8',sub:'#c9dfcc',accent:'#a9e2ae'}
+};
+const PHOTO_FINISHES = {
+  original:null,
+  monochrome:{saturation:0,contrast:1.1,offset:[0,0,0]},
+  amber:{saturation:.82,contrast:1.05,offset:[20,5,-16]},
+  steel:{saturation:.76,contrast:1.08,offset:[-13,3,22]},
+  faded:{saturation:.65,contrast:.78,offset:[14,10,7]}
+};
+const finishedPhotos = new WeakMap();
+let samplePalette = 'studio';
+let samplePhotoFinish = 'original';
+
+function posterTheme(palette){
+  const theme = Object.hasOwn(POSTER_PALETTES,palette) ? POSTER_PALETTES[palette] : null;
+  return theme?.bg ? theme : THEMES[activeTheme] || THEMES.dark;
+}
+
+function finishPhoto(image, finish){
+  if(!image || !Object.hasOwn(PHOTO_FINISHES,finish) || !PHOTO_FINISHES[finish]) return image;
+  const settings = PHOTO_FINISHES[finish];
+  let variants = finishedPhotos.get(image);
+  if(!variants){ variants = new Map(); finishedPhotos.set(image,variants); }
+  if(variants.has(finish)) return variants.get(finish);
+  const width = image.naturalWidth || image.width, height = image.naturalHeight || image.height;
+  if(!width || !height) return image;
+  const ratio = Math.min(1,1600/Math.max(width,height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1,Math.round(width*ratio)); canvas.height = Math.max(1,Math.round(height*ratio));
+  const ctx = canvas.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(image,0,0,canvas.width,canvas.height);
+  let pixels;
+  try { pixels = ctx.getImageData(0,0,canvas.width,canvas.height); }
+  catch { variants.set(finish,image); return image; }
+  const data = pixels.data;
+  const {saturation,contrast,offset} = settings;
+  for(let i=0;i<data.length;i+=4){
+    const grey = .2126*data[i] + .7152*data[i+1] + .0722*data[i+2];
+    for(let channel=0;channel<3;channel++){
+      const original = data[i+channel];
+      data[i+channel] = (grey+(original-grey)*saturation-128)*contrast+128+offset[channel];
+    }
+  }
+  ctx.putImageData(pixels,0,0);
+  variants.set(finish,canvas);
+  return canvas;
+}
 
 function creativeText(ctx, text, box, fontFamily, weight, color) {
   const {x,y,width,height,size} = box;
@@ -190,6 +246,39 @@ function drawCreativeFrame(ctx, frame, index, count, theme, image, titleFont, bo
     }
     title(57,854,963,207,94,serif);
     body(61,1079,950,139,37);
+  } else if(frame.layout === 'front-page'){
+    rect(theme.panel,40,33,1000,1190);
+    label('AvI Studio',65,59,680,ink,52);
+    label(edition,874,79,140,theme.sub);
+    line(accent,65,136,1015,136,6);
+    label(category,68,164,944);
+    title(62,215,952,244,112,serif);
+    photo(65,480,950,475);
+    line(theme.sub,65,985,1015,985);
+    body(66,1014,937,166,39);
+  } else if(frame.layout === 'gallery-diptych'){
+    label(category,58,56,820);
+    const zoom = frame.photoZoom ?? 1;
+    rect(theme.panel,45,135,990,704);
+    if(image){
+      drawImgCover(ctx,image,63,153,580,668,frame);
+      drawImgCover(ctx,image,660,153,357,668,{...frame,photoX:.8,photoZoom:Math.min(3,zoom*1.48)});
+    } else {
+      photo(63,153,580,668);
+      rect(theme.bg,660,153,357,668);
+      line(accent,662,800,1015,171,4);
+    }
+    line(accent,60,870,160,870,6);
+    title(57,906,963,184,89,serif);
+    body(62,1102,951,115,35);
+  } else if(frame.layout === 'bold-type'){
+    rect(theme.panel,0,0,W,738);
+    rect(accent,55,55,110,12);
+    label(category,55,89,820);
+    title(49,195,980,475,174);
+    photo(620,738,460,484);
+    line(accent,57,805,131,805,5);
+    body(55,854,510,323,47);
   }
 
   line(theme.sub,64,1245,1016,1245);
@@ -199,6 +288,34 @@ function drawCreativeFrame(ctx, frame, index, count, theme, image, titleFont, bo
 function initializeCreativeTools() {
   const gallery = document.getElementById('creativeTemplates');
   const select = document.getElementById('posterLayout');
+  const palettes = document.getElementById('posterPaletteOptions');
+  const photoFinish = document.getElementById('posterPhotoFinish');
+  const changeFinish = (field,value) => {
+    if(posterSlide){
+      applyPosterEdit(field,value);
+      if(field==='posterPalette') syncPosterColorInputs();
+    } else if(field==='posterPalette'){
+      samplePalette = value;
+    } else {
+      samplePhotoFinish = value;
+    }
+    updateCreativeGallery();
+  };
+  for(const [key,palette] of Object.entries(POSTER_PALETTES)){
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'poster-palette';
+    button.dataset.palette = key;
+    const swatch = document.createElement('span');
+    swatch.className = 'palette-swatch';
+    swatch.setAttribute('aria-hidden','true');
+    const label = document.createElement('span');
+    label.textContent = palette.label;
+    button.append(swatch,label);
+    button.addEventListener('click', () => changeFinish('posterPalette',key));
+    palettes.append(button);
+  }
+  photoFinish.addEventListener('change', () => changeFinish('photoFinish',photoFinish.value));
   const pickers = ['posterLayout','posterEditLayout','editLayout'];
   for(const id of pickers){
     const group = document.createElement('optgroup');
@@ -305,9 +422,21 @@ function gallerySampleArt(){
 function updateCreativeGallery(force=false){
   const layout = document.getElementById('posterLayout').value;
   const language = document.getElementById('posterLang').value;
-  const appearance = activeTheme + '|' + language;
+  const posterPalette = posterSlide ? posterSlide.posterPalette || 'studio' : samplePalette;
+  const photoFinish = posterSlide ? posterSlide.photoFinish || 'original' : samplePhotoFinish;
+  const appearance = [activeTheme,language,posterPalette,photoFinish].join('|');
+  document.getElementById('posterPhotoFinish').value = photoFinish;
+  for(const button of document.querySelectorAll('.poster-palette')){
+    const key = button.dataset.palette;
+    const theme = posterTheme(key);
+    button.setAttribute('aria-pressed',String(key===posterPalette));
+    button.style.setProperty('--swatch-bg',theme.bg);
+    button.style.setProperty('--swatch-text',theme.text);
+    button.style.setProperty('--swatch-accent',theme.accent);
+  }
   const render = force || appearance !== galleryAppearance;
   const sampleImage = gallerySampleArt();
+  const previewFrame = key => ({...layoutSample(key,language),posterPalette,photoFinish});
   const scratch = render ? document.createElement('canvas') : null;
   if(scratch){ scratch.width = CANVAS_W; scratch.height = CANVAS_H; }
   for(const button of document.querySelectorAll('.creative-template')){
@@ -315,13 +444,13 @@ function updateCreativeGallery(force=false){
     button.setAttribute('aria-pressed',String(layout===key));
     if(scratch){
       const canvas = button.querySelector('canvas');
-      drawSlide(scratch,layoutSample(key,language),0,{image:sampleImage,count:1});
+      drawSlide(scratch,previewFrame(key),0,{image:sampleImage,count:1});
       canvas.getContext('2d').drawImage(scratch,0,0,canvas.width,canvas.height);
     }
   }
   galleryAppearance = appearance;
   document.getElementById('posterPreviewLabel').textContent = posterSlide ? 'Your artwork' : 'Sample artwork';
-  if(!posterSlide) drawSlide(document.getElementById('posterCanvas'),layoutSample(layout,language),0,{image:sampleImage,count:1});
+  if(!posterSlide) drawSlide(document.getElementById('posterCanvas'),previewFrame(layout),0,{image:sampleImage,count:1});
 }
 
 async function loadCreativeSample(){
