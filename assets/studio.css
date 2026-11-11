@@ -229,6 +229,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 14px 0; }
 .slide-wrap { min-width: 0; }
 .slide-num, .char-count { color: var(--muted); font: 600 11px/1.4 var(--font-mono); }
 .slide-num { margin-bottom: 5px; }
+.slide-num span { display: block; margin-top: 3px; color: var(--text2); font: 650 12px/1.4 var(--font-body); }
 canvas.preview { display: block; width: 100%; height: auto; aspect-ratio: 4/5; border: 2px solid transparent; border-radius: 11px; cursor: pointer; background: var(--bg3); }
 canvas.preview.selected { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
 .empty-frames { grid-column: 1/-1; min-height: 155px; display: grid; place-items: center; text-align: center; padding: 20px; border: 1px dashed var(--border2); border-radius: var(--r2); background: var(--bg3); }

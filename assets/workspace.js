@@ -43,6 +43,9 @@ function normalizedFrame(frame) {
   }
   clean.title ??= '';
   clean.body ??= '';
+  if(['explain','list','sequence','quote','data','photo','takeaway'].includes(frame.storyRole)) clean.storyRole = frame.storyRole;
+  if(frame.storyLayout===true) clean.storyLayout = true;
+  if(['manual','generated'].includes(frame.chartOrigin)) clean.chartOrigin = frame.chartOrigin;
   if(Object.hasOwn(POSTER_PALETTES,frame.posterPalette)) clean.posterPalette = frame.posterPalette;
   if(Object.hasOwn(PHOTO_FINISHES,frame.photoFinish)) clean.photoFinish = frame.photoFinish;
   for(const field of ['titleColor','bodyColor','accentColor']){

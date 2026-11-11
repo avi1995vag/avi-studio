@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css?v=carousel-visuals">
+<link rel="stylesheet" href="./assets/studio.css?v=story-layouts">
 </head>
 <body>
 
@@ -234,11 +234,11 @@
               <select id="slideCount"><option value="5">5</option><option value="7" selected>7</option><option value="10">10</option></select>
             </div>
           </div>
-          <div class="field"><label for="carouselDesign">Layout set</label>
+          <div class="field"><label for="carouselDesign">Carousel style</label>
             <select id="carouselDesign">
               <option value="editorial">Editorial</option>
               <option value="color">Color story</option>
-              <option value="classic">Classic layouts</option>
+              <option value="classic">Brand colors</option>
             </select>
           </div>
           <div class="field"><label for="aiVisualStyle">Photos</label>
@@ -261,7 +261,7 @@
       <h2>Frames</h2>
       <div class="carousel-frame-actions">
         <span>1080 × 1350 · 4:5</span>
-        <button id="carouselApplyDesign" type="button" class="btn-sm" onclick="applyCurrentCarouselDesign()">Apply layout set</button>
+        <button id="carouselApplyDesign" type="button" class="btn-sm btn-p" onclick="applyCurrentCarouselDesign()">Fit layouts to story</button>
         <button id="carouselRefreshPhotos" type="button" class="btn-sm" onclick="refreshCarouselPhotos()">Refresh photos</button>
       </div>
     </div>
@@ -680,7 +680,7 @@
     <div class="field"><label for="editTitle">Title</label><input id="editTitle" oninput="applyEdit('title',this.value)"></div>
     <div class="field"><label for="editBody">Body</label><textarea id="editBody" rows="3" oninput="applyEdit('body',this.value)"></textarea></div>
     <div class="field"><label for="editLayout">Layout</label>
-      <select id="editLayout" onchange="applyEdit('layout',this.value);document.getElementById('chartEditorPanel').style.display=this.value==='chart-bar'?'block':'none'">
+      <select id="editLayout" onchange="applyEdit('layout',this.value)">
         <option value="brief">AvI Brief</option>
         <option value="cover">Cover</option>
         <option value="cta">Closing / call to action</option>
@@ -845,12 +845,12 @@
 
 </div>
 
-<script src="./assets/creative.js?v=carousel-visuals"></script>
+<script src="./assets/creative.js?v=story-layouts"></script>
 <script src="./assets/photo-search.js?v=carousel-visuals"></script>
 <script src="./assets/article-import.js"></script>
-<script src="./assets/studio.js?v=carousel-visuals"></script>
+<script src="./assets/studio.js?v=story-layouts"></script>
 <script src="./assets/image-generator.js"></script>
 <script src="./assets/social-publishing.js?v=carousel-visuals"></script>
-<script src="./assets/workspace.js?v=carousel-visuals"></script>
+<script src="./assets/workspace.js?v=story-layouts"></script>
 </body>
 </html>

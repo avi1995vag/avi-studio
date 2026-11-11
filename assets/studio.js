@@ -349,38 +349,45 @@ function setSlidePhotoDetails(slide, photo){
   }
 }
 
+function carouselFrameImage(frame){
+  return slideImageOverrides[frame.cacheKey] || imageCache[frame.cacheKey];
+}
+
 function applyCarouselLayouts(frames,design){
-  if(design==='classic') return;
-  const colors = ['midnight','linen','terracotta','jade'];
+  const color = {'carousel-lead':'midnight','carousel-list':'jade','carousel-sequence':'midnight','carousel-quote':'terracotta','carousel-close':'jade'};
   frames.forEach((frame,index) => {
-    frame.layout = index===0 ? 'carousel-lead' : index===frames.length-1 ? 'carousel-close' : index%3===1 ? 'carousel-feature' : 'carousel-type';
-    frame.posterPalette = design==='color' ? colors[index%colors.length] : 'studio';
+    frame.layout = chooseCarouselLayout(frame,index,frames.length,Boolean(carouselFrameImage(frame)));
+    frame.storyLayout = true;
+    frame.posterPalette = design==='classic' ? 'studio' : design==='color' ? (color[frame.layout] || 'linen')
+      : ['carousel-lead','carousel-close'].includes(frame.layout) ? 'midnight' : 'linen';
   });
+}
+
+function isChartLayout(layout){
+  return layout==='chart-bar' || layout==='carousel-chart';
 }
 
 function applyCurrentCarouselDesign(){
   if(!slides.length) return;
-  const design = document.getElementById('carouselDesign').value;
-  if(design==='classic'){
-    const cover = document.getElementById('defaultCoverLayout').value;
-    const inner = document.getElementById('defaultInnerLayout').value;
-    slides.forEach((frame,index) => {
-      frame.layout = index===0 ? cover : index===slides.length-1 ? 'cta' : inner;
-      frame.posterPalette = 'studio';
-    });
-  } else applyCarouselLayouts(slides,design);
-  if(selectedSlide!==null){
-    const layout = slides[selectedSlide].layout;
-    document.getElementById('editLayout').value = layout;
-    document.getElementById('chartEditorPanel').style.display = layout==='chart-bar' ? 'block' : 'none';
-  }
-  buildGrid();
-  showAIFeedback('carouselPhotoStatus','Layout set applied.','success');
+  applyCarouselLayouts(slides,document.getElementById('carouselDesign').value);
+  selectEditedSlide(selectedSlide);
+  showAIFeedback('carouselPhotoStatus','Layouts fitted to the story. You can adjust individual frames in the editor.','success');
 }
 
 async function loadCarouselPhotos(frames,mode,subject){
   if(mode==='none') return;
-  const targets = frames.filter(frame => !['carousel-type','carousel-close','cta','stats','timeline','chart-bar','minimal-quote'].includes(frame.layout));
+  const subjectTerms = searchTerms(subject);
+  let additional = 0;
+  const targets = frames.filter(frame => {
+    if(frame.storyLayout && frame.layout==='carousel-type'){
+      const terms = new Set(searchTerms(`${frame.title} ${frame.body}`));
+      const subjectInFrame = subjectTerms.length>0 && subjectTerms.every(term=>terms.has(term));
+      if(additional>=3 || frame.body.length>460 || !(frame.storyRole==='photo' || subjectInFrame || (mode==='stock' && frame.imageQuery))) return false;
+      additional++;
+      return true;
+    }
+    return !['carousel-type','carousel-close','carousel-list','carousel-sequence','carousel-chart','carousel-quote','cta','stats','timeline','chart-bar','minimal-quote'].includes(frame.layout);
+  });
   const used = new Set();
   let count = 0;
   if(mode==='stock'){
@@ -407,6 +414,9 @@ async function loadCarouselPhotos(frames,mode,subject){
     }
   }
   if(!frames.some(frame=>slides.includes(frame))) return;
+  slides.forEach((frame,index) => {
+    if(frame.storyLayout && frames.includes(frame)) frame.layout = chooseCarouselLayout(frame,index,slides.length,Boolean(carouselFrameImage(frame)));
+  });
   buildGrid();
   if(selectedSlide!==null) syncSlidePhotoEditor(slides[selectedSlide]);
   const result = count ? `${count} ${mode==='stock' ? 'stock illustrations' : 'matching photos'} added.`
@@ -438,7 +448,13 @@ async function refreshCarouselPhotos(){
     for(const frame of frames) frame.photoSubject = subject;
     buildGrid();
     if(selectedSlide!==null) syncSlidePhotoEditor(slides[selectedSlide]);
-    if(mode==='none') showAIFeedback('carouselPhotoStatus','Typography-only artwork applied.','success');
+    if(mode==='none'){
+      slides.forEach((frame,index)=>{
+        if(frame.storyLayout) frame.layout = chooseCarouselLayout(frame,index,slides.length,false);
+      });
+      buildGrid();
+      showAIFeedback('carouselPhotoStatus','Typography-only artwork applied.','success');
+    }
     else await loadCarouselPhotos(frames,mode,subject);
   } finally { button.disabled = generate.disabled = layoutButton.disabled = false; }
 }
@@ -622,12 +638,21 @@ function syncCarouselWritingMode(){
 function arrangeCarouselText(topic, source, count, cover, inner){
   const text = articleText(source);
   if(!text) throw new Error('Paste article text or notes to arrange into slides.');
-  const sentences = Array.from(new Intl.Segmenter(undefined,{granularity:'sentence'}).segment(text), item => item.segment.trim()).filter(Boolean);
   const frames = [{layout:cover,title:articleExcerpt(topic,92),body:'',imageQuery:topic}];
-  for(let i=0; i<sentences.length && frames.length<count;){
-    let body = sentences[i++];
-    while(i<sentences.length && body.length+sentences[i].length<=270) body += ' ' + sentences[i++];
-    frames.push({layout:inner,title:articleExcerpt(body.split(/\s+/u).slice(0,5).join(' '),70),body:articleExcerpt(body,320),imageQuery:topic});
+  const segmenter = new Intl.Segmenter(undefined,{granularity:'sentence'});
+  for(const paragraph of source.split(/\r?\n[ \t]*\r?\n/u)){
+    if(frames.length===count) break;
+    const section = {layout:inner,title:articleExcerpt(topic,92),body:paragraph.trim(),imageQuery:topic};
+    if(carouselListItems(section) || carouselChartRows(section).length){
+      frames.push(section);
+      continue;
+    }
+    const sentences = Array.from(segmenter.segment(articleText(paragraph)), item=>item.segment.trim()).filter(Boolean);
+    for(let i=0; i<sentences.length && frames.length<count;){
+      let body = sentences[i++];
+      while(i<sentences.length && body.length+sentences[i].length<=270) body += ' ' + sentences[i++];
+      frames.push({...section,title:articleExcerpt(body.split(/\s+/u).slice(0,5).join(' '),70),body:articleExcerpt(body,320)});
+    }
   }
   return {caption:`${topic}\n\n${articleExcerpt(text,600)}`,slides:frames.map((frame,index)=>({...frame,id:index+1}))};
 }
@@ -675,29 +700,24 @@ OUTPUT FORMAT (RAW VALID JSON ONLY. NO MARKDOWN):
   "slides": [
     {
       "id": 1,
-      "layout": "${covLayout}",
       "title": "...",
       "body": "...",
-      "imageQuery": "2-5 word Google image search query describing the EXACT scene, person, or event on this slide. Be specific: use proper nouns + context. Example: 'Virat Kohli batting IPL 2025', 'Bengaluru Metro inauguration', 'Union Budget 2025 Parliament'.",
+      "storyRole": "explain",
+      "imageQuery": "Exact named subject if a photo adds context, otherwise an empty string.",
       "category": "...",
-      "chartData": [{"label": "Data", "value": 50}]
+      "chartData": []
     }
   ]
 }
 
-MANDATORY LAYOUT RULES:
-- Slide 1: layout="${covLayout}". The title (headline) for Slide 1 MUST be a maximum of 5 words. Do NOT exceed 5 words under any circumstances to prevent text overflow.
-- remaining slides: The AI must carefully match the most appropriate layout based on the content of that slide:
-  - If comparative numerical data exists, use layout="chart-bar" and provide valid numeric chartData.
-  - If statistical facts or a list of bullet points exist, use layout="stats" and write the body as a newline-separated bullet list (without bullet characters like • or -).
-  - If a chronological series of historical events or steps exist, use layout="timeline" and write the body as newline-separated timeline events.
-  - For standard narrative content, choose layout from ["${innerLayout}", "news-card", "split", "text-focus", "magazine", "minimal", "hero-split", "minimal-quote"] that fits the story best.
-  - STRICT RULE: Do NOT choose layouts randomly. The selected layout MUST precisely match the content structure of the slide.
-- Slide ${count}: layout="cta"
-- EXACTLY ${count} slides. Titles max 8 words.
-- body: A highly informative, engaging description strictly between 30 and 40 words giving deep context. (Timeline & Stats slides must follow the bullet count rule instead of the 30-40 words rule).
-- layout="chart-bar": include "chartData" array with 3-5 items [{label,value}]. Values must be numbers.
-- imageQuery: Write the EXACT FULL NAME of the specific person on this slide + their specific action + year. Each slide must have a DIFFERENT query.`;
+STORY STRUCTURE:
+- Use exactly ${count} frames. Start with a headline of up to 5 words. Use up to 8 words for each subsequent headline.
+- Set storyRole to one of explain, list, sequence, quote, data, photo or takeaway. Choose each role from the material in that frame.
+- For explainers use a short paragraph. Use one line per item for lists, steps or timelines. Start list items with a bullet, steps with a step number and historical entries with the year.
+- Use quotation marks only for words actually quoted in the source and preserve the attribution.
+- For a data comparison, include chartData as 2–5 {label,value} pairs only when the supplied source explicitly contains those exact labels and comparable values. Include the same labeled values in the frame body. Otherwise chartData must be empty.
+- Use photo only when a named person, place or event is central to that frame and a photo adds context. Put the actual name in imageQuery. Leave imageQuery empty for general ideas.
+- Use a takeaway when the material supports a specific conclusion or action. Give it the same editorial care as any other frame.`;
 
   try {
     let parsed;
@@ -707,6 +727,10 @@ MANDATORY LAYOUT RULES:
       try {
         parsed=await fetchFromGemini(prompt,research);
         validateAndCleanSlides(parsed.slides,count);
+        for(const frame of parsed.slides){
+          frame.chartOrigin = 'generated';
+          if(!source || !carouselChartRows(frame,source).length) frame.chartData = [];
+        }
       } catch(error){
         if(!source) throw error;
         fallback = error.message;
@@ -721,11 +745,11 @@ MANDATORY LAYOUT RULES:
     switchMode('carousel');
     closeSlideEditor();
     slides=parsed.slides; currentLang=lang;
-    applyCarouselLayouts(slides,design);
     const photoSubject = explicitSubject || carouselSubject(typeof parsed.photoSubject==='string' ? parsed.photoSubject : '') || carouselSubject(topic);
     for(const frame of slides) frame.photoSubject = photoSubject;
     assignCacheKeys(slides);
     imageCache={}; slideImageOverrides={}; usedImageUrls.clear();
+    applyCarouselLayouts(slides,design);
     document.getElementById('caption').value=parsed.caption||''; updateCharCount();
     log('Content ready. Preparing artwork…','ok');
     buildGrid();
@@ -1005,7 +1029,16 @@ CRITICAL imageQuery RULES:
 /* ═══════════════════════════════════════════════════════════
    SLIDE EDITING & CANVAS RENDERING
 ═══════════════════════════════════════════════════════════ */
-function applyEdit(field,val){ if(selectedSlide===null) return; slides[selectedSlide][field]=val; buildGrid(); }
+function applyEdit(field,val){
+  if(selectedSlide===null) return;
+  const frame = slides[selectedSlide];
+  frame[field] = val;
+  if(field==='layout'){
+    delete frame.storyLayout;
+    document.getElementById('chartEditorPanel').style.display = isChartLayout(val) ? 'block' : 'none';
+  }
+  buildGrid();
+}
 
 function applySizeEdit(field, val) {
   if(selectedSlide === null) return;
@@ -1021,15 +1054,12 @@ function applyColorEdit(field, val) {
 
 function applyChartEdit(val) {
   if(selectedSlide === null) return;
-  const lines = val.split(/\\n|\r?\n/);
-  const arr = [];
-  lines.forEach(l => {
-    const parts = l.split(':');
-    if(parts.length === 2) {
-      arr.push({ label: parts[0].trim(), value: parseFloat(parts[1].trim()) || 0 });
-    }
+  const frame = slides[selectedSlide];
+  frame.chartData = val.split(/\\n|\r?\n/u).flatMap(line=>{
+    const row = line.match(/^([^:]+):\s*(-?\d+(?:\.\d+)?)\s*$/u);
+    return row ? [{label:row[1].trim(),value:Number(row[2])}] : [];
   });
-  slides[selectedSlide].chartData = arr;
+  frame.chartOrigin = 'manual';
   buildGrid();
 }
 
@@ -1055,6 +1085,11 @@ function buildGrid(gridEl){
     const num = document.createElement('div');
     num.className = 'slide-num';
     num.textContent = `FRAME ${String(i+1).padStart(2,'0')} / ${String(slides.length).padStart(2,'0')}`;
+    if(grid.id==='slidesGrid' && Object.hasOwn(CAROUSEL_LAYOUTS,slide.layout)){
+      const format = document.createElement('span');
+      format.textContent = CAROUSEL_LAYOUTS[slide.layout];
+      num.append(format);
+    }
     const canvas = document.createElement('canvas');
     canvas.className = 'preview';
     canvas.width = CANVAS_W; canvas.height = CANVAS_H;
@@ -1095,7 +1130,7 @@ function drawSlide(canvas,slide,idx,{image,count=slides.length}={}){
   const img=finishPhoto(image === undefined ? (slideImageOverrides[ck]||imageCache[ck]) : image,slide.photoFinish);
   
   try{
-    if(Object.hasOwn(CAROUSEL_LAYOUTS,layout)) drawCarouselFrame(ctx,slide,idx,count,th,img,TF,BF);
+    if(Object.hasOwn(CAROUSEL_LAYOUTS,layout)) drawCarouselFrame(ctx,slide,idx,count,th,img,TF,isKan ? TF : BF);
     else if(Object.hasOwn(CREATIVE_TEMPLATES,layout)) drawCreativeFrame(ctx,slide,idx,count,th,img,TF,BF);
     else if(layout==='brief') drawBrief(ctx,slide,idx,th,img,TF,BF,count);
     else if(layout==='news-card') drawNewsCard(ctx,slide,idx,W,H,th,img,TF,BF,isLast);
@@ -1117,7 +1152,7 @@ function drawSlide(canvas,slide,idx,{image,count=slides.length}={}){
     else if(layout==='breaking-banner') drawBreakingBanner(ctx,slide,idx,W,H,th,img,TF,BF,isLast);
     else if(layout==='cta') drawCTA(ctx,slide,idx,W,H,th,img,TF,BF);
     else drawNewsCard(ctx,slide,idx,W,H,th,img,TF,BF,isLast);
-    if(img && !['carousel-type','carousel-close'].includes(layout)) drawSlidePhotoCredit(ctx,slide);
+    if(img && (!Object.hasOwn(CAROUSEL_LAYOUTS,layout) || ['carousel-lead','carousel-feature'].includes(layout))) drawSlidePhotoCredit(ctx,slide);
   }catch(e){ console.error(e); }
 }
 
@@ -2117,7 +2152,7 @@ function selectSlide(i){
   
   document.getElementById('slideEditor').style.display='block';
 
-  const isChart = s.layout==='chart-bar';
+  const isChart = isChartLayout(s.layout);
   document.getElementById('chartEditorPanel').style.display=isChart?'block':'none';
   if(isChart){
     document.getElementById('editChartData').value=(s.chartData||[]).map(d=>`${d.label}:${d.value}`).join('\n');
@@ -2147,7 +2182,10 @@ function syncSlidePhotoEditor(slide){
 }
 
 function showPhotoOnFrame(slide){
-  if(['carousel-type','carousel-close'].includes(slide.layout)) slide.layout = 'carousel-feature';
+  if(['carousel-type','carousel-close'].includes(slide.layout)){
+    slide.layout = 'carousel-feature';
+    delete slide.storyLayout;
+  }
   if(slides[selectedSlide]===slide){
     document.getElementById('editLayout').value = slide.layout;
     syncSlidePhotoEditor(slide);
@@ -2549,20 +2587,21 @@ function generateTestCarousel() {
   switchMode('carousel');
   closeSlideEditor();
   currentLang = 'English';
-  document.getElementById('caption').value = 'One habit at a time. This sample shows how seven layouts work together.';
+  document.getElementById('caption').value = 'Start with one habit and make it easy to repeat.';
   updateCharCount();
   slides = [
-    { id: 1, layout: "brief", title: "Discipline Trumps Motivation", body: "Consistency is what separates high achievers from dreamers. Learn to build routines that survive emotional fluctuations.", category: "MOTIVATIONAL" },
-    { id: 2, layout: "split", title: "Routines Create True Freedom", body: "Having structured routines eliminates choice fatigue. It allows your brain to focus energy on execution rather than decision-making.", category: "HABITS" },
-    { id: 3, layout: "stats", title: "The Compounding Curve", body: "1% Better Daily: 37.7x gain\\n1% Worse Daily: 0.03x drop\\nSmall efforts build giant momentum\\nTrack daily progress consistently", category: "NUMBERS" },
-    { id: 4, layout: "chart-bar", title: "Distraction Impact Analysis", body: "Focus levels drop exponentially with every smartphone notification checked. Here is a baseline of average attention loss.", category: "PRODUCTIVITY", chartData: [{label:"Deep Work", value:95},{label:"Minor Notifs", value:65},{label:"Active Scrolling", value:18}] },
-    { id: 5, layout: "timeline", title: "Habit Stacking Journey", body: "Day 1: Identify triggers\\nDay 7: Pair new habit with old\\nDay 21: Automatic execution\\nDay 66: Full neural integration", category: "TIMELINE" },
-    { id: 6, layout: "news-card", title: "Designing Environments", body: "Do not rely on sheer willpower. Alter your workspace so that executing healthy choices requires the absolute minimum path of resistance.", category: "ENVIRONMENTS" },
-    { id: 7, layout: "cta", title: "Build Your System Now", body: "Join the community for daily performance hacks.", category: "SYSTEM" }
+    { id:1,title:'Build a habit that sticks',body:'Start with one action and give it a regular place in your day.' },
+    { id:2,title:'Choose a cue',body:'Pick something you already do, like making tea. Attach the new action to that moment so you have a clear prompt.' },
+    { id:3,title:'Set up your first week',body:'• Pick a time and place\n• Put what you need within reach\n• Decide how you will record each attempt' },
+    { id:4,title:'Track what you tried',body:'Example log: completion rates\nWeek 1: 43%\nWeek 2: 71%',chartData:[{label:'Week 1',value:43},{label:'Week 2',value:71}] },
+    { id:5,title:'Make time to review',body:'Day 1: Try the smallest version\nDay 7: Check which days worked\nDay 14: Adjust your cue if needed' },
+    { id:6,title:'Write a reminder',body:'“After I make tea, I’ll read one page.”',storyRole:'quote' },
+    { id:7,title:'Takeaway',body:'Choose one action you can do today. Put it after something you already do.' }
   ];
   assignCacheKeys(slides);
   imageCache = {};
   slideImageOverrides = {};
+  applyCarouselLayouts(slides,document.getElementById('carouselDesign').value);
   buildGrid();
   log('✅ Sample carousel loaded. Test rendering, customization, layouts, and downloads.', 'ok');
 }

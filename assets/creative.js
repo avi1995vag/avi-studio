@@ -21,11 +21,79 @@ const POSTER_PALETTES = {
   jade: {label:'Jade',bg:'#112921',bg2:'#21483b',panel:'#21483b',text:'#f0f7e8',sub:'#c9dfcc',accent:'#a9e2ae'}
 };
 const CAROUSEL_LAYOUTS = {
-  'carousel-lead':'Photo lead',
+  'carousel-lead':'Story cover',
   'carousel-feature':'Photo feature',
-  'carousel-type':'Type story',
-  'carousel-close':'Closing frame'
+  'carousel-type':'Explainer',
+  'carousel-list':'Checklist',
+  'carousel-sequence':'Timeline or steps',
+  'carousel-chart':'Data comparison',
+  'carousel-quote':'Pull quote',
+  'carousel-close':'Takeaway'
 };
+
+function carouselDigits(value){
+  return String(value || '').normalize('NFKC').replace(/[೦-೯]/gu,digit=>String(digit.charCodeAt(0)-0x0ce6));
+}
+
+function carouselListItems(frame){
+  const lines = frame.body.split(/\\n|\r?\n/u).map(line=>line.trim()).filter(Boolean);
+  if(lines.length<2 || lines.length>7 || lines.some(line=>line.length>180)) return null;
+  const contents = lines.map(line=>line.replace(/^[-•*▪✓]\s*/u,''));
+  const markers = contents.map(line=>carouselDigits(line).match(/^(?:(?:step|ಹಂತ)\s+)?(\d{1,2})[.)\-:]?\s+/iu));
+  const periods = contents.map(line=>carouselDigits(line).match(/^((?:day|week|month|year|ದಿನ|ವಾರ|ತಿಂಗಳು|ವರ್ಷ)\s+\d{1,4})\s*[:–—-]\s*/iu));
+  const numbered = markers.every((match,index)=>match && Number(match[1])===Number(markers[0][1])+index);
+  const dated = contents.every(line=>/^(?:1[0-9]{3}|20[0-9]{2}|2100)(?:\s*[:–—-]|\s+)/u.test(carouselDigits(line)));
+  const scheduled = periods.every(Boolean);
+  const sequenceHint = frame.storyRole==='sequence' || /\b(?:steps?|timeline|chronology|milestones)\b|ಹಂತ|ಕಾಲರೇಖೆ/iu.test(frame.title);
+  const bullets = lines.every(line=>/^[-•*▪✓]\s*/u.test(line));
+  const listHint = frame.storyRole==='list' || ['stats','carousel-list'].includes(frame.layout) || /\b(?:checklist|tips|habits|ways)\b|ಸಲಹೆ|ಪಟ್ಟಿ|ಅಭ್ಯಾಸ/iu.test(frame.title);
+  if(!numbered && !dated && !scheduled && !sequenceHint && !bullets && !listHint) return null;
+  return {sequence:numbered || dated || scheduled || sequenceHint,items:contents.map((line,index)=>({
+    marker:dated ? line.slice(0,4) : scheduled ? line.slice(0,periods[index][1].length) : numbered ? line.match(/[0-9೦-೯]+/u)[0] : sequenceHint ? String(index+1) : '',
+    text:dated ? line.replace(/^.{4}\s*[:–—-]?\s*/u,'') : scheduled ? line.slice(periods[index][0].length) : numbered ? line.slice(markers[index][0].length) : line
+  }))};
+}
+
+function carouselChartRows(frame, reference){
+  let rows = frame.chartData;
+  if(!rows?.length && frame.chartOrigin!=='generated' && reference===undefined){
+    const lines = carouselDigits(frame.body).split(/\\n|\r?\n/u).map(line=>line.trim()).filter(Boolean);
+    const values = lines.map(line=>line.match(/^([^:：]{2,55})[:：]\s*(\d+(?:\.\d+)?)\s*(%)$/u));
+    if(values.every(Boolean)) rows = values.map(([,label,value])=>({label:label.trim(),value:Number(value)}));
+  }
+  if(!Array.isArray(rows) || rows.length<2 || rows.length>5) return [];
+  if(rows.some(row=>!row || typeof row.label!=='string' || !row.label.trim() || row.label.length>55 ||
+    !Number.isFinite(row.value) || row.value<0) || new Set(rows.map(row=>row.label.trim().toLowerCase())).size!==rows.length ||
+    new Set(rows.map(row=>row.value)).size<2) return [];
+  if(reference===undefined && frame.chartOrigin==='manual') return rows;
+  const text = carouselDigits(reference ?? `${frame.title}\n${frame.body}`).toLowerCase().replace(/(?<=\d),(?=\d)/g,'');
+  const clauses = text.split(/[,;\n!?।]|\.(?=\s|$)/u);
+  const units = rows.map(row=>{
+    const label = carouselDigits(row.label).trim().toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const matchLabel = new RegExp(`(?<![\\p{L}\\p{M}\\p{N}])${label}(?![\\p{L}\\p{M}\\p{N}])`,'u');
+    for(const clause of clauses){
+      if(!matchLabel.test(clause)) continue;
+      const numbers = clause.replace(matchLabel,' ').matchAll(/([$₹€£])?\s*(-?\d+(?:\.\d+)?)\s*(%|kg\b|km\b|mph\b|million\b|billion\b|lakh\b|crore\b)?/gu);
+      for(const [,prefix='',value,unit=''] of numbers) if(Number(value)===row.value) return `${prefix}|${unit}`;
+    }
+    return null;
+  });
+  if(units.includes(null) || new Set(units).size!==1) return [];
+  const [prefix,unit] = units[0].split('|');
+  return rows.map(row=>({...row,prefix,unit:unit==='%' ? '%' : unit ? ' '+unit : ''}));
+}
+
+function chooseCarouselLayout(frame,index,count,hasPhoto){
+  if(index===0) return 'carousel-lead';
+  if(carouselChartRows(frame).length) return 'carousel-chart';
+  const list = carouselListItems(frame);
+  if(list) return list.sequence ? 'carousel-sequence' : 'carousel-list';
+  const quoted = frame.body.trim().match(/^(?:“[^”]+”|"[^"]+")([\s\S]*)$/u);
+  if(quoted && (frame.storyRole==='quote' || /^(?:[.!?।]?\s*$|\s*(?:[—–-]|ಎಂದು|ಎಂದರು))/u.test(quoted[1]))) return 'carousel-quote';
+  const takeaway = /^(?:takeaway|key takeaway|the bottom line|what to do next|summary|remember|next steps|final thought|in summary)\b|^(?:ಸಾರಾಂಶ|ಕೊನೆಯ ಮಾತು|ಮುಖ್ಯ ಪಾಠ|ನೆನಪಿಡಿ|ಮುಂದಿನ ಹೆಜ್ಜೆ)/iu.test(frame.title.trim());
+  if(index===count-1 && (takeaway || frame.storyRole==='takeaway')) return 'carousel-close';
+  return hasPhoto && frame.body.length<=460 ? 'carousel-feature' : 'carousel-type';
+}
 const PHOTO_FINISHES = {
   original:null,
   monochrome:{saturation:0,contrast:1.1,offset:[0,0,0]},
@@ -73,7 +141,7 @@ function finishPhoto(image, finish){
 }
 
 function creativeText(ctx, text, box, fontFamily, weight, color) {
-  const {x,y,width,height,size} = box;
+  const {x,y,width,height,size,centerY} = box;
   if(!text) return 0;
   const paragraphs = String(text).split(/\r?\n/);
   let lines, step;
@@ -96,10 +164,12 @@ function creativeText(ctx, text, box, fontFamily, weight, color) {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   const visible = Math.max(1,Math.floor(height/step));
+  const used = Math.min(visible,lines.length)*step;
+  const start = centerY ? y + Math.max(0,(height-used)/2) : y;
   lines.slice(0,visible).forEach((line,i)=>{
-    ctx.fillText(line + (i===visible-1 && lines.length>visible ? '…' : ''),x,y+i*step,width);
+    ctx.fillText(line + (i===visible-1 && lines.length>visible ? '…' : ''),x,start+i*step,width);
   });
-  return Math.min(visible,lines.length)*step;
+  return used;
 }
 
 function drawCarouselFrame(ctx, frame, index, count, theme, image, titleFont, bodyFont){
@@ -121,6 +191,45 @@ function drawCarouselFrame(ctx, frame, index, count, theme, image, titleFont, bo
   label(document.getElementById('handleText').value || 'AvI Studio',65,48,740,theme.text);
   const number = String(index+1).padStart(2,'0');
   label(`${number} / ${String(count).padStart(2,'0')}`,893,48,120);
+  const list = ['carousel-list','carousel-sequence'].includes(frame.layout) ? carouselListItems(frame) : null;
+  const rows = frame.layout==='carousel-chart' ? carouselChartRows(frame) : [];
+  const quote = frame.layout==='carousel-quote';
+  if(list || rows.length || quote){
+    const text = (value,x,y,width,height,size,weight=500,color=bodyColor,family=bodyFont) =>
+      creativeText(ctx,value,{x,y,width,height,size},family,weight,color);
+    const rule = (x,y,w,color=theme.panel,h=3) => { ctx.fillStyle=color; ctx.fillRect(x,y,w,h); };
+    rule(65,128,950,accent);
+    let top = 169;
+    if(frame.category){ label(frame.category,65,top,945,accent,27); top += 50; }
+    top += text(frame.title,65,top,950,218,Math.round(80*(frame.titleSize || 1)),800,titleColor,titleFont) + 45;
+    if(list){
+      const rowHeight = Math.min(215,Math.floor((1247-top)/list.items.length));
+      list.items.forEach((item,i)=>{
+        const y = top + i*rowHeight;
+        rule(65,y,950);
+        label(item.marker || '•',65,y+21,140,accent,item.marker?.length>2 ? 38 : 50);
+        text(item.text,215,y+19,795,rowHeight-30,Math.round(54*(frame.bodySize || 1)));
+      });
+    } else if(rows.length){
+      const max = Math.max(...rows.map(row=>row.value));
+      const rowHeight = Math.min(148,Math.floor((1045-top)/rows.length));
+      rows.forEach((row,i)=>{
+        const y = top + i*rowHeight;
+        label(row.label,65,y,660,titleColor,46);
+        label((row.prefix || '') + row.value + (row.unit || ''),770,y,245,accent,46);
+        rule(65,y+65,950,theme.panel,25);
+        rule(65,y+65,950*row.value/max,accent,25);
+      });
+      text(frame.body,65,top+rows.length*rowHeight+26,950,Math.max(120,1200-(top+rows.length*rowHeight)),Math.round(40*(frame.bodySize || 1)));
+    } else {
+      ctx.fillStyle = theme.panel;
+      ctx.fillRect(65,top,950,1168-top);
+      rule(65,top,8,accent,1168-top);
+      creativeText(ctx,frame.body,{x:111,y:top+48,width:852,height:1072-top,centerY:true,
+        size:Math.round(82*(frame.bodySize || 1))},titleFont,600,titleColor);
+    }
+    return;
+  }
   let y;
   if(portrait){
     ctx.fillStyle = theme.panel;
@@ -133,10 +242,10 @@ function drawCarouselFrame(ctx, frame, index, count, theme, image, titleFont, bo
     const height = lead ? 520 : 460;
     drawImgCover(ctx,image,65,113,950,height,frame);
     y = 151 + height;
-  } else {
+  } else if(lead || close){
     ctx.save();
     ctx.fillStyle = theme.panel;
-    const artHeight = close ? 335 : 235;
+    const artHeight = close ? 335 : 290;
     ctx.fillRect(65,113,950,artHeight);
     ctx.beginPath(); ctx.rect(65,113,950,artHeight); ctx.clip();
     ctx.strokeStyle = accent; ctx.globalAlpha = .48; ctx.lineWidth = 3;
@@ -144,18 +253,21 @@ function drawCarouselFrame(ctx, frame, index, count, theme, image, titleFont, bo
       ctx.beginPath(); ctx.arc(close ? 540 : 949,close ? 280 : 159,radius,0,Math.PI*2); ctx.stroke();
     }
     ctx.restore();
-    if(!close) label(number,100,158,285,accent,115);
     y = 159 + artHeight;
+  } else {
+    ctx.fillStyle = accent;
+    ctx.fillRect(65,168,132,9);
+    y = 222;
   }
   const textX = portrait ? 100 : 65;
   const titleWidth = portrait ? 391 : 950;
   if(frame.category){ label(String(frame.category),textX,y,titleWidth,accent,27); y += 45; }
   const titleHeight = portrait ? 555 : photo ? (lead ? 205 : 185) : 325;
   const titleUsed = creativeText(ctx,frame.title,{x:textX,y,width:titleWidth,height:titleHeight,
-    size:Math.round((photo ? (lead ? 83 : 72) : (close ? 96 : 92))*(frame.titleSize || 1))},titleFont,800,titleColor);
-  y = portrait ? 887 : y + titleUsed + 22;
+    size:Math.round((photo ? (lead ? 83 : 72) : (lead || close ? 112 : 96))*(frame.titleSize || 1))},titleFont,800,titleColor);
+  y = portrait ? 887 : y + titleUsed + 34;
   creativeText(ctx,frame.body,{x:65,y,width:935,height:Math.max(95,1244-y),
-    size:Math.round((photo ? 42 : 49)*(frame.bodySize || 1))},bodyFont,500,bodyColor);
+    size:Math.round((photo ? 44 : 54)*(frame.bodySize || 1))},bodyFont,500,bodyColor);
   ctx.fillStyle = accent;
   ctx.fillRect(65,1251,photo ? 96 : 156,5);
 }
