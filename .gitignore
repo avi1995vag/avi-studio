@@ -4,3 +4,7 @@ _site/
 output/
 .env
 .env.*
+publishing/.cloudflare/
+publishing/.dev.vars
+publishing/dist/
+publishing/node_modules/

@@ -11,6 +11,10 @@ AvI Studio is an editorial workspace for 4:5 carousels and single posters. GitHu
 In **Single poster**, the layout gallery shows a selectable thumbnail for every layout. Choosing one updates the large preview and keeps your draft text and image. Use **Poster palette** and **Photo finish** below the preview to style the poster. Drafts keep these choices and apply them to exports while preserving the original photo.
 
 Open **AI Image Generator** to create an image without an account, a personal API key, or a local model download. The prompt goes to AI Horde's free community queue. Download the finished image as WebP or use it in your current poster.
+
+## Direct social publishing
+
+With the [private publishing service](publishing/README.md) enabled, open **Direct publishing** in the draft inspector. Sign in with Buffer, connect a Facebook Page, X profile, or other supported channel in Buffer, then select your destinations in AvI Studio. **Publish now** submits the artwork and current caption together. **Check post status** reports the result for each channel.
 - The layout gallery previews Signal Wire, Cutout Cover, Quote Prism, and Field Notes. Poster photo controls adjust zoom and crop. Poster downloads support JPEG or PNG in portrait, square fit, and story fit.
 - The News Desk uses a snapshot rebuilt by GitHub Actions every four hours and shows its update time. Source feeds can be edited in `assets/sources.json`. Poster links use a matching feed excerpt or Gemini URL Context. When the article is unavailable, paste a source excerpt or start a headline-only draft and check it against the original before publishing.
 - Browser keys are used for the current tab. Manual Meta and Zernio publishing use the credentials entered in Integrations and a Cloudinary unsigned upload preset. Keep the Cloudinary API secret in GitHub Actions secrets. The unattended workflow publishes to Instagram through Meta.

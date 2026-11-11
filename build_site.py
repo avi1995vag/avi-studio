@@ -22,6 +22,7 @@ def build(output, offline):
         'repository': os.environ.get('GITHUB_REPOSITORY', ''),
         'scheduleMode': os.environ.get('AUTOPILOT_SCHEDULE') or 'off',
         'publishEnabled': os.environ.get('PUBLISH_ENABLED') == 'true',
+        'socialPublisher': os.environ.get('SOCIAL_PUBLISHER_URL', ''),
     }), encoding='utf-8')
 
 

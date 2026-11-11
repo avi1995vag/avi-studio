@@ -726,6 +726,30 @@
     <button class="deploy-btn-zip btn-p" onclick="downloadCurrentDesign()">Download artwork</button>
     <button onclick="copyCaption()">Copy caption</button>
   </div>
+  <details id="socialPublishing" class="settings-block publish-settings social-publishing" hidden>
+    <summary>Direct publishing</summary>
+    <div class="photo-actions">
+      <button id="socialConnect" class="btn-p" type="button">Sign in with Buffer</button>
+      <a class="action-link" href="https://publish.buffer.com/settings/channels" target="_blank" rel="noopener noreferrer">Connect social channels ↗</a>
+    </div>
+    <div id="socialConnected" hidden>
+      <fieldset>
+        <legend>Post to</legend>
+        <div id="socialChannels" class="social-channels"></div>
+      </fieldset>
+      <div class="photo-actions">
+        <button id="socialReload" class="btn-sm" type="button">Refresh channels</button>
+        <button id="socialDisconnect" class="btn-sm" type="button">Sign out of studio</button>
+      </div>
+      <button id="socialPublish" class="btn-p" type="button" disabled>Publish now</button>
+    </div>
+    <p id="socialStatus" class="helper" role="status"></p>
+    <ul id="socialReceipt" class="social-receipt" hidden></ul>
+    <div class="photo-actions">
+      <button id="socialCheck" class="btn-sm" type="button" hidden>Check post status</button>
+      <button id="socialNew" class="btn-sm" type="button" hidden>Start another post</button>
+    </div>
+  </details>
   <details class="settings-block publish-settings">
     <summary>Publish manually</summary>
     <p class="helper">Use credentials from Integrations to publish the current design.</p>
@@ -746,6 +770,7 @@
 <script src="./assets/article-import.js"></script>
 <script src="./assets/studio.js"></script>
 <script src="./assets/image-generator.js"></script>
+<script src="./assets/social-publishing.js"></script>
 <script src="./assets/workspace.js"></script>
 </body>
 </html>

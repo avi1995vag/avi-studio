@@ -162,10 +162,14 @@ function queueDraftSave() {
   draftTimer = setTimeout(async () => {
     const state = document.getElementById('draftState');
     try {
-      await workspaceRecord({carousel:captureDraft('carousel'), poster:captureDraft('poster'), mode:currentMode, activeDraft:draftKind});
+      await saveWorkspaceDraft();
       state.textContent = 'Draft saved on this device';
     } catch { state.textContent = 'Autosave unavailable · export a draft to keep it'; }
   }, 300);
+}
+
+function saveWorkspaceDraft(){
+  return workspaceRecord({carousel:captureDraft('carousel'),poster:captureDraft('poster'),mode:currentMode,activeDraft:draftKind});
 }
 
 function downloadBlob(blob, name) {
@@ -371,6 +375,7 @@ async function configureWorkflowLinks() {
     const response = await fetch('./site.json', {signal:AbortSignal.timeout(5000)});
     if(!response.ok) return;
     const config = await response.json();
+    void configureSocialPublishing(config.socialPublisher);
     const labels = {draft:'Scheduled drafts', publish:config.publishEnabled ? 'Scheduled publishing' : 'Publishing disabled', off:'Schedule off'};
     document.getElementById('automationMode').textContent = labels[config.scheduleMode] || labels.off;
     if(!/^[\w.-]+\/[\w.-]+$/.test(config.repository)) return;
