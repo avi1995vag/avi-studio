@@ -9,7 +9,8 @@ const batchFormat = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const imageLimits = {facebook:10,twitter:4,instagram:10,linkedin:9,threads:10,bluesky:4,mastodon:4};
-const accountQuery = '{ account { id email organizations { id name } } }';
+const ownerQuery = '{ account { id email } }';
+const organizationsQuery = '{ account { organizations { id name } } }';
 const channelsQuery = `query Channels($id: OrganizationId!) {
   channels(input: { organizationId: $id }) { id name displayName descriptor service type isDisconnected isLocked }
 }`;
@@ -24,6 +25,15 @@ const statusQuery = 'query Status($id: PostId!) { post(input: { id: $id }) { sta
 class RequestError extends Error {
   constructor(status,message){ super(message); this.status = status; }
 }
+
+class BufferTokenError extends RequestError {
+  constructor(status,reason){
+    super(status,'Buffer sign-in needs to be renewed.');
+    this.reason = reason;
+  }
+}
+
+const tokenErrors = new Set(['invalid_client','invalid_grant','invalid_request','invalid_scope','unauthorized_client','unsupported_grant_type']);
 
 const base64url = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const randomKey = () => base64url(crypto.getRandomValues(new Uint8Array(32)));
@@ -97,24 +107,30 @@ async function unseal(env,value){
 
 async function bufferTokens(env,params){
   const response = await fetch(BUFFER_AUTH + '/token',{
-    method:'POST',redirect:'error',signal:AbortSignal.timeout(15_000),
-    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    method:'POST',redirect:'manual',signal:AbortSignal.timeout(15_000),
+    headers:{'Content-Type':'application/x-www-form-urlencoded',Accept:'application/json'},
     body:new URLSearchParams({client_id:env.BUFFER_CLIENT_ID,client_secret:env.BUFFER_CLIENT_SECRET,...params})
   });
-  const data = await response.json();
-  if(!response.ok || typeof data.access_token!=='string' || typeof data.refresh_token!=='string' || !Number.isFinite(data.expires_in)){
-    throw new RequestError(response.status===400 || response.status===401 ? 401 : 502,'Buffer sign-in needs to be renewed.');
+  const data = await response.json().catch(() => null);
+  if(!response.ok){
+    throw new BufferTokenError(response.status===400 || response.status===401 ? 401 : 502,
+      tokenErrors.has(data?.error) ? data.error : `http_${response.status}`);
   }
+  const expiresIn = Number(data?.expires_in);
+  if(typeof data?.access_token!=='string' || !data.access_token || !Number.isFinite(expiresIn) || expiresIn<=0){
+    throw new BufferTokenError(502,'unexpected_token_response');
+  }
+  const refresh = typeof data.refresh_token==='string' && data.refresh_token ? data.refresh_token : null;
   return {
-    credentials:await seal(env,{access:data.access_token,refresh:data.refresh_token}),
-    expires:Date.now()+data.expires_in*1000,
+    credentials:await seal(env,{access:data.access_token,refresh}),
+    expires:Date.now()+expiresIn*1000,
     access:data.access_token
   };
 }
 
 async function bufferRequest(token,query,variables={}){
   const response = await fetch(BUFFER_API,{
-    method:'POST',redirect:'error',signal:AbortSignal.timeout(15_000),
+    method:'POST',redirect:'manual',signal:AbortSignal.timeout(15_000),
     headers:{Authorization:'Bearer ' + token,'Content-Type':'application/json'},
     body:JSON.stringify({query,variables})
   });
@@ -150,20 +166,29 @@ async function callback(url,env){
   if(!keyFormat.test(state)) return returnToStudio(env,{buffer_error:'expired'});
   const row = await sql(env,'DELETE FROM oauth_flow WHERE state=? AND expires>? RETURNING browser_challenge, verifier',state,Date.now()).first();
   if(!row || !code || code.length>2048) return returnToStudio(env,{buffer_error:row ? 'cancelled' : 'expired'});
+  let stage = 'token';
   try {
     const tokens = await bufferTokens(env,{
       grant_type:'authorization_code',code,code_verifier:row.verifier,redirect_uri:new URL('/oauth/callback',env.SERVICE_URL)
     });
-    const {account} = await bufferRequest(tokens.access,accountQuery);
-    if(typeof account?.id!=='string' || account.email?.trim().toLowerCase()!==env.BUFFER_OWNER_EMAIL.trim().toLowerCase()){
+    stage = 'account';
+    const {account} = await bufferRequest(tokens.access,ownerQuery);
+    if(typeof account?.id!=='string' || typeof account.email!=='string') throw new RequestError(502,'Buffer did not return account information.');
+    if(account.email.trim().toLowerCase()!==env.BUFFER_OWNER_EMAIL.trim().toLowerCase()){
       return returnToStudio(env,{buffer_error:'account'});
     }
+    stage = 'handoff';
     const handoff = randomKey();
     await sql(env,'INSERT INTO oauth_handoff VALUES (?, ?, ?, ?, ?, ?)',
       await digest(handoff),row.browser_challenge,account.id,tokens.credentials,tokens.expires,Date.now()+TEN_MINUTES).run();
     return returnToStudio(env,{buffer_connection:handoff});
-  } catch {
-    return returnToStudio(env,{buffer_error:'connection'});
+  } catch(error){
+    const reason = error instanceof BufferTokenError ? error.reason : error instanceof RequestError ? `http_${error.status}` : 'unexpected';
+    console.warn(JSON.stringify({event:'buffer_sign_in_failed',stage,reason}));
+    const result = reason==='invalid_client' || reason==='unauthorized_client' ? 'client'
+      : reason==='invalid_grant' ? 'invalid_grant'
+      : stage==='account' ? 'account_unavailable' : 'connection';
+    return returnToStudio(env,{buffer_error:result});
   }
 }
 
@@ -193,6 +218,10 @@ async function session(request,env){
 async function accessToken(env,row){
   const stored = await unseal(env,row.credentials);
   if(row.access_expires>Date.now()+30_000) return stored.access;
+  if(!stored.refresh){
+    await sql(env,'DELETE FROM studio_session WHERE token_hash=? AND access_expires=?',row.token_hash,row.access_expires).run();
+    throw new RequestError(401,'Connect to Buffer again.');
+  }
   const locked = await sql(env,`UPDATE studio_session SET refresh_started=?
     WHERE token_hash=? AND access_expires=? AND refresh_started IS NULL RETURNING token_hash`,
     Date.now(),row.token_hash,row.access_expires).first();
@@ -218,7 +247,7 @@ async function accessToken(env,row){
 }
 
 async function listChannels(token){
-  const {account} = await bufferRequest(token,accountQuery);
+  const {account} = await bufferRequest(token,organizationsQuery);
   const groups = await Promise.all(account.organizations.slice(0,8).map(async organization => {
     const {channels} = await bufferRequest(token,channelsQuery,{id:organization.id});
     return channels.filter(channel => Object.hasOwn(imageLimits,channel.service) && !channel.isLocked && !channel.isDisconnected

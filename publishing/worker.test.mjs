@@ -45,6 +45,7 @@ test('authorizes the owner, protects credentials and returns one receipt per cha
     BUFFER_CLIENT_ID:'mock-client',BUFFER_CLIENT_SECRET:'mock-secret',SESSION_ENCRYPTION_KEY:Buffer.alloc(32,6).toString('base64')
   };
   let owner = 'other@example.com', token, writes = 0, refreshes = 0, hostedMedia;
+  let tokenFailure, omitRefresh = false;
   const request = (path,{origin=studio,authenticated=false,...options}={}) => {
     const headers = new Headers(options.headers);
     if(origin) headers.set('Origin',origin);
@@ -54,8 +55,10 @@ test('authorizes the owner, protects credentials and returns one receipt per cha
   const postJson = (path,data) => request(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
   const jpeg = Uint8Array.from([255,216,255,224,0,4,1,1,0,0,255,217]);
   context.mock.method(globalThis,'fetch',async (url,options) => {
+    assert.equal(options.redirect,'manual');
     if(url==='https://auth.buffer.com/token'){
       assert.equal(options.body.get('client_secret'),'mock-secret');
+      if(tokenFailure) return Response.json({error:tokenFailure,error_description:'Private provider details'},{status:400});
       if(options.body.get('grant_type')==='refresh_token'){
         refreshes++;
         assert.equal(options.body.get('refresh_token'),'mock-refresh');
@@ -63,7 +66,7 @@ test('authorizes the owner, protects credentials and returns one receipt per cha
         assert.equal(options.body.get('redirect_uri'),service + '/oauth/callback');
         assert.match(options.body.get('code_verifier'),/^[\w-]{43}$/);
       }
-      return Response.json({access_token:'mock-access',refresh_token:'mock-refresh',expires_in:3600});
+      return Response.json({access_token:'mock-access',refresh_token:omitRefresh ? undefined : 'mock-refresh',expires_in:'3600'});
     }
     assert.equal(url,'https://api.buffer.com');
     assert.equal(options.headers.Authorization,'Bearer mock-access');
@@ -106,6 +109,13 @@ test('authorizes the owner, protects credentials and returns one receipt per cha
   assert.equal(health.status,200);
   assert.equal(health.headers.get('Access-Control-Allow-Origin'),studio);
   assert.equal((await request('/channels')).status,401);
+  const warnings = context.mock.method(console,'warn',() => {});
+  tokenFailure = 'invalid_client';
+  assert.equal((await login()).get('buffer_error'),'client');
+  assert.deepEqual(JSON.parse(warnings.mock.calls[0].arguments[0]),{
+    event:'buffer_sign_in_failed',stage:'token',reason:'invalid_client'
+  });
+  tokenFailure = undefined;
   assert.equal((await login()).get('buffer_error'),'account');
   owner = 'OWNER@example.com';
   const handoff = (await login()).get('buffer_connection');
@@ -150,4 +160,12 @@ test('authorizes the owner, protects credentials and returns one receipt per cha
   assert.equal((await request(media,{origin:null})).status,404);
   assert.equal((await request('/session',{authenticated:true,method:'DELETE'})).status,200);
   assert.equal((await request('/channels',{authenticated:true})).status,401);
+  omitRefresh = true;
+  const shortHandoff = (await login()).get('buffer_connection');
+  assert(shortHandoff);
+  ({token} = await (await postJson('/oauth/finish',{handoff:shortHandoff,proof})).json());
+  assert.equal((await request('/channels',{authenticated:true})).status,200);
+  env.DB.native.prepare('UPDATE studio_session SET access_expires=0').run();
+  assert.equal((await request('/channels',{authenticated:true})).status,401);
+  assert.equal(refreshes,1);
 });

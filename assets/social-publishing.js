@@ -368,6 +368,9 @@ const configureSocialPublishing = (() => {
       } else {
         const messages = {
           account:'Sign in with the Buffer account authorized for this studio.',
+          account_unavailable:'Buffer could not confirm your account details. Try signing in again.',
+          client:'Buffer rejected the studio’s app credentials.',
+          invalid_grant:'Buffer rejected this sign-in attempt. Start a new sign-in from this tab.',
           expired:'The Buffer sign-in link expired. Start again from this tab.',
           cancelled:'Buffer sign-in was canceled. You can start again here.'
         };
