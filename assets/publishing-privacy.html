@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Publishing privacy | AvI Studio</title>
+  <style>
+    body { margin: 2rem auto; max-width: 42rem; padding: 0 1.25rem; font: 1rem/1.65 system-ui, sans-serif; }
+    h1, h2 { line-height: 1.25; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="../">AvI Studio</a>
+    <h1>Direct publishing privacy</h1>
+    <p>This notice covers the optional Buffer connection in AvI Studio. The connection is for the studio owner and is used to send artwork and captions to the social channels they select.</p>
+    <h2>What the connection uses</h2>
+    <p>The publishing service reads your Buffer account email to check that you are the studio owner. It uses your account ID, organization and channel information to show publishing destinations and check post status. The service encrypts your Buffer access and refresh tokens and stores them in Cloudflare. Your browser receives a separate AvI Studio session identifier.</p>
+    <h2>What happens when you publish</h2>
+    <p>The service sends the caption, selected channels and artwork to Buffer. Buffer uses them to publish to those channels. Each uploaded image has a temporary URL that Buffer can fetch without signing in. Anyone with the URL can view the image until the URL expires after 24 hours. The service keeps publishing receipts for seven days to show delivery results.</p>
+    <h2>How to disconnect</h2>
+    <p>Use Disconnect in AvI Studio to end the current studio session and remove its stored credentials. Sessions expire after seven days. You can also revoke AvI Studio’s access in Buffer. For a privacy question, contact the <a href="https://github.com/avi1995vag">studio owner</a>.</p>
+  </main>
+</body>
+</html>
