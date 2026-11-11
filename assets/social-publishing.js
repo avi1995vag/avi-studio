@@ -36,6 +36,11 @@ const configureSocialPublishing = (() => {
     return draftKind==='poster' ? Number(Boolean(posterSlide)) : slides.length;
   }
 
+  function posterForPublishing(){
+    const height = {portrait:1350,square:1080,story:1920}[get('posterExportSize').value];
+    return fitPosterExport(get('posterCanvas'),height,posterTheme(posterSlide.posterPalette));
+  }
+
   function renderDraftPreview(){
     const preview = get('socialPreview');
     const empty = get('socialDraftEmpty');
@@ -45,16 +50,16 @@ const configureSocialPublishing = (() => {
     preview.hidden = count.hidden = caption.hidden = get('socialEditCaption').hidden = size===0;
     empty.hidden = size>0;
     if(!size) return;
-    let source = get('posterCanvas');
-    if(draftKind!=='poster'){
+    let source;
+    if(draftKind==='poster') source = posterForPublishing();
+    else {
       source = document.createElement('canvas');
       source.width = CANVAS_W;
       source.height = CANVAS_H;
       drawSlide(source,slides[0],0);
     }
-    const ctx = preview.getContext('2d');
-    ctx.clearRect(0,0,preview.width,preview.height);
-    ctx.drawImage(source,0,0,preview.width,preview.height);
+    preview.height = Math.round(preview.width * source.height / source.width);
+    preview.getContext('2d').drawImage(source,0,0,preview.width,preview.height);
     count.textContent = draftKind==='poster' ? 'Single poster' : `Carousel · ${size} ${size===1 ? 'slide' : 'slides'}`;
     caption.textContent = get('caption').value.trim() || 'No caption';
   }
@@ -194,9 +199,7 @@ const configureSocialPublishing = (() => {
     if(draftKind==='poster'){
       if(!posterSlide) throw new Error('Create a poster first.');
       if(draftSources.poster?.kind==='link-draft') throw new Error('Check the source before publishing this headline-only draft.');
-      const mode = get('posterExportSize').value;
-      const height = {portrait:1350,square:1080,story:1920}[mode];
-      return [fitPosterExport(get('posterCanvas'),height,posterTheme(posterSlide.posterPalette))];
+      return [posterForPublishing()];
     }
     if(!slides.length) throw new Error('Create a carousel first.');
     return slides.map((frame,index) => {
