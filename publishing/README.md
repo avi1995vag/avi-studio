@@ -6,7 +6,7 @@ The studio remains on GitHub Pages. This Cloudflare Worker lets the authorized o
 
 1. Sign in to Cloudflare using `npm exec -- cf auth login` from this directory after running `npm ci` with a supported Node.js version. Enable the account's workers.dev subdomain in Workers & Pages. The service origin will be `https://avi-studio-publisher.<your-subdomain>.workers.dev`.
 2. In [Buffer API settings](https://publish.buffer.com/settings/api), register a **confidential OAuth app**. Enter the exact redirect URI `https://avi-studio-publisher.<your-subdomain>.workers.dev/oauth/callback`. Connect your channels in [Buffer channel settings](https://publish.buffer.com/settings/channels).
-3. Create the D1 database with `npm exec -- cf d1 create --name avi-studio-publisher`. Apply [schema.sql](schema.sql) in the D1 console, or run `npm exec -- cf d1 raw <database-id> --sql "<contents of schema.sql>"`.
+3. Create the D1 database with `npm exec -- cf d1 create --name avi-studio-publisher`. Apply [schema.sql](schema.sql) in the D1 console. For a command-line setup, use `cf d1 raw <database-id> --batch @<file.json>` with a JSON array containing one `{"sql":"..."}` object per statement.
 4. Set `AVI_PUBLISHER_ORIGIN` in your shell to the service origin. Put the following values in the ignored `.dev.vars` file for the deploy command, or manage them as Worker secrets in Cloudflare.
 
 | Secret | Value |
@@ -17,7 +17,7 @@ The studio remains on GitHub Pages. This Cloudflare Worker lets the authorized o
 | `SESSION_ENCRYPTION_KEY` | Base64-encoded 32 random bytes, generated with `node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('base64'))"` |
 
 5. Deploy from this directory with `npm run deploy -- --secrets-file .dev.vars`. Check the endpoint with `curl -H "Origin: https://avi1995vag.github.io" https://avi-studio-publisher.<your-subdomain>.workers.dev/health`. It returns `{"ready":true}` when the configuration and database are ready.
-6. Set the repository Actions **variable** `SOCIAL_PUBLISHER_URL` to the Worker origin. Run **Studio Pages** once to make the **Direct publishing** panel available. The URL is public, while Buffer and session secrets stay in the Worker.
+6. The AvI Studio Pages workflow already points to the project's Worker. If deploying to another Worker, set the repository Actions **variable** `SOCIAL_PUBLISHER_URL` to that origin and run **Studio Pages**. The panel becomes available when the service passes its health check. The URL is public, while Buffer and session secrets stay in the Worker.
 
 ## Behavior
 

@@ -39,7 +39,7 @@ jobs:
         env:
           AUTOPILOT_SCHEDULE: ${{ vars.AUTOPILOT_SCHEDULE }}
           PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
-          SOCIAL_PUBLISHER_URL: ${{ vars.SOCIAL_PUBLISHER_URL }}
+          SOCIAL_PUBLISHER_URL: ${{ vars.SOCIAL_PUBLISHER_URL || 'https://avi-studio-publisher.avinasha-vagarnal.workers.dev' }}
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

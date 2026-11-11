@@ -1,5 +1,7 @@
 import {bindings, defineConfig, triggers} from 'cf/config';
 
+const serviceOrigin = process.env.AVI_PUBLISHER_ORIGIN;
+
 export default defineConfig({
   worker: {
     name: 'avi-studio-publisher',
@@ -17,11 +19,11 @@ export default defineConfig({
     env: {
       DB: bindings.d1({name:'avi-studio-publisher'}),
       STUDIO_URL: bindings.text('https://avi1995vag.github.io/avi-studio/'),
-      SERVICE_URL: bindings.text(process.env.AVI_PUBLISHER_ORIGIN || ''),
-      BUFFER_CLIENT_ID: bindings.secret(),
-      BUFFER_CLIENT_SECRET: bindings.secret(),
-      BUFFER_OWNER_EMAIL: bindings.secret(),
-      SESSION_ENCRYPTION_KEY: bindings.secret()
+      SERVICE_URL: bindings.text(serviceOrigin || ''),
+      BUFFER_CLIENT_ID: serviceOrigin ? bindings.secret() : undefined,
+      BUFFER_CLIENT_SECRET: serviceOrigin ? bindings.secret() : undefined,
+      BUFFER_OWNER_EMAIL: serviceOrigin ? bindings.secret() : undefined,
+      SESSION_ENCRYPTION_KEY: serviceOrigin ? bindings.secret() : undefined
     }
   }
 });
