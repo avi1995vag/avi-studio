@@ -79,6 +79,11 @@ test('authorizes the owner, protects credentials and returns one receipt per cha
       writes++;
       assert.equal(variables.input.mode,'shareNow');
       assert.equal(variables.input.text,'Caption stays with the artwork');
+      if(variables.input.channelId==='avi-page'){
+        assert.deepEqual(variables.input.metadata,{facebook:{type:'post'}});
+      } else {
+        assert.equal(variables.input.metadata,undefined);
+      }
       hostedMedia = variables.input.assets[0].image.url;
       assert.deepEqual(new Uint8Array(await (await request(new URL(hostedMedia).pathname,{origin:null})).arrayBuffer()),jpeg);
       const createPost = variables.input.channelId==='avi-x'

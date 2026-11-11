@@ -323,7 +323,9 @@ async function publish(request,env,row){
     let status = 'unknown', postId = null, message = 'Check Buffer before trying to publish this post again.';
     try {
       const input = {channelId:channel.id,text:draft.caption,schedulingType:'automatic',mode:'shareNow',assets};
-      if(channel.service==='instagram') input.metadata = {instagram:{type:'post'}};
+      if(channel.service==='facebook' || channel.service==='instagram'){
+        input.metadata = {[channel.service]:{type:'post'}};
+      }
       const {createPost} = await bufferRequest(token,publishQuery,{input});
       if(createPost?.post?.id){
         status = createPost.post.status || 'sending'; postId = createPost.post.id; message = null;
