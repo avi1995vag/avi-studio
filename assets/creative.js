@@ -3,7 +3,11 @@ const CREATIVE_TEMPLATES = {
   'signal-wire': {label:'Signal Wire', title:'The story in focus', body:'Put the headline first. Use the details to make the story clear.', category:'NEWS BRIEF'},
   'cutout-cover': {label:'Cutout Cover', title:'A different point of view', body:'Give one image room to lead the story.', category:'PHOTO ESSAY'},
   'quote-prism': {label:'Quote Prism', title:'Make space for a better question', body:'One thought to keep with you.', category:'IN THEIR WORDS'},
-  'field-notes': {label:'Field Notes', title:'Ideas worth keeping', body:'A compact field guide for the stories, ideas, and observations that matter.', category:'NOTEBOOK'}
+  'field-notes': {label:'Field Notes', title:'Ideas worth keeping', body:'A compact field guide for the stories, ideas, and observations that matter.', category:'NOTEBOOK'},
+  'broadsheet': {label:'Broadsheet', title:'A city finds its rhythm', body:'An early look at the spaces and people reshaping the city.', category:'THE EDITION'},
+  'orbit-cover': {label:'Orbit Cover', title:'A world in motion', body:'A closer look at how small changes set larger things in motion.', category:'IN FOCUS'},
+  'color-block': {label:'Color Block', title:'Make room for change', body:'Fresh ideas for a familiar place and the people who make it home.', category:'PERSPECTIVE'},
+  'film-strip': {label:'Film Strip', title:'Where the light falls', body:'A visual dispatch from the quieter side of the city.', category:'PHOTO DISPATCH'}
 };
 
 function creativeText(ctx, text, box, fontFamily, weight, color) {
@@ -57,6 +61,10 @@ function drawCreativeFrame(ctx, frame, index, count, theme, image, titleFont, bo
   const edition = number(index+1) + ' / ' + number(count);
   const category = frame.category || CREATIVE_TEMPLATES[frame.layout].category;
   const serif = titleFont.startsWith('"Anek') ? titleFont : 'Georgia, serif';
+  const photo = (x,y,w,h) => {
+    rect(theme.bg2,x,y,w,h);
+    if(image) drawImgCover(ctx,image,x,y,w,h,frame);
+  };
   rect(theme.bg,0,0,W,H);
 
   if(frame.layout === 'signal-wire'){
@@ -117,7 +125,7 @@ function drawCreativeFrame(ctx, frame, index, count, theme, image, titleFont, bo
     title(74,462,930,460,117,serif);
     line(accent,76,946,172,946,6);
     body(75,986,911,191,40);
-  } else {
+  } else if(frame.layout === 'field-notes'){
     rect(theme.panel,35,33,1010,1248);
     label('AvI   /   FIELD NOTES',68,62,680);
     label(edition,871,62,150,theme.sub);
@@ -139,6 +147,49 @@ function drawCreativeFrame(ctx, frame, index, count, theme, image, titleFont, bo
     label('NOTES',598,520,384);
     line(accent,599,570,982,570);
     body(598,610,380,510,38);
+  } else if(frame.layout === 'broadsheet'){
+    label(category,58,55,710,accent,32);
+    label(edition,878,56,130,theme.sub);
+    line(theme.sub,58,110,1022,110,3);
+    title(55,151,966,280,118,serif);
+    line(accent,58,442,1022,442,8);
+    photo(58,478,616,682);
+    line(theme.sub,707,479,707,1159);
+    body(742,488,278,650,35);
+  } else if(frame.layout === 'orbit-cover'){
+    label(category,62,56,740);
+    ctx.save();
+    ctx.beginPath(); ctx.arc(540,452,318,0,Math.PI*2); ctx.clip();
+    photo(222,134,636,636);
+    ctx.restore();
+    ctx.strokeStyle=accent; ctx.lineWidth=5;
+    for(const radius of [333,356]){
+      ctx.beginPath(); ctx.arc(540,452,radius,0,Math.PI*2); ctx.stroke();
+    }
+    rect(accent,863,431,40,40);
+    title(61,846,956,207,98,serif);
+    body(63,1069,939,151,37);
+  } else if(frame.layout === 'color-block'){
+    rect(theme.panel,36,34,1008,1188);
+    rect(accent,36,34,1008,16);
+    label(category,75,81,850);
+    title(73,158,925,274,109);
+    photo(408,460,592,697);
+    rect(theme.bg,36,571,428,474);
+    rect(accent,75,618,75,8);
+    body(75,662,337,346,38);
+    label(edition,75,1100,225,theme.sub);
+  } else if(frame.layout === 'film-strip'){
+    label(category,60,57,760);
+    label(edition,868,57,150,theme.sub);
+    rect(theme.panel,0,129,W,680);
+    photo(77,158,926,622);
+    for(let y=160;y<781;y+=62){
+      rect(theme.bg,24,y,30,25);
+      rect(theme.bg,1026,y,30,25);
+    }
+    title(57,854,963,207,94,serif);
+    body(61,1079,950,139,37);
   }
 
   line(theme.sub,64,1245,1016,1245);
@@ -147,13 +198,18 @@ function drawCreativeFrame(ctx, frame, index, count, theme, image, titleFont, bo
 
 function initializeCreativeTools() {
   const gallery = document.getElementById('creativeTemplates');
+  const select = document.getElementById('posterLayout');
   const pickers = ['posterLayout','posterEditLayout','editLayout'];
-  for(const [layout,template] of Object.entries(CREATIVE_TEMPLATES)){
-    for(const id of pickers){
-      const select = document.getElementById(id);
-      const option = new Option(template.label,layout);
-      select.append(option);
+  for(const id of pickers){
+    const group = document.createElement('optgroup');
+    group.label = 'Studio Collection';
+    for(const [layout,template] of Object.entries(CREATIVE_TEMPLATES)){
+      group.append(new Option(template.label,layout));
     }
+    document.getElementById(id).append(group);
+  }
+  for(const option of select.options){
+    const layout = option.value;
     const button = document.createElement('button');
     button.className = 'creative-template';
     button.type = 'button';
@@ -162,19 +218,37 @@ function initializeCreativeTools() {
     canvas.width = 216; canvas.height = 270;
     canvas.setAttribute('aria-hidden','true');
     const name = document.createElement('span');
-    name.textContent = template.label;
+    name.textContent = option.textContent.trim().replace(/^[^\p{L}\p{N}]+/u,'');
+    button.dataset.search = (name.textContent + ' ' + option.parentElement.label).toLowerCase();
     button.append(canvas,name);
     button.onclick = () => {
-      document.getElementById('posterLayout').value = layout;
-      if(posterSlide) switchPosterLayout(layout);
-      updateCreativeGallery();
+      select.value = layout;
+      select.dispatchEvent(new Event('change'));
     };
     gallery.append(button);
   }
-  document.getElementById('posterLayout').addEventListener('change',()=>{
-    if(posterSlide) switchPosterLayout(document.getElementById('posterLayout').value);
-    updateCreativeGallery();
+  select.addEventListener('change',()=>{
+    if(posterSlide) switchPosterLayout(select.value);
+    else updateCreativeGallery();
   });
+  document.getElementById('posterLang').addEventListener('change', () => {
+    updateCreativeGallery();
+    if(posterSlide) drawSlideOnCanvas(document.getElementById('posterCanvas'),posterSlide,0,document.getElementById('posterLang').value);
+  });
+  const search = document.getElementById('creativeSearch');
+  const filter = () => {
+    const terms = search.value.trim().toLowerCase().split(/\s+/);
+    let visible = 0;
+    for(const button of gallery.children){
+      button.hidden = !terms.every(term => button.dataset.search.includes(term));
+      if(!button.hidden) visible++;
+    }
+    document.getElementById('creativeCount').textContent = visible === gallery.childElementCount
+      ? `${visible} layouts` : `${visible} of ${gallery.childElementCount}`;
+    document.getElementById('creativeEmpty').hidden = visible > 0;
+  };
+  search.addEventListener('input',filter);
+  filter();
   updateCreativeGallery();
   const container = document.getElementById('posterCropControls');
   for(const [field,label,low,high] of [
@@ -191,26 +265,73 @@ function initializeCreativeTools() {
   }
 }
 
-function updateCreativeGallery(){
+let galleryArtwork;
+let galleryAppearance;
+
+function layoutSample(layout,language){
+  const english = CREATIVE_TEMPLATES[layout] || {
+    title:'A new view of the city', body:'From the river to the hills, familiar places take on a different shape in the morning light.',
+    category:'CITY LIFE', location:'BENGALURU'
+  };
+  const kannada = {title:'ಕಥೆಗೆ ಹೊಸ ನೋಟ',body:'ನಗರದ ಪರಿಚಿತ ಜಾಗಗಳು ಬೆಳಗಿನ ಬೆಳಕಿನಲ್ಲಿ ಹೊಸ ರೂಪ ಪಡೆಯುತ್ತವೆ.',category:'ಮಾದರಿ ವಿನ್ಯಾಸ'};
+  const copy = language === 'Kannada' ? kannada : language === 'Bilingual'
+    ? {...kannada,title:kannada.title + '\n' + english.title,body:kannada.body + '\n' + english.body} : english;
+  return {...copy,layout,_lang:language};
+}
+
+function gallerySampleArt(){
+  if(galleryArtwork) return galleryArtwork;
+  const art = document.createElement('canvas');
+  art.width = 800; art.height = 800;
+  const ctx = art.getContext('2d');
+  const sky = ctx.createLinearGradient(0,0,0,800);
+  sky.addColorStop(0,'#355475'); sky.addColorStop(.58,'#dc8763'); sky.addColorStop(1,'#f1bb85');
+  ctx.fillStyle = sky; ctx.fillRect(0,0,800,800);
+  ctx.fillStyle = '#ffd6a0';
+  ctx.beginPath(); ctx.arc(529,301,111,0,2*Math.PI); ctx.fill();
+  for(const [color,points] of [
+    ['#526476',[[0,479],[176,277],[370,507],[554,396],[800,548]]],
+    ['#334e57',[[0,541],[238,422],[448,579],[614,476],[800,561]]],
+    ['#193940',[[0,682],[186,578],[399,666],[587,537],[800,627]]]
+  ]){
+    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0,800);
+    for(const [x,y] of points) ctx.lineTo(x,y);
+    ctx.lineTo(800,800); ctx.closePath(); ctx.fill();
+  }
+  galleryArtwork = art;
+  return art;
+}
+
+function updateCreativeGallery(force=false){
   const layout = document.getElementById('posterLayout').value;
+  const language = document.getElementById('posterLang').value;
+  const appearance = activeTheme + '|' + language;
+  const render = force || appearance !== galleryAppearance;
+  const sampleImage = gallerySampleArt();
+  const scratch = render ? document.createElement('canvas') : null;
+  if(scratch){ scratch.width = CANVAS_W; scratch.height = CANVAS_H; }
   for(const button of document.querySelectorAll('.creative-template')){
     const key = button.dataset.layout;
     button.setAttribute('aria-pressed',String(layout===key));
-    const context = button.querySelector('canvas').getContext('2d');
-    context.setTransform(.2,0,0,.2,0,0);
-    drawCreativeFrame(context,{layout:key,...CREATIVE_TEMPLATES[key]},0,1,THEMES[activeTheme],null,'Georgia, serif','Inter, sans-serif');
+    if(scratch){
+      const canvas = button.querySelector('canvas');
+      drawSlide(scratch,layoutSample(key,language),0,{image:sampleImage,count:1});
+      canvas.getContext('2d').drawImage(scratch,0,0,canvas.width,canvas.height);
+    }
   }
+  galleryAppearance = appearance;
+  document.getElementById('posterPreviewLabel').textContent = posterSlide ? 'Your artwork' : 'Sample artwork';
+  if(!posterSlide) drawSlide(document.getElementById('posterCanvas'),layoutSample(layout,language),0,{image:sampleImage,count:1});
 }
 
-function loadCreativeSample(){
+async function loadCreativeSample(){
   if(posterSlide && !window.confirm('Replace the current poster with a design sample?')) return;
   const layout = document.getElementById('posterLayout').value;
-  const key = Object.hasOwn(CREATIVE_TEMPLATES,layout) ? layout : 'cutout-cover';
   const lang = document.getElementById('posterLang').value;
-  const sample = CREATIVE_TEMPLATES[key];
-  const local = {title:'ಕಥೆಗೆ ಹೊಸ ನೋಟ',body:'ಒಂದು ಸ್ಪಷ್ಟ ಶೀರ್ಷಿಕೆ, ಓದಲು ಸುಲಭವಾದ ವಿನ್ಯಾಸ ಮತ್ತು ಮುಖ್ಯ ವಿಷಯಕ್ಕೆ ಸಾಕಷ್ಟು ಜಾಗ.',category:'ಮಾದರಿ ವಿನ್ಯಾಸ'};
-  const copy = lang === 'Kannada' ? local : lang === 'Bilingual'
-    ? {...local,title:local.title + '\n' + sample.title,body:local.body + '\n' + sample.body} : sample;
-  commitPoster({...copy,caption:copy.title},{layout:key,language:lang,type:'sample'},null);
+  const copy = layoutSample(layout,lang);
+  commitPoster({...copy,caption:copy.title},{layout,language:lang,type:'sample'},null);
   showPosterSourceStatus('Design sample loaded. Try a layout, edit the text, or upload a photo.');
+  const attempt = posterPhotoAttempt;
+  const image = await loadImg(gallerySampleArt().toDataURL('image/webp'));
+  applyPosterPhoto(image,'Sample illustration. You can replace it with your own image.',attempt);
 }

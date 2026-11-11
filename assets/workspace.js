@@ -14,7 +14,7 @@ function escapeHtml(value) {
 
 function activateDraft(mode) {
   const kind = mode === 'poster' ? 'poster' : 'carousel';
-  if(mode !== 'scheduler' && draftKind !== kind) {
+  if(mode !== 'scheduler' && mode !== 'imageGenerator' && draftKind !== kind) {
     const caption = document.getElementById('caption');
     draftCaptions[draftKind] = caption.value;
     draftKind = kind;
@@ -404,7 +404,7 @@ async function initWorkspace() {
       if(saved.carousel) await hydrateDraft(saved.carousel);
       if(saved.poster) await hydrateDraft(saved.poster);
       const savedDraft = (saved.activeDraft || saved.mode) === 'poster' ? saved.poster : saved.carousel;
-      if(saved.mode === 'scheduler' && savedDraft?.mode === 'poster') activateDraft('poster');
+      if(['scheduler','imageGenerator'].includes(saved.mode) && savedDraft?.mode === 'poster') activateDraft('poster');
       if(Object.hasOwn(THEMES, savedDraft?.theme)) setTheme(savedDraft.theme);
       switchMode(saved.mode);
       document.getElementById('draftState').textContent = 'Draft restored from this device';
@@ -415,7 +415,7 @@ async function initWorkspace() {
   studioReady = true;
   configureWorkflowLinks();
   document.fonts.ready.then(() => {
-    updateCreativeGallery();
+    updateCreativeGallery(true);
     buildGrid();
     if(posterSlide) drawSlideOnCanvas(document.getElementById('posterCanvas'), posterSlide, 0, document.getElementById('posterLang').value);
   });

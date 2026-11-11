@@ -123,6 +123,7 @@ const WORKSPACE_VIEWS = {
   news: ['02 / REPORT', 'News Desk', 'Browse source headlines and build a news brief or a deeper explainer.'],
   breaking: ['03 / DEVELOP', 'Breaking Stories', 'Build a sourced, fast-moving story from the latest coverage.'],
   poster: ['04 / DESIGN', 'Single Poster', 'Create a standalone 4:5 design from an article, headline, or original idea.'],
+  imageGenerator: ['IMAGE STUDIO', 'AI Image Generator', 'Create a free illustration or photo-style image from a prompt.'],
   scheduler: ['05 / PLAN', 'Automation', 'Manage scheduled editions and keep a local list of ideas.']
 };
 
@@ -141,7 +142,7 @@ function switchMode(mode){
   ['workspaceKicker','workspaceTitle','workspaceSubtitle'].forEach((id,index) => {
     document.getElementById(id).textContent = WORKSPACE_VIEWS[mode][index];
   });
-  if(mode === 'poster' || mode === 'scheduler'){
+  if(mode === 'poster' || mode === 'scheduler' || mode === 'imageGenerator'){
     closeSlideEditor();
   }
   buildGrid();
@@ -832,24 +833,24 @@ function buildGrid(gridEl){
 }
 function liveUpdate(){ buildGrid(); }
 
-function drawSlide(canvas,slide,idx){
+function drawSlide(canvas,slide,idx,{image,count=slides.length}={}){
   const W=CANVAS_W,H=CANVAS_H, ctx=canvas.getContext('2d');
   // Use slide-level lang override (set by poster) or fall back to global currentLang
   const slideLang = slide._lang || currentLang;
   const isKan = slideLang==='Kannada' || slideLang==='Bilingual';
   const TF=isKan?'"Anek Kannada",sans-serif':'"Montserrat",sans-serif';
   const BF=isKan?'"Hubballi",sans-serif':'"Inter",sans-serif';
-  const isLast=idx===slides.length-1;
+  const isLast=idx===count-1;
   const th=THEMES[activeTheme]||THEMES.dark;
   ctx.fillStyle=th.bg; ctx.fillRect(0,0,W,H);
   
   const layout=slide.layout||'news-card';
   const ck=slide.cacheKey||slide.id;
-  const img=slideImageOverrides[ck]||imageCache[ck];
+  const img=image ?? (slideImageOverrides[ck]||imageCache[ck]);
   
   try{
-    if(Object.hasOwn(CREATIVE_TEMPLATES,layout)) drawCreativeFrame(ctx,slide,idx,slides.length,th,img,TF,BF);
-    else if(layout==='brief') drawBrief(ctx,slide,idx,th,img,TF,BF);
+    if(Object.hasOwn(CREATIVE_TEMPLATES,layout)) drawCreativeFrame(ctx,slide,idx,count,th,img,TF,BF);
+    else if(layout==='brief') drawBrief(ctx,slide,idx,th,img,TF,BF,count);
     else if(layout==='news-card') drawNewsCard(ctx,slide,idx,W,H,th,img,TF,BF,isLast);
     else if(layout==='cover') drawCover(ctx,slide,idx,W,H,th,img,TF,BF,isLast);
     else if(layout==='split') drawSplit(ctx,slide,idx,W,H,th,img,TF,BF,isLast);
@@ -872,8 +873,8 @@ function drawSlide(canvas,slide,idx){
   }catch(e){ console.error(e); }
 }
 
-function drawBrief(ctx, slide, index, theme, image, titleFont, bodyFont){
-  const number = index + 1, count = slides.length;
+function drawBrief(ctx, slide, index, theme, image, titleFont, bodyFont, count){
+  const number = index + 1;
   const bottom = number === 1 ? 525 : 392;
   const accent = slide.accentColor || theme.accent;
   const label = n => String(n).padStart(2,'0');
