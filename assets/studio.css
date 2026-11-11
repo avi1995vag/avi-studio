@@ -288,7 +288,8 @@ canvas.preview.selected { border-color: var(--accent); outline: 2px solid var(--
 .publishing-draft { background: var(--bg3); border-left: 1px solid var(--border); }
 .publishing-artwork { min-height: 70px; display: grid; place-items: center; padding: 10px; color: var(--muted); background: var(--rail); border: 1px solid var(--border); border-radius: var(--r); text-align: center; }
 .publishing-artwork canvas { display: block; width: min(100%, 146px); height: auto; border-radius: 5px; }
-.publishing-caption { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; overflow-wrap: anywhere; margin: 0 0 8px; }
+.publishing-caption { margin: 0; }
+.publishing-caption textarea { display: block; min-height: 104px; }
 .publishing-status { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
 .publishing-status[data-state="error"] { color: var(--accent2); }
 .publishing-actions { display: flex; gap: 7px; flex-wrap: wrap; }

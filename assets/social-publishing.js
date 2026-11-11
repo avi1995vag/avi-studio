@@ -12,6 +12,9 @@ const configureSocialPublishing = (() => {
   const receiptList = get('socialReceipt');
   const check = get('socialCheck');
   const newPost = get('socialNew');
+  const caption = get('caption');
+  const captionEditor = get('socialDraftCaption');
+  const captionCount = get('socialCaptionCount');
   const sessionKey = 'avi_buffer_session';
   const proofKey = 'avi_buffer_proof';
   const receiptKey = 'avi_buffer_receipt';
@@ -19,6 +22,7 @@ const configureSocialPublishing = (() => {
     needs_approval:'Awaiting approval in Buffer',draft:'Draft in Buffer',error:'Failed in Buffer',
     rejected:'Rejected by Buffer',unknown:'Unconfirmed. Check Buffer before reposting.'};
   let endpoint, token, batchId, busy = false, blocked = false, ready = false, checking = false;
+  let allRejected = false;
   let refreshOnReturn = false;
   let channels = [];
 
@@ -45,9 +49,8 @@ const configureSocialPublishing = (() => {
     const preview = get('socialPreview');
     const empty = get('socialDraftEmpty');
     const count = get('socialDraftCount');
-    const caption = get('socialDraftCaption');
     const size = draftSize();
-    preview.hidden = count.hidden = caption.hidden = get('socialEditCaption').hidden = size===0;
+    preview.hidden = count.hidden = get('socialCaptionEditor').hidden = size===0;
     empty.hidden = size>0;
     if(!size) return;
     let source;
@@ -61,7 +64,14 @@ const configureSocialPublishing = (() => {
     preview.height = Math.round(preview.width * source.height / source.width);
     preview.getContext('2d').drawImage(source,0,0,preview.width,preview.height);
     count.textContent = draftKind==='poster' ? 'Single poster' : `Carousel · ${size} ${size===1 ? 'slide' : 'slides'}`;
-    caption.textContent = get('caption').value.trim() || 'No caption';
+    captionEditor.value = caption.value;
+    updateCaptionCount();
+  }
+
+  function updateCaptionCount(){
+    const count = captionEditor.value.length;
+    captionCount.textContent = `${count} / 2200`;
+    captionCount.classList.toggle('over-limit',count>2200);
   }
 
   function openDialog(){
@@ -77,13 +87,14 @@ const configureSocialPublishing = (() => {
   function syncButtons(){
     connect.disabled = !ready || busy;
     retry.disabled = checking;
-    publishButton.disabled = !ready || !token || busy || Boolean(batchId) || selected().length===0 || draftSize()===0;
+    publishButton.disabled = !ready || !token || busy || (Boolean(batchId) && !allRejected) || selected().length===0 || draftSize()===0;
+    captionEditor.readOnly = busy;
     reload.disabled = busy;
     disconnect.disabled = busy;
     check.disabled = busy;
     check.hidden = !token || !batchId;
     newPost.disabled = busy;
-    newPost.hidden = !token || !batchId || blocked;
+    newPost.hidden = !token || !batchId || blocked || allRejected;
   }
 
   async function api(path,options={},timeout=60_000){
@@ -108,6 +119,7 @@ const configureSocialPublishing = (() => {
     connect.hidden = Boolean(value);
     connected.hidden = !value;
     if(!value){
+      allRejected = false;
       receiptList.hidden = true;
       channels = [];
       channelList.replaceChildren();
@@ -127,7 +139,7 @@ const configureSocialPublishing = (() => {
   async function loadChannels(){
     if(!ready || !token || busy) return;
     busy = true;
-    status('Loading your Buffer channels…');
+    if(receiptList.hidden) status('Loading your Buffer channels…');
     summary('Loading channels…');
     syncButtons();
     try {
@@ -152,8 +164,10 @@ const configureSocialPublishing = (() => {
       manage.classList.toggle('btn-p',channels.length===0);
       manage.textContent = channels.length ? 'Manage channels in Buffer ↗' : 'Connect channels in Buffer ↗';
       summary(channels.length ? `${channels.length} ${channels.length===1 ? 'channel' : 'channels'} connected` : 'Buffer connected · add channels');
-      status(channels.length ? (draftSize() ? 'Select where to publish your artwork and caption.' : 'Create a draft to publish to your channels.')
-        : 'Buffer is connected. Add a Facebook Page, X profile, or another channel in Buffer, then return here.');
+      if(!batchId || receiptList.hidden){
+        status(channels.length ? (draftSize() ? 'Select where to publish your artwork and caption.' : 'Create a draft to publish to your channels.')
+          : 'Buffer is connected. Add a Facebook Page, X profile, or another channel in Buffer, then return here.');
+      }
     } catch(error){
       showError(error);
       if(token) summary('Channels unavailable · refresh');
@@ -212,6 +226,7 @@ const configureSocialPublishing = (() => {
 
   function setBatch(id){
     batchId = id;
+    allRejected = false;
     if(id) sessionStorage.setItem(receiptKey,id);
     else sessionStorage.removeItem(receiptKey);
     syncButtons();
@@ -225,10 +240,13 @@ const configureSocialPublishing = (() => {
       receiptList.append(line);
     }
     receiptList.hidden = false;
+    allRejected = receipt.channels.length>0 && receipt.channels.every(item => item.status==='rejected');
     blocked = receipt.channels.some(item => ['submitting','sending','scheduled','needs_approval','unknown'].includes(item.status));
     const unconfirmed = receipt.channels.some(item => item.status==='unknown');
     status(unconfirmed ? 'A result is unconfirmed. Check Buffer before starting another post.'
-      : blocked ? 'Check post status for the latest result.' : 'Publishing results');
+      : blocked ? 'Check post status for the latest result.'
+      : allRejected ? 'Buffer rejected the previous attempt. Select your channels and click Publish now to try again.'
+      : 'Publishing results');
     // An unconfirmed result can be cleared after the editor checks Buffer.
     if(unconfirmed && !receipt.channels.some(item => ['submitting','sending','scheduled','needs_approval'].includes(item.status))) blocked = false;
     syncButtons();
@@ -241,6 +259,7 @@ const configureSocialPublishing = (() => {
     try { renderReceipt(await api('/posts/' + batchId)); }
     catch(error){
       if(error.status===404){
+        allRejected = false;
         blocked = false;
         status('No receipt yet. Check Buffer before starting another post.');
       } else showError(error);
@@ -248,9 +267,9 @@ const configureSocialPublishing = (() => {
   }
 
   async function publishNow(){
-    if(busy || batchId) return;
+    if(publishButton.disabled) return;
     const targets = selected();
-    if(!targets.length) return;
+    let submitted = false;
     busy = true;
     syncButtons();
     try {
@@ -258,25 +277,27 @@ const configureSocialPublishing = (() => {
       const frames = artwork();
       const smaller = targets.find(channel => frames.length>channel.maxImages);
       if(smaller) throw new Error(`${smaller.platform} accepts up to ${smaller.maxImages} images.`);
-      const caption = get('caption').value;
+      const postCaption = caption.value;
       if(!window.confirm(`Publish ${frames.length} ${frames.length===1 ? 'image' : 'images'} with the current caption to ${targets.map(channel => channel.name).join(', ')}?`)) return;
       status('Preparing artwork…');
       const images = await Promise.all(frames.map(publishImage));
       const id = crypto.randomUUID();
       const form = new FormData();
       form.set('id',id);
-      form.set('caption',caption);
+      form.set('caption',postCaption);
       for(const channel of targets) form.append('channel',channel.id);
       images.forEach((image,index) => form.append('image',image,'artwork-' + (index+1) + '.jpg'));
       blocked = true;
       setBatch(id);
+      receiptList.hidden = true;
+      submitted = true;
       status('Submitting to Buffer…');
       renderReceipt(await api('/posts',{method:'POST',body:form}));
     } catch(error){
-      if(batchId && (!error.status || error.status>=500)){
+      if(submitted && (!error.status || error.status>=500)){
         status('The result is unconfirmed. Check post status before trying again.');
       } else {
-        if(batchId) setBatch(null);
+        if(submitted) setBatch(null);
         showError(error);
       }
     } finally { busy = false; syncButtons(); }
@@ -289,10 +310,10 @@ const configureSocialPublishing = (() => {
       if(ready && token && !batchId) void loadChannels();
     });
   }
-  get('socialEditCaption').addEventListener('click', () => {
-    panel.close();
-    if(currentMode==='imageGenerator') switchMode(draftKind);
-    get('caption').focus();
+  captionEditor.addEventListener('input', () => {
+    caption.value = captionEditor.value;
+    updateCharCount();
+    updateCaptionCount();
   });
   manage.addEventListener('click', () => { refreshOnReturn = true; });
   function refreshReturningChannels(){
@@ -349,7 +370,7 @@ const configureSocialPublishing = (() => {
     const fragment = new URLSearchParams(location.hash.slice(1));
     const handoff = fragment.get('buffer_connection');
     const failure = fragment.get('buffer_error');
-    batchId = sessionStorage.getItem(receiptKey);
+    setBatch(sessionStorage.getItem(receiptKey));
     if(handoff || failure){
       history.replaceState(null,'',location.pathname + location.search);
       setToken(null);

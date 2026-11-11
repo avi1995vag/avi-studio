@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Instrument+Serif&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css">
+<link rel="stylesheet" href="./assets/studio.css?v=publish-editor">
 </head>
 <body>
 
@@ -780,8 +780,11 @@
         <p id="socialDraftEmpty">Create a poster or carousel to publish.</p>
       </div>
       <p id="socialDraftCount" class="helper" hidden></p>
-      <p id="socialDraftCaption" class="publishing-caption" hidden></p>
-      <button id="socialEditCaption" class="btn-sm" type="button" hidden>Edit caption</button>
+      <div id="socialCaptionEditor" class="field publishing-caption" hidden>
+        <label for="socialDraftCaption">Caption</label>
+        <textarea id="socialDraftCaption" rows="5" placeholder="Write a caption…" aria-describedby="socialCaptionCount"></textarea>
+        <span id="socialCaptionCount" class="char-count">0 / 2200</span>
+      </div>
     </section>
   </div>
 </dialog>
@@ -793,7 +796,7 @@
 <script src="./assets/article-import.js"></script>
 <script src="./assets/studio.js"></script>
 <script src="./assets/image-generator.js"></script>
-<script src="./assets/social-publishing.js"></script>
+<script src="./assets/social-publishing.js?v=publish-editor"></script>
 <script src="./assets/workspace.js"></script>
 </body>
 </html>
