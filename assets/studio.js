@@ -282,7 +282,7 @@ function safeWebUrl(value){
 }
 
 function cleanSearchQuery(q) {
-  return (q || '').replace(/[^\w\s\-]/g,'').trim().slice(0, 80);
+  return String(q || '').replace(/[^\p{L}\p{M}\p{N}\s-]/gu,' ').replace(/\s+/g,' ').trim().slice(0,100);
 }
 
 function buildImageQuery(slide){
@@ -335,17 +335,112 @@ async function findStockImage(query, cacheKey, feedback){
   return null;
 }
 
-async function fetchAICarouselImage(slide){
-  if(imageCache[slide.cacheKey]) return imageCache[slide.cacheKey];
-  if(document.getElementById('aiVisualStyle').value === 'none') return null;
-  const query = slide.imageQuery || slide.title;
-  const related = await findCommonsPhoto(query,usedImageUrls);
-  if(related){
-    usedImageUrls.add(related.image.src);
-    imageCache[slide.cacheKey] = related.image;
-    return related.image;
+function carouselSubject(value){
+  return cleanSearchQuery(value).replace(/\s+(?:net worth|career highlights|career|biography|latest news|facts)(?:\s+.*)?$/i,'');
+}
+
+function setSlidePhotoDetails(slide, photo){
+  for(const key of ['photoSource','photoLabel','photoCredit','photoLicense']) delete slide[key];
+  if(photo){
+    slide.photoSource = photo.source;
+    slide.photoLabel = photo.credit;
+    if(photo.photoCredit) slide.photoCredit = photo.photoCredit;
+    if(photo.photoLicense) slide.photoLicense = photo.photoLicense;
   }
-  return findStockImage(buildImageQuery(slide), slide.cacheKey);
+}
+
+function applyCarouselLayouts(frames,design){
+  if(design==='classic') return;
+  const colors = ['midnight','linen','terracotta','jade'];
+  frames.forEach((frame,index) => {
+    frame.layout = index===0 ? 'carousel-lead' : index===frames.length-1 ? 'carousel-close' : index%3===1 ? 'carousel-feature' : 'carousel-type';
+    frame.posterPalette = design==='color' ? colors[index%colors.length] : 'studio';
+  });
+}
+
+function applyCurrentCarouselDesign(){
+  if(!slides.length) return;
+  const design = document.getElementById('carouselDesign').value;
+  if(design==='classic'){
+    const cover = document.getElementById('defaultCoverLayout').value;
+    const inner = document.getElementById('defaultInnerLayout').value;
+    slides.forEach((frame,index) => {
+      frame.layout = index===0 ? cover : index===slides.length-1 ? 'cta' : inner;
+      frame.posterPalette = 'studio';
+    });
+  } else applyCarouselLayouts(slides,design);
+  if(selectedSlide!==null){
+    const layout = slides[selectedSlide].layout;
+    document.getElementById('editLayout').value = layout;
+    document.getElementById('chartEditorPanel').style.display = layout==='chart-bar' ? 'block' : 'none';
+  }
+  buildGrid();
+  showAIFeedback('carouselPhotoStatus','Layout set applied.','success');
+}
+
+async function loadCarouselPhotos(frames,mode,subject){
+  if(mode==='none') return;
+  const targets = frames.filter(frame => !['carousel-type','carousel-close','cta','stats','timeline','chart-bar','minimal-quote'].includes(frame.layout));
+  const used = new Set();
+  let count = 0;
+  if(mode==='stock'){
+    for(const frame of targets){
+      if(!slides.includes(frame)) break;
+      const image = await findStockImage(buildImageQuery(frame),null);
+      if(!image || !slides.includes(frame) || slideImageOverrides[frame.cacheKey]) continue;
+      imageCache[frame.cacheKey] = image;
+      count++;
+    }
+  } else if(subject && targets.length){
+    showAIFeedback('carouselPhotoStatus',`Looking for matching photos of ${subject}…`);
+    const candidates = await commonsPhotoCandidates(subject,true);
+    for(const frame of targets){
+      if(!slides.includes(frame)) break;
+      const photo = await loadCommonsPhoto(candidates,used);
+      if(!photo) break;
+      used.add(photo.source);
+      used.add(photo.image.src);
+      if(!slides.includes(frame) || slideImageOverrides[frame.cacheKey]) continue;
+      imageCache[frame.cacheKey] = photo.image;
+      setSlidePhotoDetails(frame,photo);
+      count++;
+    }
+  }
+  if(!frames.some(frame=>slides.includes(frame))) return;
+  buildGrid();
+  if(selectedSlide!==null) syncSlidePhotoEditor(slides[selectedSlide]);
+  const result = count ? `${count} ${mode==='stock' ? 'stock illustrations' : 'matching photos'} added.`
+    : mode==='stock' ? 'No stock illustration loaded. Check Pexels in Integrations or upload a photo.'
+    : 'No matching photo loaded. Try the full subject name or use Google Images in the frame editor.';
+  showAIFeedback('carouselPhotoStatus',result,count ? 'success' : 'warning');
+}
+
+async function refreshCarouselPhotos(){
+  if(!slides.length) return;
+  const button = document.getElementById('carouselRefreshPhotos');
+  const generate = document.getElementById('aiBtn');
+  const layoutButton = document.getElementById('carouselApplyDesign');
+  if(button.disabled || generate.disabled) return;
+  const mode = document.getElementById('aiVisualStyle').value;
+  const subject = carouselSubject(document.getElementById('carouselPhotoSubject').value || slides[0].photoSubject || document.getElementById('aiTopic').value || slides[0].imageQuery);
+  if(mode==='ai' && !subject) return showAIFeedback('carouselPhotoStatus','Enter a photo subject above, then refresh.','warning');
+  if(!window.confirm('Replace the current carousel photos? This also replaces photos you added manually.')) return;
+  const frames = slides.slice();
+  button.disabled = generate.disabled = layoutButton.disabled = true;
+  slidePhotoSearch++;
+  try {
+    usedImageUrls.clear();
+    for(const frame of frames){
+      delete slideImageOverrides[frame.cacheKey];
+      delete imageCache[frame.cacheKey];
+      setSlidePhotoDetails(frame,null);
+    }
+    for(const frame of frames) frame.photoSubject = subject;
+    buildGrid();
+    if(selectedSlide!==null) syncSlidePhotoEditor(slides[selectedSlide]);
+    if(mode==='none') showAIFeedback('carouselPhotoStatus','Typography-only artwork applied.','success');
+    else await loadCarouselPhotos(frames,mode,subject);
+  } finally { button.disabled = generate.disabled = layoutButton.disabled = false; }
 }
 
 function loadImg(url, cacheKey, timeout=14000){
@@ -547,6 +642,8 @@ async function generateAI(){
   const key=document.getElementById('geminiKey').value.trim();
   const show = (message,tone) => showAIFeedback('carouselFeedback',message,tone);
   const btn=document.getElementById('aiBtn');
+  const layoutButton = document.getElementById('carouselApplyDesign');
+  const refreshButton = document.getElementById('carouselRefreshPhotos');
   if(btn.disabled) return;
   if(!topic) return show('Enter a topic or headline.','warning');
   if(mode==='arrange' && !source) return show('Paste article text or notes to arrange into slides.','warning');
@@ -554,8 +651,13 @@ async function generateAI(){
   
   const covLayout = document.getElementById('defaultCoverLayout').value;
   const innerLayout = document.getElementById('defaultInnerLayout').value;
+  const design = document.getElementById('carouselDesign').value;
+  const photoMode = document.getElementById('aiVisualStyle').value;
+  const explicitSubject = carouselSubject(document.getElementById('carouselPhotoSubject').value);
   
-  btn.textContent = 'Building draft…'; btn.disabled = true;
+  btn.textContent = 'Building draft…';
+  btn.disabled = layoutButton.disabled = refreshButton.disabled = true;
+  showAIFeedback('carouselPhotoStatus','');
   show('Building your draft…');
   setStatus('GENERATING'); log(`⚡ Carousel: "${topic}" [${lang}]`);
 
@@ -569,6 +671,7 @@ ${getLanguageInstruction(lang)}
 OUTPUT FORMAT (RAW VALID JSON ONLY. NO MARKDOWN):
 {
   "caption": "Instagram caption with emojis and relevant hashtags",
+  "photoSubject": "Exact name in English of the main person, place, team or landmark named in the topic, without dates or descriptive keywords. Empty string when none is named.",
   "slides": [
     {
       "id": 1,
@@ -618,18 +721,16 @@ MANDATORY LAYOUT RULES:
     switchMode('carousel');
     closeSlideEditor();
     slides=parsed.slides; currentLang=lang;
+    applyCarouselLayouts(slides,design);
+    const photoSubject = explicitSubject || carouselSubject(typeof parsed.photoSubject==='string' ? parsed.photoSubject : '') || carouselSubject(topic);
+    for(const frame of slides) frame.photoSubject = photoSubject;
     assignCacheKeys(slides);
     imageCache={}; slideImageOverrides={}; usedImageUrls.clear();
     document.getElementById('caption').value=parsed.caption||''; updateCharCount();
     log('Content ready. Preparing artwork…','ok');
     buildGrid();
-    for(let i=0;i<slides.length;i++){
-      const s=slides[i];
-      if(s.imageQuery&&s.layout!=='cta'){
-        btn.textContent=`🎨 Rendering ${i+1}/${slides.length}…`;
-        await fetchAICarouselImage(s, i); buildGrid();
-      }
-    }
+    btn.textContent='Preparing artwork…';
+    await loadCarouselPhotos(slides.slice(),photoMode,photoSubject);
     if(arranged) show(`${fallback ? fallback + ' ' : ''}${slides.length} editable slides created from your text in its original language.`,fallback ? 'warning' : 'success');
     else show(!source && !research ? 'Draft ready. Add sources before using it for factual reporting.' : 'Draft ready. Review the text and images before publishing.','success');
     log('Carousel complete.','ok'); switchMode('carousel');
@@ -637,7 +738,9 @@ MANDATORY LAYOUT RULES:
     show(err.message,'error');
     log(`Generation failed: ${err.message}`,'err');
   }
-  btn.textContent='Generate carousel'; btn.disabled=false; setStatus('READY');
+  btn.textContent='Generate carousel';
+  btn.disabled = layoutButton.disabled = refreshButton.disabled = false;
+  setStatus('READY');
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -992,7 +1095,8 @@ function drawSlide(canvas,slide,idx,{image,count=slides.length}={}){
   const img=finishPhoto(image === undefined ? (slideImageOverrides[ck]||imageCache[ck]) : image,slide.photoFinish);
   
   try{
-    if(Object.hasOwn(CREATIVE_TEMPLATES,layout)) drawCreativeFrame(ctx,slide,idx,count,th,img,TF,BF);
+    if(Object.hasOwn(CAROUSEL_LAYOUTS,layout)) drawCarouselFrame(ctx,slide,idx,count,th,img,TF,BF);
+    else if(Object.hasOwn(CREATIVE_TEMPLATES,layout)) drawCreativeFrame(ctx,slide,idx,count,th,img,TF,BF);
     else if(layout==='brief') drawBrief(ctx,slide,idx,th,img,TF,BF,count);
     else if(layout==='news-card') drawNewsCard(ctx,slide,idx,W,H,th,img,TF,BF,isLast);
     else if(layout==='cover') drawCover(ctx,slide,idx,W,H,th,img,TF,BF,isLast);
@@ -1013,6 +1117,7 @@ function drawSlide(canvas,slide,idx,{image,count=slides.length}={}){
     else if(layout==='breaking-banner') drawBreakingBanner(ctx,slide,idx,W,H,th,img,TF,BF,isLast);
     else if(layout==='cta') drawCTA(ctx,slide,idx,W,H,th,img,TF,BF);
     else drawNewsCard(ctx,slide,idx,W,H,th,img,TF,BF,isLast);
+    if(img && !['carousel-type','carousel-close'].includes(layout)) drawSlidePhotoCredit(ctx,slide);
   }catch(e){ console.error(e); }
 }
 
@@ -1997,7 +2102,7 @@ function selectSlide(i){
   document.getElementById('editorTitle').textContent=`Editing Slide ${i+1}`;
   document.getElementById('editTitle').value=s.title||'';
   document.getElementById('editBody').value=s.body||'';
-  document.getElementById('editImgSource').value=s.imageQuery||'';
+  document.getElementById('editImgSource').value=s.photoSubject||s.imageQuery||'';
   document.getElementById('editLayout').value=s.layout||'news-card';
   
   // Set multiplier values
@@ -2024,17 +2129,60 @@ function selectSlide(i){
   const prevEl=document.getElementById('overridePreview');
   document.getElementById('overrideUrlInput').value='';
   if(existingOv?.src) prevEl.src=existingOv.src; else prevEl.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+  syncSlidePhotoEditor(s);
+  showAIFeedback('slidePhotoStatus','');
   
   log(`✏️ Opened Editor Panel for Slide ${i+1}.`,'info');
 }
 
-async function forceRefreshImage(){
-  if(selectedSlide===null) return;
-  const s=slides[selectedSlide]; s.imageQuery=document.getElementById('editImgSource').value;
-  delete imageCache[s.cacheKey];
-  await findStockImage(buildImageQuery(s), s.cacheKey);
+function syncSlidePhotoEditor(slide){
+  const source = document.getElementById('slidePhotoSource');
+  const sourceUrl = safeWebUrl(slide.photoSource);
+  source.hidden = !sourceUrl;
+  if(sourceUrl) source.href = sourceUrl;
+  else source.removeAttribute('href');
+  document.getElementById('slideGoogleImages').href = googleImageSearchLink(document.getElementById('editImgSource').value || slide.photoSubject || slide.title);
+  document.getElementById('slidePhotoY').value = Math.round((slide.photoY ?? .15)*100);
+  document.getElementById('slidePhotoCrop').hidden = !(slideImageOverrides[slide.cacheKey] || imageCache[slide.cacheKey]);
+}
+
+function showPhotoOnFrame(slide){
+  if(['carousel-type','carousel-close'].includes(slide.layout)) slide.layout = 'carousel-feature';
+  if(slides[selectedSlide]===slide){
+    document.getElementById('editLayout').value = slide.layout;
+    syncSlidePhotoEditor(slide);
+  }
   buildGrid();
 }
+
+let slidePhotoSearch = 0;
+async function forceRefreshImage(){
+  const slide = slides[selectedSlide];
+  if(!slide) return;
+  const query = carouselSubject(document.getElementById('editImgSource').value);
+  if(!query) return showAIFeedback('slidePhotoStatus','Enter the full subject name.','warning');
+  const search = ++slidePhotoSearch;
+  showAIFeedback('slidePhotoStatus','Looking for a usable photo…');
+  const stock = currentMode==='carousel' && document.getElementById('aiVisualStyle').value==='stock';
+  const photo = stock ? null : await loadCommonsPhoto(await commonsPhotoCandidates(query,true),new Set());
+  const image = stock ? await findStockImage(query,null) : photo?.image;
+  if(search!==slidePhotoSearch || !slides.includes(slide)) return;
+  if(image){
+    slide.imageQuery = slide.photoSubject = query;
+    delete slideImageOverrides[slide.cacheKey];
+    imageCache[slide.cacheKey] = image;
+    setSlidePhotoDetails(slide,photo);
+    showPhotoOnFrame(slide);
+  }
+  if(slides[selectedSlide]===slide) showAIFeedback('slidePhotoStatus',image ? (photo?.credit || 'Stock illustration applied.')
+    : 'No usable match. Open Google Images, paste a direct image URL or upload a photo.',image ? 'success' : 'warning');
+}
+
+document.getElementById('editImgSource').addEventListener('input', event => {
+  slidePhotoSearch++;
+  document.getElementById('slideGoogleImages').href = googleImageSearchLink(event.target.value);
+  showAIFeedback('slidePhotoStatus','');
+});
 
 /* ═══════════════════════════════════════════════════════════
    ZERNIO INTEGRATION MODULE
@@ -2342,32 +2490,38 @@ async function applyUrlOverride() {
   
   const s = slides[selectedSlide];
   const ck = s.cacheKey || s.id;
+  const attempt = ++slidePhotoSearch;
   setStatus('LOADING IMAGE');
   log(`📎 Loading custom URL override for slide ${selectedSlide+1}...`);
   try {
     const directUrl = safeWebUrl(url);
     if(!directUrl) throw new Error('Enter an HTTP or HTTPS image URL.');
     const img = await loadImg(directUrl, null, 12000);
+    if(attempt!==slidePhotoSearch || !slides.includes(s)) return;
+    delete imageCache[ck];
     slideImageOverrides[ck] = img;
-    buildGrid();
+    setSlidePhotoDetails(s,null);
+    showPhotoOnFrame(s);
     log('✅ URL Image override applied successfully.', 'ok');
   } catch(e) {
     log(`❌ Failed to load image override: ${e.message}`, 'err');
-  }
-  setStatus('READY');
+  } finally { setStatus('READY'); }
 }
 
 document.getElementById('overrideFileInput').addEventListener('change', e => {
   if (selectedSlide === null || !e.target.files[0]) return;
   const slide = slides[selectedSlide];
+  const attempt = ++slidePhotoSearch;
   const reader = new FileReader();
   reader.onload = ev => {
     const img = new Image();
     img.onload = () => {
-      if(!slides.includes(slide)) return;
+      if(attempt!==slidePhotoSearch || !slides.includes(slide)) return;
+      delete imageCache[slide.cacheKey];
       slideImageOverrides[slide.cacheKey] = img;
+      setSlidePhotoDetails(slide,null);
       if(slides[selectedSlide] === slide) document.getElementById('overridePreview').src = ev.target.result;
-      buildGrid();
+      showPhotoOnFrame(slide);
       log(`✅ Uploaded file override applied to Slide ${selectedSlide+1}`, 'ok');
     };
     img.src = ev.target.result;
@@ -2380,10 +2534,14 @@ function clearImageOverride() {
   if (selectedSlide === null) return;
   const s = slides[selectedSlide];
   const ck = s.cacheKey || s.id;
+  slidePhotoSearch++;
   delete slideImageOverrides[ck];
+  delete imageCache[ck];
+  setSlidePhotoDetails(s,null);
   document.getElementById('overridePreview').src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+  syncSlidePhotoEditor(s);
   buildGrid();
-  log(`🧹 Cleared custom override for Slide ${selectedSlide+1}`, 'info');
+  log(`Removed the photo from slide ${selectedSlide+1}.`, 'info');
 }
 
 function generateTestCarousel() {

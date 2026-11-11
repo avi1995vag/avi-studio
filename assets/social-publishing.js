@@ -23,6 +23,7 @@ const configureSocialPublishing = (() => {
     rejected:'Rejected by Buffer',unknown:'Unconfirmed. Check Buffer before reposting.'};
   let endpoint, token, batchId, busy = false, blocked = false, ready = false, checking = false;
   let allRejected = false;
+  let completed = false;
   let refreshOnReturn = false;
   let channels = [];
 
@@ -87,14 +88,14 @@ const configureSocialPublishing = (() => {
   function syncButtons(){
     connect.disabled = !ready || busy;
     retry.disabled = checking;
-    publishButton.disabled = !ready || !token || busy || (Boolean(batchId) && !allRejected) || selected().length===0 || draftSize()===0;
+    publishButton.disabled = !ready || !token || busy || (Boolean(batchId) && !completed) || selected().length===0 || draftSize()===0;
     captionEditor.readOnly = busy;
     reload.disabled = busy;
     disconnect.disabled = busy;
     check.disabled = busy;
     check.hidden = !token || !batchId;
     newPost.disabled = busy;
-    newPost.hidden = !token || !batchId || blocked || allRejected;
+    newPost.hidden = !token || !batchId || blocked || completed;
   }
 
   async function api(path,options={},timeout=60_000){
@@ -120,6 +121,7 @@ const configureSocialPublishing = (() => {
     connected.hidden = !value;
     if(!value){
       allRejected = false;
+      completed = false;
       receiptList.hidden = true;
       channels = [];
       channelList.replaceChildren();
@@ -227,6 +229,7 @@ const configureSocialPublishing = (() => {
   function setBatch(id){
     batchId = id;
     allRejected = false;
+    completed = false;
     if(id) sessionStorage.setItem(receiptKey,id);
     else sessionStorage.removeItem(receiptKey);
     syncButtons();
@@ -241,12 +244,14 @@ const configureSocialPublishing = (() => {
     }
     receiptList.hidden = false;
     allRejected = receipt.channels.length>0 && receipt.channels.every(item => item.status==='rejected');
+    completed = receipt.channels.length>0 && receipt.channels.every(item => ['sent','rejected','error','draft'].includes(item.status));
     blocked = receipt.channels.some(item => ['submitting','sending','scheduled','needs_approval','unknown'].includes(item.status));
     const unconfirmed = receipt.channels.some(item => item.status==='unknown');
     status(unconfirmed ? 'A result is unconfirmed. Check Buffer before starting another post.'
       : blocked ? 'Check post status for the latest result.'
       : allRejected ? 'Buffer rejected the previous attempt. Select your channels and click Publish now to try again.'
-      : 'Publishing results');
+      : completed ? 'The previous submission is shown below. Publish now sends the draft in this preview as a new post.'
+      : 'Check post status for the latest result.');
     // An unconfirmed result can be cleared after the editor checks Buffer.
     if(unconfirmed && !receipt.channels.some(item => ['submitting','sending','scheduled','needs_approval'].includes(item.status))) blocked = false;
     syncButtons();
@@ -260,6 +265,7 @@ const configureSocialPublishing = (() => {
     catch(error){
       if(error.status===404){
         allRejected = false;
+        completed = false;
         blocked = false;
         status('No receipt yet. Check Buffer before starting another post.');
       } else showError(error);
@@ -278,7 +284,8 @@ const configureSocialPublishing = (() => {
       const smaller = targets.find(channel => frames.length>channel.maxImages);
       if(smaller) throw new Error(`${smaller.platform} accepts up to ${smaller.maxImages} images.`);
       const postCaption = caption.value;
-      if(!window.confirm(`Publish ${frames.length} ${frames.length===1 ? 'image' : 'images'} with the current caption to ${targets.map(channel => channel.name).join(', ')}?`)) return;
+      const previous = completed && !allRejected ? 'This creates a new post. If you send the same artwork and caption again, it can appear twice.\n\n' : '';
+      if(!window.confirm(`${previous}Publish ${frames.length} ${frames.length===1 ? 'image' : 'images'} with the current caption to ${targets.map(channel => channel.name).join(', ')}?`)) return;
       status('Preparing artwork…');
       const images = await Promise.all(frames.map(publishImage));
       const id = crypto.randomUUID();

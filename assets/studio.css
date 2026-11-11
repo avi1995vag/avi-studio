@@ -166,6 +166,12 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .carousel-options .row { margin-bottom: 11px; }
 .carousel-options .helper { margin-bottom: 0; }
 .carousel-compose .compose-actions { padding-top: 13px; border-top: 1px solid var(--border); }
+.carousel-frame-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.carousel-frame-actions > span, .optional-label { color: var(--muted); font-size: 11px; font-weight: 500; }
+.optional-label { margin-left: 4px; }
+.slide-photo-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 7px 0 10px; font-size: 12px; }
+.social-receipt-title { margin: 12px 0 5px; color: var(--muted); font-size: 12px; }
+.social-receipt-title:has(+ .social-receipt[hidden]) { display: none; }
 .gemini-integration { padding: 10px; border: 1px solid var(--border); border-radius: var(--r); background: var(--bg2); }
 .gemini-key-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 7px 0 0; font-size: 11px; }
 .gemini-key-actions .btn-sm { min-height: 34px; padding-inline: 8px; }

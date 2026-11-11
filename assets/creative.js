@@ -20,6 +20,12 @@ const POSTER_PALETTES = {
   terracotta: {label:'Terracotta',bg:'#351d1a',bg2:'#5c3028',panel:'#5c3028',text:'#fff0de',sub:'#ead0bd',accent:'#ffb287'},
   jade: {label:'Jade',bg:'#112921',bg2:'#21483b',panel:'#21483b',text:'#f0f7e8',sub:'#c9dfcc',accent:'#a9e2ae'}
 };
+const CAROUSEL_LAYOUTS = {
+  'carousel-lead':'Photo lead',
+  'carousel-feature':'Photo feature',
+  'carousel-type':'Type story',
+  'carousel-close':'Closing frame'
+};
 const PHOTO_FINISHES = {
   original:null,
   monochrome:{saturation:0,contrast:1.1,offset:[0,0,0]},
@@ -68,7 +74,7 @@ function finishPhoto(image, finish){
 
 function creativeText(ctx, text, box, fontFamily, weight, color) {
   const {x,y,width,height,size} = box;
-  if(!text) return;
+  if(!text) return 0;
   const paragraphs = String(text).split(/\r?\n/);
   let lines, step;
   for(let point = size; point >= 19; point -= 2){
@@ -93,6 +99,75 @@ function creativeText(ctx, text, box, fontFamily, weight, color) {
   lines.slice(0,visible).forEach((line,i)=>{
     ctx.fillText(line + (i===visible-1 && lines.length>visible ? '…' : ''),x,y+i*step,width);
   });
+  return Math.min(visible,lines.length)*step;
+}
+
+function drawCarouselFrame(ctx, frame, index, count, theme, image, titleFont, bodyFont){
+  const lead = frame.layout==='carousel-lead';
+  const close = frame.layout==='carousel-close';
+  const photo = image && (lead || frame.layout==='carousel-feature');
+  const portrait = photo && (image.naturalWidth || image.width)<(image.naturalHeight || image.height);
+  const accent = frame.accentColor || theme.accent;
+  const titleColor = frame.titleColor || theme.text;
+  const bodyColor = frame.bodyColor || theme.sub;
+  const label = (value,x,y,width=948,color=accent,size=24) => {
+    ctx.fillStyle = color;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.font = `700 ${size}px ${bodyFont}`;
+    ctx.fillText(value,x,y,width);
+  };
+  ctx.fillStyle = accent;
+  ctx.fillRect(0,0,CANVAS_W,14);
+  label(document.getElementById('handleText').value || 'AvI Studio',65,48,740,theme.text);
+  const number = String(index+1).padStart(2,'0');
+  label(`${number} / ${String(count).padStart(2,'0')}`,893,48,120);
+  let y;
+  if(portrait){
+    ctx.fillStyle = theme.panel;
+    ctx.fillRect(65,113,460,728);
+    drawImgCover(ctx,image,548,113,467,728,frame);
+    ctx.fillStyle = accent;
+    ctx.fillRect(100,174,88,6);
+    y = 208;
+  } else if(photo){
+    const height = lead ? 520 : 460;
+    drawImgCover(ctx,image,65,113,950,height,frame);
+    y = 151 + height;
+  } else {
+    ctx.save();
+    ctx.fillStyle = theme.panel;
+    const artHeight = close ? 335 : 235;
+    ctx.fillRect(65,113,950,artHeight);
+    ctx.beginPath(); ctx.rect(65,113,950,artHeight); ctx.clip();
+    ctx.strokeStyle = accent; ctx.globalAlpha = .48; ctx.lineWidth = 3;
+    for(let radius=70;radius<=405;radius+=29){
+      ctx.beginPath(); ctx.arc(close ? 540 : 949,close ? 280 : 159,radius,0,Math.PI*2); ctx.stroke();
+    }
+    ctx.restore();
+    if(!close) label(number,100,158,285,accent,115);
+    y = 159 + artHeight;
+  }
+  const textX = portrait ? 100 : 65;
+  const titleWidth = portrait ? 391 : 950;
+  if(frame.category){ label(String(frame.category),textX,y,titleWidth,accent,27); y += 45; }
+  const titleHeight = portrait ? 555 : photo ? (lead ? 205 : 185) : 325;
+  const titleUsed = creativeText(ctx,frame.title,{x:textX,y,width:titleWidth,height:titleHeight,
+    size:Math.round((photo ? (lead ? 83 : 72) : (close ? 96 : 92))*(frame.titleSize || 1))},titleFont,800,titleColor);
+  y = portrait ? 887 : y + titleUsed + 22;
+  creativeText(ctx,frame.body,{x:65,y,width:935,height:Math.max(95,1244-y),
+    size:Math.round((photo ? 42 : 49)*(frame.bodySize || 1))},bodyFont,500,bodyColor);
+  ctx.fillStyle = accent;
+  ctx.fillRect(65,1251,photo ? 96 : 156,5);
+}
+
+function drawSlidePhotoCredit(ctx, frame){
+  const credit = frame.photoCredit;
+  if(!credit || !frame.photoLicense) return;
+  ctx.fillStyle = '#14151a';
+  ctx.fillRect(0,1260,CANVAS_W,90);
+  creativeText(ctx,credit,{x:65,y:1270,width:950,height:27,size:22},'Inter, sans-serif',700,'#ffffff');
+  const links = [frame.photoLicense,frame.photoSource].filter(Boolean).map(link => link.replace(/^https?:\/\//,''));
+  creativeText(ctx,links.join('  ·  '),{x:65,y:1302,width:950,height:32,size:21},'Inter, sans-serif',500,'#e3e4ea');
 }
 
 function drawCreativeFrame(ctx, frame, index, count, theme, image, titleFont, bodyFont) {
@@ -325,6 +400,10 @@ function initializeCreativeTools() {
     }
     document.getElementById(id).append(group);
   }
+  const carouselLayouts = document.createElement('optgroup');
+  carouselLayouts.label = 'Carousel Collection';
+  for(const [layout,label] of Object.entries(CAROUSEL_LAYOUTS)) carouselLayouts.append(new Option(label,layout));
+  document.getElementById('editLayout').prepend(carouselLayouts);
   for(const option of select.options){
     const layout = option.value;
     const button = document.createElement('button');

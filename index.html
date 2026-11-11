@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css?v=creative-workspace">
+<link rel="stylesheet" href="./assets/studio.css?v=carousel-visuals">
 </head>
 <body>
 
@@ -210,6 +210,11 @@
             <label for="carouselSourceText">Source text</label>
             <textarea id="carouselSourceText" rows="3" maxlength="16000" placeholder="Paste article text, notes or verified facts" aria-describedby="carouselModeHelp"></textarea>
           </div>
+          <div class="field">
+            <label for="carouselPhotoSubject">Photo subject <span class="optional-label">Optional</span></label>
+            <input id="carouselPhotoSubject" maxlength="100" placeholder="e.g. Virat Kohli" aria-describedby="carouselPhotoHelp">
+            <p class="helper" id="carouselPhotoHelp">Use a person, place, team or landmark name.</p>
+          </div>
         </div>
         <div class="carousel-options">
           <div class="field">
@@ -229,9 +234,17 @@
               <select id="slideCount"><option value="5">5</option><option value="7" selected>7</option><option value="10">10</option></select>
             </div>
           </div>
-          <div class="field"><label for="aiVisualStyle">Visual style</label>
+          <div class="field"><label for="carouselDesign">Layout set</label>
+            <select id="carouselDesign">
+              <option value="editorial">Editorial</option>
+              <option value="color">Color story</option>
+              <option value="classic">Classic layouts</option>
+            </select>
+          </div>
+          <div class="field"><label for="aiVisualStyle">Photos</label>
             <select id="aiVisualStyle">
-              <option value="ai" selected>Automatic photos</option>
+              <option value="ai" selected>Matching subject photos</option>
+              <option value="stock">Stock illustrations</option>
               <option value="none">Typography only</option>
             </select>
           </div>
@@ -244,7 +257,15 @@
         <button type="button" onclick="addBlankSlide()">Add blank slide</button>
       </div>
     </form>
-    <div class="section-heading"><h2>Frames</h2><span>1080 × 1350 / 4:5</span></div>
+    <div class="section-heading carousel-frame-heading">
+      <h2>Frames</h2>
+      <div class="carousel-frame-actions">
+        <span>1080 × 1350 · 4:5</span>
+        <button id="carouselApplyDesign" type="button" class="btn-sm" onclick="applyCurrentCarouselDesign()">Apply layout set</button>
+        <button id="carouselRefreshPhotos" type="button" class="btn-sm" onclick="refreshCarouselPhotos()">Refresh photos</button>
+      </div>
+    </div>
+    <p id="carouselPhotoStatus" class="helper" role="status" hidden></p>
     <div class="slides-grid" id="slidesGrid"></div>
   </div>
 
@@ -696,10 +717,19 @@
     </div>
 
     <div class="field" style="margin-top:10px;">
-      <label>Image Search Term</label>
+      <label for="editImgSource">Image search term</label>
       <div class="row">
         <div class="field" style="margin:0;"><input id="editImgSource"></div>
-        <button class="btn-sm" onclick="forceRefreshImage()">↻</button>
+        <button type="button" class="btn-sm" onclick="forceRefreshImage()">Find photo</button>
+      </div>
+      <div class="slide-photo-links">
+        <a id="slideGoogleImages" href="https://images.google.com/" target="_blank" rel="noopener noreferrer">Google Images ↗</a>
+        <a id="slidePhotoSource" target="_blank" rel="noopener noreferrer" hidden>Photo source ↗</a>
+      </div>
+      <p id="slidePhotoStatus" class="helper" role="status" hidden></p>
+      <div class="field" id="slidePhotoCrop" hidden>
+        <label for="slidePhotoY">Vertical photo position</label>
+        <input id="slidePhotoY" type="range" min="0" max="100" step="1" oninput="applyEdit('photoY',this.valueAsNumber/100)">
       </div>
     </div>
     <!-- CHART DATA EDITOR -->
@@ -727,7 +757,7 @@
         </div>
         <input type="file" id="overrideFileInput" accept="image/*" style="display:none;">
       </div>
-      <button class="btn-sm" style="background:rgba(255,60,92,.1);border-color:var(--accent2);color:var(--accent2);width:100%;" onclick="clearImageOverride()">✕ Clear Override</button>
+      <button class="btn-sm" style="background:rgba(255,60,92,.1);border-color:var(--accent2);color:var(--accent2);width:100%;" onclick="clearImageOverride()">Remove photo</button>
     </div>
   </div>
 
@@ -790,6 +820,7 @@
         </div>
       </div>
       <button id="socialPublish" class="btn-p" type="button" aria-describedby="socialStatus" disabled>Publish now</button>
+      <h4 class="social-receipt-title">Last submission</h4>
       <ul id="socialReceipt" class="social-receipt" hidden></ul>
       <div class="publishing-actions">
         <button id="socialCheck" class="btn-sm" type="button" hidden>Check post status</button>
@@ -814,12 +845,12 @@
 
 </div>
 
-<script src="./assets/creative.js"></script>
-<script src="./assets/photo-search.js"></script>
+<script src="./assets/creative.js?v=carousel-visuals"></script>
+<script src="./assets/photo-search.js?v=carousel-visuals"></script>
 <script src="./assets/article-import.js"></script>
-<script src="./assets/studio.js?v=creative-workspace"></script>
+<script src="./assets/studio.js?v=carousel-visuals"></script>
 <script src="./assets/image-generator.js"></script>
-<script src="./assets/social-publishing.js?v=publish-editor"></script>
-<script src="./assets/workspace.js?v=creative-workspace"></script>
+<script src="./assets/social-publishing.js?v=carousel-visuals"></script>
+<script src="./assets/workspace.js?v=carousel-visuals"></script>
 </body>
 </html>

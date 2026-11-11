@@ -2,7 +2,7 @@
 const draftCaptions = {carousel: '', poster: ''};
 const draftSources = {carousel: null, poster: null};
 const persistedImages = new WeakMap();
-const frameLayouts = new Set(['brief','cover','cta','split','text-focus','magazine','minimal','tweet','stats','timeline','news-card','chart-bar','hero-split','minimal-quote','dateline','spotlight','world-update','breaking-banner','editorial',...Object.keys(CREATIVE_TEMPLATES)]);
+const frameLayouts = new Set(['brief','cover','cta','split','text-focus','magazine','minimal','tweet','stats','timeline','news-card','chart-bar','hero-split','minimal-quote','dateline','spotlight','world-update','breaking-banner','editorial',...Object.keys(CREATIVE_TEMPLATES),...Object.keys(CAROUSEL_LAYOUTS)]);
 let draftKind = 'carousel';
 let draftDB;
 let draftTimer;
@@ -38,7 +38,7 @@ function activateDraft(mode) {
 function normalizedFrame(frame) {
   if(!frame || typeof frame !== 'object') throw new Error('Draft contains an invalid frame.');
   const clean = {layout: frameLayouts.has(frame.layout) ? frame.layout : 'minimal'};
-  for(const field of ['title','body','imageQuery','category','ticker','location','source','articleUrl','_lang','photoSource','photoLabel']){
+  for(const field of ['title','body','imageQuery','category','ticker','location','source','articleUrl','_lang','photoSource','photoLabel','photoSubject','photoCredit','photoLicense']){
     if(typeof frame[field] === 'string') clean[field] = frame[field].slice(0, 4000);
   }
   clean.title ??= '';
