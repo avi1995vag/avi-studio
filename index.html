@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AvI Studio | Editorial workspace</title>
-<meta name="theme-color" content="#111421">
+<meta name="theme-color" content="#13141a">
 <meta name="description" content="Create, edit and publish editorial carousels and single posters.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Instrument+Serif&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css?v=publish-editor">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/studio.css?v=creative-workspace">
 </head>
 <body>
 
@@ -44,7 +44,15 @@
   <details class="settings-block" id="integrationSettings">
     <summary>Integrations</summary>
     <p class="helper">Keys stay in this tab unless you save them in this browser.</p>
-  <div class="sec">🔑 API Keys & Integrations</div>
+  <div class="field gemini-integration">
+    <label for="geminiKey">Gemini API key</label>
+    <input id="geminiKey" type="password" autocomplete="off" placeholder="Paste Gemini key" aria-describedby="geminiKeyStatus">
+    <div class="gemini-key-actions">
+      <button type="button" id="geminiCheck" class="btn-sm" onclick="checkGeminiKey()">Check key</button>
+      <a href="https://aistudio.google.com/usage?timeRange=last-7-days&tab=rate-limit" target="_blank" rel="noopener noreferrer">Project limits ↗</a>
+    </div>
+    <p id="geminiKeyStatus" class="helper ai-feedback" role="status">Optional for direct imports and arranging pasted text.</p>
+  </div>
   <div class="field">
     <label for="serperKey">Google Images API key (Serper)</label>
     <input id="serperKey" type="password" autocomplete="off" placeholder="Optional · paste Serper API key">
@@ -53,11 +61,6 @@
   <div class="field">
     <label for="pexelsKey">Pexels API Key</label>
     <input id="pexelsKey" type="password" placeholder="Paste Pexels API Key...">
-  </div>
-  <div class="field">
-    <label for="geminiKey">Gemini API Key</label>
-    <input id="geminiKey" type="password" placeholder="AIzaSy…">
-    <div class="rt-notice" style="margin-top:5px;">Optional for article import. Enables Gemini writing and translation.</div>
   </div>
   <hr>
   <div class="sec">📘 Meta / Facebook Direct Post</div>
@@ -92,7 +95,7 @@
 
   <div class="field">
     <button class="btn-sm" type="button" onclick="saveIntegrationKeys()">Save keys on this browser</button>
-    <button class="btn-sm" type="button" onclick="forgetIntegrationKeys()">Forget keys</button>
+    <button class="btn-sm" type="button" onclick="forgetIntegrationKeys(); resetGeminiKeyStatus()">Forget keys</button>
     <p class="helper">Use Save on a trusted device. Saved keys are readable by this site in this browser profile.</p>
     <p id="keyStorageStatus" class="helper" role="status"></p>
   </div>
@@ -191,36 +194,56 @@
     <div class="hero-copy">
       <p class="eyebrow" id="workspaceKicker">Create</p>
       <h1 id="workspaceTitle">Carousel Studio</h1>
-      <p id="workspaceSubtitle">Turn one idea into an editorial carousel, then refine each frame before you publish.</p>
+      <p id="workspaceSubtitle">Turn a topic or source into a set of editable frames.</p>
     </div>
     <div class="hero-art" aria-hidden="true"><span></span><span></span><span></span></div>
   </section>
 
   <!-- CAROUSEL PANEL -->
   <div id="carouselPanel" class="panel active">
-    <div class="mode-badge"><div class="mb-dot" style="background:var(--accent)"></div>Composition</div>
-    <div class="gen-area">
-      <div class="field"><label for="aiTopic">Topic / Idea</label><input id="aiTopic" placeholder="e.g. 5 psychological hacks for productivity"></div>
-      <div class="row">
-        <div class="field"><label for="aiLanguage">Language</label>
-          <select id="aiLanguage"><option value="English">English</option><option value="Kannada">Kannada (ಕನ್ನಡ)</option></select>
+    <form class="gen-area carousel-compose" onsubmit="event.preventDefault(); generateAI()">
+      <div class="section-heading"><h2>Compose carousel</h2></div>
+      <div class="carousel-compose-grid">
+        <div>
+          <div class="field"><label for="aiTopic">Topic or headline</label><input id="aiTopic" required placeholder="e.g. A guide to building better habits"></div>
+          <div class="field" id="carouselSourceField">
+            <label for="carouselSourceText">Source text</label>
+            <textarea id="carouselSourceText" rows="3" maxlength="16000" placeholder="Paste article text, notes or verified facts" aria-describedby="carouselModeHelp"></textarea>
+          </div>
         </div>
-        <div class="field"><label for="slideCount">Slides</label>
-          <select id="slideCount"><option value="5">5</option><option value="7" selected>7</option><option value="10">10</option></select>
+        <div class="carousel-options">
+          <div class="field">
+            <label for="carouselWritingMode">Writing mode</label>
+            <select id="carouselWritingMode" onchange="syncCarouselWritingMode()" aria-describedby="carouselModeHelp">
+              <option value="write">Gemini writing</option>
+              <option value="research">Research with Google</option>
+              <option value="arrange">Arrange text · no key</option>
+            </select>
+            <p class="helper" id="carouselModeHelp">Add a source for current facts, dates or figures.</p>
+          </div>
+          <div class="row">
+            <div class="field"><label for="aiLanguage">Language</label>
+              <select id="aiLanguage"><option value="English">English</option><option value="Kannada">Kannada (ಕನ್ನಡ)</option></select>
+            </div>
+            <div class="field"><label for="slideCount">Slides</label>
+              <select id="slideCount"><option value="5">5</option><option value="7" selected>7</option><option value="10">10</option></select>
+            </div>
+          </div>
+          <div class="field"><label for="aiVisualStyle">Visual style</label>
+            <select id="aiVisualStyle">
+              <option value="ai" selected>Automatic photos</option>
+              <option value="none">Typography only</option>
+            </select>
+          </div>
         </div>
       </div>
-      <div class="field" style="margin-top:8px;"><label for="aiVisualStyle">Carousel Visual Style</label>
-        <select id="aiVisualStyle">
-          <option value="ai" selected>Automatic photos (Commons, then Pexels)</option>
-          <option value="none">Typography only</option>
-        </select>
-      </div>
+      <p id="carouselFeedback" class="ai-feedback" role="status" hidden></p>
       <div class="compose-actions">
-        <button id="aiBtn" class="btn-p" onclick="generateAI()">Generate carousel</button>
-        <button id="testBtn" onclick="generateTestCarousel()">Load sample</button>
-        <button onclick="addBlankSlide()">Add blank slide</button>
+        <button id="aiBtn" class="btn-p" type="submit">Generate carousel</button>
+        <button id="testBtn" type="button" onclick="generateTestCarousel()">Load sample</button>
+        <button type="button" onclick="addBlankSlide()">Add blank slide</button>
       </div>
-    </div>
+    </form>
     <div class="section-heading"><h2>Frames</h2><span>1080 × 1350 / 4:5</span></div>
     <div class="slides-grid" id="slidesGrid"></div>
   </div>
@@ -794,9 +817,9 @@
 <script src="./assets/creative.js"></script>
 <script src="./assets/photo-search.js"></script>
 <script src="./assets/article-import.js"></script>
-<script src="./assets/studio.js"></script>
+<script src="./assets/studio.js?v=creative-workspace"></script>
 <script src="./assets/image-generator.js"></script>
 <script src="./assets/social-publishing.js?v=publish-editor"></script>
-<script src="./assets/workspace.js"></script>
+<script src="./assets/workspace.js?v=creative-workspace"></script>
 </body>
 </html>

@@ -404,7 +404,7 @@ function configureAppearance(){
     const action = appearance==='light' ? 'Switch to dark appearance' : 'Switch to light appearance';
     toggle.setAttribute('aria-label',action);
     toggle.title = action;
-    document.querySelector('meta[name="theme-color"]').content = appearance==='light' ? '#f8f9fd' : '#141827';
+    document.querySelector('meta[name="theme-color"]').content = appearance==='light' ? '#faf6ee' : '#181920';
   };
   apply(lsGet('app_studioAppearance')==='light' ? 'light' : 'dark');
   toggle.addEventListener('click',() => {
@@ -418,6 +418,8 @@ async function initWorkspace() {
   configureAppearance();
   initializeCreativeTools();
   loadSettings();
+  resetGeminiKeyStatus();
+  document.getElementById('geminiKey').addEventListener('input',resetGeminiKeyStatus);
   const autoPhoto = document.getElementById('posterAutoPhoto');
   autoPhoto.checked = lsGet('app_posterAutoPhoto')!=='false';
   autoPhoto.onchange = () => lsSet('app_posterAutoPhoto',String(autoPhoto.checked));
