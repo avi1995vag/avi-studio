@@ -119,12 +119,12 @@ function log(msg,type='info'){
 function setStatus(t){document.getElementById('sysStatus').textContent=t;}
 
 const WORKSPACE_VIEWS = {
-  carousel: ['Create', 'Carousel Studio', 'Turn a topic or source into a set of editable frames.'],
-  news: ['Editorial', 'News Desk', 'Browse headlines and build a news brief or explainer.'],
-  breaking: ['Editorial', 'Breaking Stories', 'Build a story from the latest coverage.'],
-  poster: ['Create', 'Single Poster', 'Design a standalone poster from an article, headline or idea.'],
-  imageGenerator: ['Create', 'AI Image Generator', 'Create an illustration or photo-style image from a prompt.'],
-  scheduler: ['Plan', 'Automation', 'Manage scheduled editions and save ideas for later.']
+  carousel: ['Carousel Studio', 'Turn a topic or source into a set of editable frames.'],
+  news: ['News Desk', 'Browse headlines and build a news brief or explainer.'],
+  breaking: ['Breaking Stories', 'Build a story from the latest coverage.'],
+  poster: ['Single Poster', 'Design a standalone poster from an article, headline or idea.'],
+  imageGenerator: ['AI Image Generator', 'Create an illustration or photo-style image from a prompt.'],
+  scheduler: ['Automation', 'Manage scheduled editions and save ideas for later.']
 };
 
 function switchMode(mode){
@@ -139,8 +139,10 @@ function switchMode(mode){
     const active = button.dataset.mode === mode;
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
+    if(active) document.getElementById('topWorkspace').textContent = button.textContent.trim();
   }
-  ['workspaceKicker','workspaceTitle','workspaceSubtitle'].forEach((id,index) => {
+  document.getElementById('inspectorToggle').hidden = mode==='imageGenerator';
+  ['workspaceTitle','workspaceSubtitle'].forEach((id,index) => {
     document.getElementById(id).textContent = WORKSPACE_VIEWS[mode][index];
   });
   if(mode === 'poster' || mode === 'scheduler' || mode === 'imageGenerator'){
@@ -719,6 +721,7 @@ STORY STRUCTURE:
 - Use photo only when a named person, place or event is central to that frame and a photo adds context. Put the actual name in imageQuery. Leave imageQuery empty for general ideas.
 - Use a takeaway when the material supports a specific conclusion or action. Give it the same editorial care as any other frame.`;
 
+  let generated = false;
   try {
     let parsed;
     let arranged = mode==='arrange' || !key;
@@ -744,6 +747,7 @@ STORY STRUCTURE:
     draftSources.carousel = null;
     switchMode('carousel');
     closeSlideEditor();
+    carouselPreviewIndex = 0;
     slides=parsed.slides; currentLang=lang;
     const photoSubject = explicitSubject || carouselSubject(typeof parsed.photoSubject==='string' ? parsed.photoSubject : '') || carouselSubject(topic);
     for(const frame of slides) frame.photoSubject = photoSubject;
@@ -758,6 +762,7 @@ STORY STRUCTURE:
     if(arranged) show(`${fallback ? fallback + ' ' : ''}${slides.length} editable slides created from your text in its original language.`,fallback ? 'warning' : 'success');
     else show(!source && !research ? 'Draft ready. Add sources before using it for factual reporting.' : 'Draft ready. Review the text and images before publishing.','success');
     log('Carousel complete.','ok'); switchMode('carousel');
+    generated = true;
   }catch(err){
     show(err.message,'error');
     log(`Generation failed: ${err.message}`,'err');
@@ -765,6 +770,7 @@ STORY STRUCTURE:
   btn.textContent='Generate carousel';
   btn.disabled = layoutButton.disabled = refreshButton.disabled = false;
   setStatus('READY');
+  return generated;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1073,9 +1079,23 @@ function buildGrid(gridEl){
     const empty = document.createElement('div');
     empty.className = 'empty-frames';
     const text = document.createElement('div');
+    text.className = 'empty-frames-copy';
     const title = document.createElement('strong');
-    title.textContent = 'Your frames will appear here';
-    text.append(title, document.createTextNode('Generate a carousel, load the sample, or start with a blank slide.'));
+    title.textContent = 'Start a carousel';
+    const actions = document.createElement('div');
+    actions.className = 'workbench-actions';
+    const sample = document.createElement('button');
+    sample.type = 'button';
+    sample.className = 'btn-p btn-sm';
+    sample.textContent = 'Load sample';
+    sample.onclick = () => { generateTestCarousel(); revealCarouselWorkbench(); };
+    const blank = document.createElement('button');
+    blank.type = 'button';
+    blank.className = 'btn-sm';
+    blank.textContent = 'Blank frame';
+    blank.onclick = () => { addBlankSlide(); revealCarouselWorkbench(); };
+    actions.append(sample,blank);
+    text.append(title,document.createTextNode('Compose from a topic or source, or open a sample to try the canvas.'),actions);
     empty.append(text);
     grid.append(empty);
   }
@@ -1088,6 +1108,7 @@ function buildGrid(gridEl){
     if(grid.id==='slidesGrid' && Object.hasOwn(CAROUSEL_LAYOUTS,slide.layout)){
       const format = document.createElement('span');
       format.textContent = CAROUSEL_LAYOUTS[slide.layout];
+      format.title = format.textContent;
       num.append(format);
     }
     const canvas = document.createElement('canvas');
@@ -1095,12 +1116,14 @@ function buildGrid(gridEl){
     canvas.width = CANVAS_W; canvas.height = CANVAS_H;
     canvas.tabIndex = 0;
     canvas.setAttribute('role','button');
-    canvas.setAttribute('aria-label', `Edit frame ${i+1}: ${slide.title}`);
+    canvas.setAttribute('aria-label', `${grid.id==='slidesGrid' ? 'Preview' : 'Edit'} frame ${i+1}: ${slide.title}`);
     canvas.setAttribute('aria-pressed',String(selectedSlide===i));
     if(selectedSlide===i) canvas.classList.add('selected');
     canvas.onclick = () => {
       selectSlide(i);
-      if(selectedSlide === i && matchMedia('(max-width: 660px)').matches){
+      const editFromGrid = grid.id!=='slidesGrid' || document.getElementById('carouselWorkbench').dataset.view==='grid';
+      if(selectedSlide === i && editFromGrid){
+        setInspectorOpen(true);
         document.getElementById('editTitle').focus();
       }
     };
@@ -1111,6 +1134,7 @@ function buildGrid(gridEl){
     wrap.append(num,canvas);
     grid.append(wrap);
   });
+  if(grid.id==='slidesGrid') renderCarouselStage();
 }
 function liveUpdate(){ buildGrid(); }
 
@@ -2121,11 +2145,16 @@ function validateAndCleanSlides(slidesList, count=10) {
 }
 
 function selectSlide(i){
+  if(currentMode==='carousel' && slides[i]) carouselPreviewIndex = i;
   const activeGrid = document.querySelector('.panel.active .slides-grid');
   const all = activeGrid ? activeGrid.querySelectorAll('canvas.preview') : document.querySelectorAll('canvas.preview');
   
   all.forEach(c=>{ c.classList.remove('selected'); c.setAttribute('aria-pressed','false'); });
-  if(selectedSlide===i){selectedSlide=null;document.getElementById('slideEditor').style.display='none';return;}
+  if(selectedSlide===i){
+    closeSlideEditor();
+    renderCarouselStage();
+    return;
+  }
   selectedSlide=i; 
   if(all[i]) { all[i].classList.add('selected'); all[i].setAttribute('aria-pressed','true'); }
   const s=slides[i];
@@ -2166,6 +2195,7 @@ function selectSlide(i){
   if(existingOv?.src) prevEl.src=existingOv.src; else prevEl.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
   syncSlidePhotoEditor(s);
   showAIFeedback('slidePhotoStatus','');
+  renderCarouselStage();
   
   log(`✏️ Opened Editor Panel for Slide ${i+1}.`,'info');
 }
@@ -2586,6 +2616,7 @@ function generateTestCarousel() {
   draftSources.carousel = null;
   switchMode('carousel');
   closeSlideEditor();
+  carouselPreviewIndex = 0;
   currentLang = 'English';
   document.getElementById('caption').value = 'Start with one habit and make it easy to repeat.';
   updateCharCount();
@@ -2790,6 +2821,7 @@ async function generateSinglePoster(directOnly=false){
     const sourceLabel = {excerpt:'your supplied text',feed:'the matching news feed',article:'the publisher article',
       'publisher-excerpt':'the publisher page','google-excerpt':'a Google excerpt for this exact article'}[kind];
     showPosterSourceStatus(`Poster ready from ${sourceLabel}.${usedBrowserAI ? ' Details summarized on this device.' : ''}`);
+    if(document.getElementById('posterCompose').open) document.querySelector('.poster-stage').scrollIntoView({block:'start'});
     if(document.getElementById('posterAutoPhoto').checked) void autoFillPosterPhoto(metadata);
   } catch(error) {
     if(input.value.trim()!==raw) return;
@@ -3025,7 +3057,7 @@ async function searchGooglePosterPhotos(){
   if(!query) return showPosterPhoto('Enter a name, place, or subject to search.',true);
   document.getElementById('openGoogleImages').href = googleImageSearchLink(query);
   if(!document.getElementById('serperKey').value.trim()){
-    document.getElementById('integrationSettings').open = true;
+    openStudioSettings('serperKey');
     return showPosterPhoto('Add a Serper key in Integrations for in-studio Google results, or use Open Google Images.',true);
   }
   const attempt = ++posterPhotoAttempt;
@@ -3091,7 +3123,7 @@ async function importPosterImageUrl(){
 async function searchPosterStock(query){
   if(!query) return showPosterPhoto('Enter a search term for a stock photo.',true);
   if(!document.getElementById('pexelsKey').value.trim()){
-    document.getElementById('integrationSettings').open = true;
+    openStudioSettings('pexelsKey');
     return showPosterPhoto('Add your Pexels key in Integrations for stock search. Article photos and uploads work without it.',true);
   }
   const attempt = ++posterPhotoAttempt;

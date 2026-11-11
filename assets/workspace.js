@@ -7,6 +7,8 @@ let draftKind = 'carousel';
 let draftDB;
 let draftTimer;
 let studioReady = false;
+let carouselPreviewIndex = 0;
+const compactStudio = matchMedia('(max-width: 1024px)');
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]);
@@ -417,8 +419,133 @@ function configureAppearance(){
   });
 }
 
+function setInspectorOpen(open, remember=false){
+  const toggle = document.getElementById('inspectorToggle');
+  document.querySelector('.dashboard').dataset.inspector = open ? 'open' : 'closed';
+  toggle.setAttribute('aria-expanded',String(open));
+  toggle.title = open ? 'Hide inspector' : 'Show inspector';
+  if(remember && !compactStudio.matches) lsSet('app_studioInspector',open ? 'open' : 'closed');
+}
+
+function openStudioComposer(detailsId,inputId){
+  const composer = document.getElementById(detailsId);
+  composer.open = true;
+  composer.scrollIntoView({block:'start'});
+  document.getElementById(inputId).focus({preventScroll:true});
+}
+
+function openStudioSettings(fieldId){
+  const settings = document.getElementById('studioSettings');
+  if(!settings.open) settings.showModal();
+  if(fieldId){
+    document.getElementById('integrationSettings').open = true;
+    document.getElementById(fieldId).focus();
+  }
+}
+
+function revealCarouselWorkbench(){
+  if(currentMode!=='carousel') return;
+  document.getElementById('carouselCompose').open = false;
+  const workbench = document.getElementById('carouselWorkbench');
+  workbench.focus({preventScroll:true});
+  workbench.scrollIntoView({block:'start'});
+}
+
+async function submitCarouselComposer(event){
+  event.preventDefault();
+  if(await generateAI()) revealCarouselWorkbench();
+}
+
+function renderCarouselStage(){
+  if(currentMode!=='carousel') return;
+  const workbench = document.getElementById('carouselWorkbench');
+  const grid = document.getElementById('slidesGrid');
+  const area = document.getElementById('carouselCanvasArea');
+  area.hidden = !slides.length || workbench.dataset.view==='grid';
+  if(!slides.length){ carouselPreviewIndex = 0; return; }
+  carouselPreviewIndex = Math.max(0,Math.min(carouselPreviewIndex,slides.length-1));
+  const frame = slides[carouselPreviewIndex];
+  const active = grid.querySelectorAll('canvas.preview')[carouselPreviewIndex];
+  grid.querySelectorAll('canvas.preview').forEach((thumbnail,index)=>{
+    thumbnail.classList.toggle('selected',thumbnail===active);
+    thumbnail.setAttribute('aria-pressed',String(thumbnail===active));
+    thumbnail.setAttribute('aria-label',`${area.hidden ? 'Edit' : 'Preview'} frame ${index+1}: ${slides[index].title}`);
+  });
+  if(area.hidden) return;
+  const artwork = document.getElementById('carouselArtboard');
+  artwork.setAttribute('aria-label',`Frame ${carouselPreviewIndex+1}: ${frame.title || 'Untitled'}`);
+  drawSlide(artwork,frame,carouselPreviewIndex);
+  document.getElementById('carouselFrameCount').textContent = `${carouselPreviewIndex+1} / ${slides.length}`;
+  document.getElementById('carouselFrameLayout').textContent = CAROUSEL_LAYOUTS[frame.layout] || '1080 × 1350';
+  document.getElementById('carouselPrevious').disabled = carouselPreviewIndex===0;
+  document.getElementById('carouselNext').disabled = carouselPreviewIndex===slides.length-1;
+  if(active){
+    const bounds = grid.getBoundingClientRect(), thumbnail = active.getBoundingClientRect();
+    if(thumbnail.top<bounds.top) grid.scrollTop += thumbnail.top-bounds.top-12;
+    else if(thumbnail.bottom>bounds.bottom) grid.scrollTop += thumbnail.bottom-bounds.bottom+12;
+    if(thumbnail.left<bounds.left) grid.scrollLeft += thumbnail.left-bounds.left-12;
+    else if(thumbnail.right>bounds.right) grid.scrollLeft += thumbnail.right-bounds.right+12;
+  }
+}
+
+function configureWorkspaceChrome(){
+  const inspector = document.getElementById('studioInspector');
+  const toggle = document.getElementById('inspectorToggle');
+  document.getElementById('studioSettingsOpen').addEventListener('click',()=>openStudioSettings());
+  document.querySelector('.tabs').addEventListener('click',event=>{
+    if(event.target.closest('[data-mode]')) window.scrollTo({top:0});
+  });
+  const restoreInspector = () => setInspectorOpen(!compactStudio.matches && lsGet('app_studioInspector')!=='closed');
+  restoreInspector();
+  compactStudio.addEventListener('change',restoreInspector);
+  toggle.addEventListener('click',()=>{
+    const open = toggle.getAttribute('aria-expanded')!=='true';
+    setInspectorOpen(open,true);
+    if(open && compactStudio.matches) document.getElementById('inspectorClose').focus();
+  });
+  const closeInspector = () => { setInspectorOpen(false,true); toggle.focus(); };
+  document.getElementById('inspectorClose').addEventListener('click',closeInspector);
+  inspector.addEventListener('keydown',event=>{
+    if(event.key==='Escape' && compactStudio.matches){ event.stopPropagation(); closeInspector(); }
+  });
+
+  const workbench = document.getElementById('carouselWorkbench');
+  const canvasView = document.getElementById('carouselCanvasView');
+  const gridView = document.getElementById('carouselGridView');
+  const setView = view => {
+    workbench.dataset.view = view;
+    canvasView.setAttribute('aria-pressed',String(view==='canvas'));
+    gridView.setAttribute('aria-pressed',String(view==='grid'));
+    renderCarouselStage();
+  };
+  canvasView.addEventListener('click',()=>setView('canvas'));
+  gridView.addEventListener('click',()=>setView('grid'));
+  const navigate = direction => {
+    const next = carouselPreviewIndex+direction;
+    if(!slides[next]) return;
+    if(selectedSlide!==null) selectSlide(next);
+    else { carouselPreviewIndex = next; renderCarouselStage(); }
+  };
+  document.getElementById('carouselPrevious').addEventListener('click',()=>navigate(-1));
+  document.getElementById('carouselNext').addEventListener('click',()=>navigate(1));
+  for(const [fieldId,viewportId] of [['carouselZoom','carouselViewport'],['posterCanvasZoom','posterViewport']]){
+    document.getElementById(fieldId).addEventListener('change',event=>{
+      const viewport = document.getElementById(viewportId);
+      viewport.dataset.zoom = event.target.value;
+      viewport.scrollTo(Math.max(0,(viewport.scrollWidth-viewport.clientWidth)/2),0);
+    });
+  }
+  document.getElementById('carouselEditFrame').addEventListener('click',()=>{
+    if(!slides[carouselPreviewIndex]) return;
+    if(selectedSlide!==carouselPreviewIndex) selectSlide(carouselPreviewIndex);
+    setInspectorOpen(true);
+    document.getElementById('editTitle').focus();
+  });
+}
+
 async function initWorkspace() {
   configureAppearance();
+  configureWorkspaceChrome();
   initializeCreativeTools();
   loadSettings();
   resetGeminiKeyStatus();

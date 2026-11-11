@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css?v=story-layouts">
+<link rel="stylesheet" href="./assets/studio.css?v=canvas-workspace">
 </head>
 <body>
 
@@ -18,9 +18,15 @@
 <div class="dashboard" data-workspace="carousel">
 <header class="topbar">
   <div class="logo"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 23 15.9 7 25 23h-4.7l-4.4-8.5-4.3 8.5z"/><path d="M13.7 23h4.6v-4h-4.6z"/></svg></span> AvI <span>Studio</span></div>
-  <span class="header-division" aria-hidden="true"></span><span class="top-context">Editorial workspace</span>
+  <span class="header-division" aria-hidden="true"></span><span class="top-context" id="topWorkspace">Carousel</span>
   <div class="spacer"></div>
   <div class="status-pill" role="status"><span class="s-dot"></span><span id="sysStatus">READY</span></div>
+  <button class="icon-button chrome-button" type="button" id="studioSettingsOpen" aria-haspopup="dialog" aria-label="Studio settings" title="Studio settings">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16M9 4v6m6-1v6m-5-1v6"/></svg>
+  </button>
+  <button class="icon-button chrome-button" type="button" id="inspectorToggle" aria-controls="studioInspector" aria-expanded="true" aria-label="Inspector" title="Inspector">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>
+  </button>
   <button id="appearanceToggle" class="icon-button appearance-toggle" type="button" aria-label="Switch to light appearance" title="Switch to light appearance">
     <svg class="appearance-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
     <svg class="appearance-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.6A8.7 8.7 0 0 1 8.4 4a8.7 8.7 0 1 0 11.6 11.6Z"/></svg>
@@ -40,7 +46,14 @@
 <button class="tab-btn" data-mode="breaking" aria-pressed="false" onclick="switchMode('breaking')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-12h-7z"/></svg>Breaking</button>
 <button class="tab-btn" data-mode="scheduler" aria-pressed="false" onclick="switchMode('scheduler')"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Automation</button>
   </nav>
-  <div class="sec sidebar-label settings-label">Preferences</div>
+</aside>
+
+<dialog id="studioSettings" class="social-publishing studio-settings" aria-labelledby="studioSettingsTitle">
+  <header class="publishing-heading">
+    <h2 id="studioSettingsTitle">Studio settings</h2>
+    <form method="dialog"><button class="icon-button" type="submit" aria-label="Close settings">✕</button></form>
+  </header>
+  <div class="studio-settings-content">
   <details class="settings-block" id="integrationSettings">
     <summary>Integrations</summary>
     <p class="helper">Keys stay in this tab unless you save them in this browser.</p>
@@ -187,22 +200,53 @@
   </div>
   <button onclick="saveSettings()" class="btn-p" style="margin-top:10px;">Save preferences</button>
   </details>
-</aside>
+  </div>
+</dialog>
 
 <main class="col col-mid" id="workspace" tabindex="-1">
-  <section class="hero">
-    <div class="hero-copy">
-      <p class="eyebrow" id="workspaceKicker">Create</p>
-      <h1 id="workspaceTitle">Carousel Studio</h1>
-      <p id="workspaceSubtitle">Turn a topic or source into a set of editable frames.</p>
-    </div>
-    <div class="hero-art" aria-hidden="true"><span></span><span></span><span></span></div>
-  </section>
+  <header class="workspace-heading">
+    <h1 id="workspaceTitle">Carousel Studio</h1>
+    <p id="workspaceSubtitle">Turn a topic or source into a set of editable frames.</p>
+  </header>
 
   <!-- CAROUSEL PANEL -->
   <div id="carouselPanel" class="panel active">
-    <form class="gen-area carousel-compose" onsubmit="event.preventDefault(); generateAI()">
-      <div class="section-heading"><h2>Compose carousel</h2></div>
+    <section class="carousel-workbench" id="carouselWorkbench" aria-label="Carousel artwork" tabindex="-1" data-view="canvas">
+      <div class="workbench-toolbar">
+        <div class="view-switch" role="group" aria-label="Carousel view">
+          <button type="button" id="carouselCanvasView" aria-pressed="true">Canvas</button>
+          <button type="button" id="carouselGridView" aria-pressed="false">Grid</button>
+        </div>
+        <div class="workbench-actions">
+          <button id="carouselApplyDesign" type="button" class="btn-sm" onclick="applyCurrentCarouselDesign()">Fit layouts to story</button>
+          <button id="carouselRefreshPhotos" type="button" class="btn-sm" onclick="refreshCarouselPhotos()">Refresh photos</button>
+          <button type="button" class="btn-p btn-sm" onclick="openStudioComposer('carouselCompose','aiTopic')">Compose</button>
+        </div>
+      </div>
+      <div id="carouselCanvasArea" hidden>
+        <div class="artboard-toolbar">
+          <div class="artboard-paging" role="group" aria-label="Frame navigation">
+            <button type="button" id="carouselPrevious" class="icon-button" aria-label="Previous frame">←</button>
+            <span id="carouselFrameCount" aria-live="polite"></span>
+            <button type="button" id="carouselNext" class="icon-button" aria-label="Next frame">→</button>
+          </div>
+          <span id="carouselFrameLayout"></span>
+          <div class="artboard-tools">
+            <label class="visually-hidden" for="carouselZoom">Canvas zoom</label>
+            <select id="carouselZoom"><option value="fit">Fit</option><option value="width">Fill width</option><option value="75">75%</option><option value="100">100%</option></select>
+            <button type="button" id="carouselEditFrame" class="btn-sm">Edit frame</button>
+          </div>
+        </div>
+        <div class="artboard-viewport" id="carouselViewport" data-zoom="fit">
+          <canvas id="carouselArtboard" width="1080" height="1350" role="img" aria-label="Carousel preview"></canvas>
+        </div>
+      </div>
+      <p id="carouselPhotoStatus" class="helper workbench-feedback" role="status" hidden></p>
+      <div class="slides-grid" id="slidesGrid" aria-label="Carousel frames"></div>
+    </section>
+    <details class="workspace-compose" id="carouselCompose">
+      <summary>Compose carousel</summary>
+    <form class="gen-area carousel-compose" onsubmit="submitCarouselComposer(event)">
       <div class="carousel-compose-grid">
         <div>
           <div class="field"><label for="aiTopic">Topic or headline</label><input id="aiTopic" required placeholder="e.g. A guide to building better habits"></div>
@@ -253,20 +297,11 @@
       <p id="carouselFeedback" class="ai-feedback" role="status" hidden></p>
       <div class="compose-actions">
         <button id="aiBtn" class="btn-p" type="submit">Generate carousel</button>
-        <button id="testBtn" type="button" onclick="generateTestCarousel()">Load sample</button>
-        <button type="button" onclick="addBlankSlide()">Add blank slide</button>
+        <button id="testBtn" type="button" onclick="generateTestCarousel(); revealCarouselWorkbench()">Load sample</button>
+        <button type="button" onclick="addBlankSlide(); revealCarouselWorkbench()">Add blank slide</button>
       </div>
     </form>
-    <div class="section-heading carousel-frame-heading">
-      <h2>Frames</h2>
-      <div class="carousel-frame-actions">
-        <span>1080 × 1350 · 4:5</span>
-        <button id="carouselApplyDesign" type="button" class="btn-sm btn-p" onclick="applyCurrentCarouselDesign()">Fit layouts to story</button>
-        <button id="carouselRefreshPhotos" type="button" class="btn-sm" onclick="refreshCarouselPhotos()">Refresh photos</button>
-      </div>
-    </div>
-    <p id="carouselPhotoStatus" class="helper" role="status" hidden></p>
-    <div class="slides-grid" id="slidesGrid"></div>
+    </details>
   </div>
 
   <!-- NEWS PANEL -->
@@ -339,7 +374,8 @@
 
   <!-- POSTER PANEL -->
   <div id="posterPanel" class="panel">
-    <div class="mode-badge"><div class="mb-dot" style="background:var(--accent3)"></div>Single Poster Generator</div>
+    <details class="workspace-compose" id="posterCompose">
+      <summary>Compose poster</summary>
     <div class="gen-area">
       <div class="field">
         <label for="posterInput">Topic / Text / URL</label>
@@ -413,10 +449,15 @@
         <button id="posterSampleBtn" onclick="loadCreativeSample()">Try a design sample</button>
       </div>
     </div>
+    </details>
     <div class="poster-design-workspace">
       <section class="poster-stage" aria-labelledby="posterPreviewTitle">
-        <div class="section-heading"><h2 id="posterPreviewTitle">Poster preview</h2><span id="posterPreviewLabel">Sample artwork</span></div>
-        <div class="poster-canvas-wrap">
+        <div class="section-heading"><h2 id="posterPreviewTitle">Poster canvas</h2><span id="posterPreviewLabel">Sample artwork</span><div class="artboard-tools">
+          <label class="visually-hidden" for="posterCanvasZoom">Poster zoom</label>
+          <select id="posterCanvasZoom"><option value="fit">Fit</option><option value="width">Fill width</option><option value="75">75%</option><option value="100">100%</option></select>
+          <button type="button" class="btn-p btn-sm" onclick="openStudioComposer('posterCompose','posterInput')">Compose</button>
+        </div></div>
+        <div class="poster-canvas-wrap artboard-viewport" id="posterViewport" data-zoom="fit">
           <canvas aria-label="Poster preview" id="posterCanvas" width="1080" height="1350"></canvas>
         </div>
         <div class="poster-finishes">
@@ -447,8 +488,8 @@
 
 
     <!-- POSTER EDITOR -->
-    <div id="posterEditor" style="display:none;background:rgba(88,101,242,.04);padding:14px;border:1px solid rgba(88,101,242,.25);border-radius:13px;margin-top:14px;">
-      <div style="font-family:var(--font-head);font-size:12px;font-weight:800;color:var(--accent);margin-bottom:11px;">✏️ Edit Poster</div>
+    <div id="posterEditor" class="gen-area poster-editor" style="display:none;">
+      <h2>Edit poster</h2>
       <div class="field"><label for="posterEditLayout">🎨 Switch Layout</label>
         <select id="posterEditLayout" onchange="switchPosterLayout(this.value)">
           <optgroup label="── News Layouts ──">
@@ -648,27 +689,12 @@
 
 </main>
 
-<aside class="col inspector" aria-label="Draft and publishing controls">
+<aside class="col inspector" id="studioInspector" aria-label="Draft and publishing controls">
   <div class="inspector-heading">
     <h2>Draft &amp; delivery</h2>
+    <button id="inspectorClose" class="icon-button" type="button" aria-label="Hide inspector">✕</button>
     <p class="helper draft-state" id="draftState" role="status">Drafts autosave on this device</p>
   </div>
-  <button class="publish-shortcut" type="button" data-open-publishing aria-haspopup="dialog">
-    <span class="publish-shortcut-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></span>
-    <span><strong>Direct publishing</strong><small id="socialSummary">Checking publishing service…</small></span>
-    <svg class="shortcut-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-  </button>
-  <div class="draft-actions">
-    <button class="btn-sm" onclick="saveDraftFile()">Export draft</button>
-    <button class="btn-sm" onclick="document.getElementById('draftFile').click()">Import draft</button>
-    <input type="file" id="draftFile" accept=".json,application/json" hidden>
-  </div>
-  <div id="draftSourcePanel" class="draft-source-panel" hidden>
-    <p id="draftSourceLabel" class="helper"></p>
-    <a id="draftSource" target="_blank" rel="noopener" hidden>Open draft source ↗</a>
-    <button id="approvePosterSource" class="btn-sm" onclick="approveLinkSource()" hidden>I’ve checked the source</button>
-  </div>
-
   <div class="slide-editor" id="slideEditor">
     <div style="font-family:var(--font-head);font-size:12px;font-weight:800;color:var(--accent);margin-bottom:11px;" id="editorTitle">Edit Slide</div>
     <div class="slide-tools">
@@ -761,6 +787,21 @@
     </div>
   </div>
 
+  <button class="publish-shortcut" type="button" data-open-publishing aria-haspopup="dialog">
+    <span class="publish-shortcut-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></span>
+    <span><strong>Direct publishing</strong><small id="socialSummary">Checking publishing service…</small></span>
+    <svg class="shortcut-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+  </button>
+  <div class="draft-actions">
+    <button class="btn-sm" onclick="saveDraftFile()">Export draft</button>
+    <button class="btn-sm" onclick="document.getElementById('draftFile').click()">Import draft</button>
+    <input type="file" id="draftFile" accept=".json,application/json" hidden>
+  </div>
+  <div id="draftSourcePanel" class="draft-source-panel" hidden>
+    <p id="draftSourceLabel" class="helper"></p>
+    <a id="draftSource" target="_blank" rel="noopener" hidden>Open draft source ↗</a>
+    <button id="approvePosterSource" class="btn-sm" onclick="approveLinkSource()" hidden>I’ve checked the source</button>
+  </div>
   <div class="field caption-area">
     <label for="caption">Caption</label>
     <textarea id="caption" rows="5" oninput="updateCharCount()" placeholder="Caption with hashtags…"></textarea>
@@ -848,9 +889,9 @@
 <script src="./assets/creative.js?v=story-layouts"></script>
 <script src="./assets/photo-search.js?v=carousel-visuals"></script>
 <script src="./assets/article-import.js"></script>
-<script src="./assets/studio.js?v=story-layouts"></script>
+<script src="./assets/studio.js?v=canvas-workspace"></script>
 <script src="./assets/image-generator.js"></script>
 <script src="./assets/social-publishing.js?v=carousel-visuals"></script>
-<script src="./assets/workspace.js?v=story-layouts"></script>
+<script src="./assets/workspace.js?v=canvas-workspace"></script>
 </body>
 </html>
