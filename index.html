@@ -35,7 +35,7 @@
   <div class="sec sidebar-label settings-label">Preferences</div>
   <details class="settings-block" id="integrationSettings">
     <summary>Integrations</summary>
-    <p class="helper">Keys entered here stay in this tab. Use the Automation workspace to manage scheduled publishing.</p>
+    <p class="helper">Keys stay in this tab unless you save them in this browser.</p>
   <div class="sec">🔑 API Keys & Integrations</div>
   <div class="field">
     <label for="serperKey">Google Images API key (Serper)</label>
@@ -49,7 +49,7 @@
   <div class="field">
     <label for="geminiKey">Gemini API Key</label>
     <input id="geminiKey" type="password" placeholder="AIzaSy…">
-    <div class="rt-notice" style="margin-top:5px;">Required for AI generation.</div>
+    <div class="rt-notice" style="margin-top:5px;">Optional for article import. Enables Gemini writing and translation.</div>
   </div>
   <hr>
   <div class="sec">📘 Meta / Facebook Direct Post</div>
@@ -82,6 +82,12 @@
     </div>
   </div>
 
+  <div class="field">
+    <button class="btn-sm" type="button" onclick="saveIntegrationKeys()">Save keys on this browser</button>
+    <button class="btn-sm" type="button" onclick="forgetIntegrationKeys()">Forget keys</button>
+    <p class="helper">Use Save on a trusted device. Saved keys are readable by this site in this browser profile.</p>
+    <p id="keyStorageStatus" class="helper" role="status"></p>
+  </div>
   </details>
   <details class="settings-block">
   <summary>Brand & layouts</summary>
@@ -302,6 +308,11 @@
           <textarea id="posterSourceText" rows="4" maxlength="8000" placeholder="Paste the facts you want the poster to use…"></textarea>
         </div>
       </details>
+      <div class="source-recovery" id="articleWorkflowRecovery" hidden>
+        <a id="articleDraftWorkflowLink" class="action-link" target="_blank" rel="noopener noreferrer" hidden>Fetch article via workflow ↗</a>
+        <button class="btn-sm" type="button" onclick="document.getElementById('draftFile').click()">Import article draft</button>
+        <p class="helper">For supported publishers, run the workflow with the article URL, then import its draft.json.</p>
+      </div>
       <div class="source-recovery" id="posterSourceRecovery" hidden>
         <button id="posterLinkDraftBtn" class="btn-sm" onclick="startLinkPoster()">Start a headline-only draft</button>
         <p class="helper">Creates an editable draft using the headline in the link. Review it against the source before publishing.</p>
@@ -350,6 +361,7 @@
         </select>
       </div>
       <div class="compose-actions">
+        <button id="posterImportBtn" class="btn-sm" type="button" onclick="generateSinglePoster(true)">Import article without AI</button>
         <button id="posterGenerateBtn" class="btn-p" onclick="generateSinglePoster()">Generate poster</button>
         <button id="posterBlankBtn" onclick="createBlankPoster()">Start with a blank poster</button>
         <button id="posterSampleBtn" onclick="loadCreativeSample()">Try a design sample</button>
@@ -669,6 +681,7 @@
 
 <script src="./assets/creative.js"></script>
 <script src="./assets/photo-search.js"></script>
+<script src="./assets/article-import.js"></script>
 <script src="./assets/studio.js"></script>
 <script src="./assets/workspace.js"></script>
 </body>

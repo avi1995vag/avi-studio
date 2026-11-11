@@ -378,6 +378,9 @@ async function configureWorkflowLinks() {
     workflow.href = base + '/actions/workflows/autopilot.yml';
     guide.href = base + '#github-setup';
     document.getElementById('photoWorkflowLink').href = base + '/actions/workflows/article-photo.yml';
+    const draftWorkflow = document.getElementById('articleDraftWorkflowLink');
+    draftWorkflow.href = base + '/actions/workflows/article-photo.yml';
+    draftWorkflow.hidden = false;
     workflow.hidden = guide.hidden = false;
     document.getElementById('workflowHint').textContent = 'In the publishing dashboard, select Run workflow and choose a run mode.';
   } catch {}

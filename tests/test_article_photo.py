@@ -1,3 +1,4 @@
+import json
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -57,3 +58,18 @@ class ArticlePhotoTests(unittest.TestCase):
             with Image.open(output / 'article-photo.jpg') as decoded:
                 self.assertEqual((decoded.format, decoded.size), ('JPEG', (200, 160)))
             self.assertIn(photo, (output / 'source.txt').read_text(encoding='utf-8'))
+
+    def test_article_draft_keeps_source_copy_when_photo_is_blocked(self):
+        article = 'https://www.indiatoday.in/world/story'
+        page = (b'<script type="application/ld+json">{"@type":"NewsArticle",'
+                b'"headline":"Publisher headline","articleBody":"The publisher supplied these details."}'
+                b'</script>')
+        with TemporaryDirectory(dir=Path.cwd()) as directory:
+            output = Path(directory)
+            with patch('article_photo.get_public', return_value=(page, article, 'utf-8')):
+                save_article_photo(article, output, draft=True)
+            draft = json.loads((output / 'draft.json').read_text(encoding='utf-8'))
+        self.assertEqual(draft['source']['link'], article)
+        self.assertEqual(draft['slides'][0]['title'], 'Publisher headline')
+        self.assertEqual(draft['slides'][0]['body'], 'The publisher supplied these details.')
+        self.assertEqual(draft['slides'][0]['image'], '')

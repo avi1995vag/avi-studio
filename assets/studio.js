@@ -192,9 +192,7 @@ function saveDefaultLayouts() {
 }
 
 function loadSettings(){
-  for(const key of ['accessToken','geminiKey','pexelsKey','zernioApiKey','serperKey']){
-    try { localStorage.removeItem('app_'+key); } catch {}
-  }
+  restoreIntegrationKeys();
   ['userId','cloudName','uploadPreset','handleText','defaultCoverLayout','defaultInnerLayout'].forEach(k=>{
     const v=lsGet('app_'+k); const el=document.getElementById(k); if(v&&el) el.value=v;
   });
@@ -2313,6 +2311,7 @@ function showPosterSourceStatus(message='',tone='info',recoverLink=''){
   status.dataset.tone = tone;
   status.textContent = message;
   document.getElementById('posterSourceRecovery').hidden = !recoverLink || !headlineFromLink(recoverLink);
+  document.getElementById('articleWorkflowRecovery').hidden = !recoverLink;
 }
 
 document.getElementById('posterInput').addEventListener('input',()=>showPosterSourceStatus());
@@ -2362,75 +2361,97 @@ function setPosterBusy(busy, label='Generate poster'){
   button.disabled = busy;
   button.textContent = label;
   document.getElementById('posterLinkDraftBtn').disabled = busy;
+  document.getElementById('posterImportBtn').disabled = busy;
   document.getElementById('posterBlankBtn').disabled = busy;
   document.getElementById('posterSampleBtn').disabled = busy;
   setStatus(busy ? 'POSTER' : 'READY');
 }
 
-async function generateSinglePoster(){
+function validPosterCopy(copy){
+  return typeof copy?.title==='string' && Boolean(copy.title.trim()) && typeof copy.body==='string';
+}
+
+async function generateSinglePoster(directOnly=false){
   if(document.getElementById('posterGenerateBtn').disabled) return;
   const input = document.getElementById('posterInput');
   const raw = input.value.trim();
   const notes = document.getElementById('posterSourceText').value.trim();
   if(!raw && !notes) return showPosterSourceStatus('Add a headline, URL, or source excerpt first.','warning');
   const url = safeWebUrl(raw);
-  if(!document.getElementById('geminiKey').value.trim()){
-    document.getElementById('integrationSettings').open = true;
-    return showPosterSourceStatus('Add a Gemini key in Integrations to generate copy, or start an editable draft.','warning',url);
-  }
+  const cloudAI = !directOnly && Boolean(document.getElementById('geminiKey').value.trim());
   const settings = getPosterSettings();
-  setPosterBusy(true,url && !notes ? 'Reading article…' : 'Writing poster…');
-  showPosterSourceStatus(url && !notes ? 'Looking for this article…' : 'Writing from your supplied text…');
-  let source, entry, metadata;
+  setPosterBusy(true,url && !notes ? 'Reading article…' : 'Preparing poster…');
+  showPosterSourceStatus(url && !notes ? 'Looking for this article…' : 'Preparing a draft from your text…');
+
   try {
-    let kind = notes ? 'excerpt' : 'article';
+    let kind = 'excerpt', entry, metadata;
     if(url && !notes){
-      entry = await findPosterFeedEntry(url,article=>hasPosterExcerpt(article.title,article.description));
-      if(entry) kind = 'feed';
-      else {
-        metadata = await readArticleMetadata(url);
-        if(hasPosterExcerpt(metadata.title,metadata.description)) {
-          entry = metadata;
-          kind = 'publisher-excerpt';
+      const feed = await findPosterFeedEntry(url,item=>hasPosterExcerpt(item.title,item.description));
+      metadata = await readArticleMetadata(url);
+      if(metadata.title && hasPosterExcerpt(metadata.title,metadata.description)){
+        entry = metadata;
+        kind = 'publisher-excerpt';
+      } else if(feed){
+        entry = feed;
+        kind = 'feed';
+      }
+    } else {
+      const lines = (notes || raw).split(/\r?\n/).map(articleText).filter(Boolean);
+      const heading = url ? articleExcerpt(lines[0] || '',95) : raw.split(/\r?\n/)[0];
+      const text = notes || lines.slice(1).join(' ');
+      entry = {title:heading || articleExcerpt(text,95),description:text};
+    }
+
+    let copy, usedBrowserAI = false;
+    const readUrl = url && !entry ? url : null;
+    if(cloudAI){
+      try {
+        copy = await fetchFromGemini(posterPrompt(entry || raw,settings.language,settings.type,readUrl),false,readUrl);
+        if(readUrl) kind = 'article';
+      } catch(error) {
+        if(!entry && !readUrl) throw error;
+        if(entry) log('Gemini unavailable. Using the source text directly.','warn');
+      }
+      if(!validPosterCopy(copy)) copy = null;
+    }
+    if(!copy && !entry && url && !directOnly){
+      const indexed = await findGoogleArticleExcerpt(url);
+      if(indexed && hasPosterExcerpt(indexed.title,indexed.description)){
+        entry = indexed;
+        kind = 'google-excerpt';
+        if(cloudAI){
+          try {
+            const generated = await fetchFromGemini(posterPrompt(entry,settings.language,settings.type,null),false);
+            if(validPosterCopy(generated)) copy = generated;
+          } catch { log('Gemini unavailable. Using the matching excerpt directly.','warn'); }
         }
       }
     }
-    let readUrl = url && !notes && !entry ? url : null;
-    let material = entry ? {title:entry.title,excerpt:entry.description} : notes || raw;
-    let copy;
-    try {
-      copy = await fetchFromGemini(posterPrompt(material,settings.language,settings.type,readUrl),false,readUrl);
-    } catch(error) {
-      if(!readUrl || !(error instanceof PosterSourceError || error.name==='TimeoutError')) throw error;
-      const indexed = await findGoogleArticleExcerpt(url);
-      if(!indexed || !hasPosterExcerpt(indexed.title,indexed.description)) throw error;
-      kind = 'google-excerpt';
-      material = {title:indexed.title,excerpt:indexed.description};
-      copy = await fetchFromGemini(posterPrompt(material,settings.language,settings.type,null),false);
+    if(!copy && !entry) throw new PosterSourceError('This publisher did not provide readable article text here.');
+    if(!copy){
+      copy = directArticleCopy(entry);
+      settings.language = /[\u0c80-\u0cff]/u.test(copy.title + copy.body) ? 'Kannada' : 'English';
+      if(!directOnly && settings.language==='English'){
+        const summary = await installedArticleSummary(entry.description || '');
+        if(summary){
+          copy.body = summary;
+          usedBrowserAI = true;
+        }
+      }
     }
-    source = url ? {link:url,kind,name:entry?.source || new URL(url).hostname.replace(/^www\./,'')} : null;
-    if(typeof copy.title !== 'string' || !copy.title.trim() || typeof copy.body !== 'string'){
-      throw new Error('The generator returned incomplete poster copy. Try a shorter source excerpt.');
-    }
+    if(!copy.title) throw new PosterSourceError('A headline could not be read from this article.');
     if(input.value.trim()!==raw) return;
-    const frame = commitPoster(copy,settings,source);
-    const message = {excerpt:'Poster written from your excerpt.',feed:'Poster written from the matching feed excerpt.',
-      article:'Poster written from the publisher article.', 'publisher-excerpt':'Poster written from the publisher’s public excerpt.',
-      'google-excerpt':'Poster written from a Google excerpt for the same article.'};
-    showPosterSourceStatus(message[source?.kind] || 'Poster ready to edit.');
+    const source = url ? {link:url,kind,name:entry?.source || new URL(url).hostname.replace(/^www\./,'')} : null;
+    commitPoster(copy,settings,source);
+    const sourceLabel = {excerpt:'your supplied text',feed:'the matching news feed',article:'the publisher article',
+      'publisher-excerpt':'the publisher page','google-excerpt':'a Google excerpt for this exact article'}[kind];
+    showPosterSourceStatus(`Poster ready from ${sourceLabel}.${usedBrowserAI ? ' Details summarized on this device.' : ''}`);
     if(document.getElementById('posterAutoPhoto').checked) void autoFillPosterPhoto(metadata);
-    log('Poster ready to edit.','ok');
   } catch(error) {
     if(input.value.trim()!==raw) return;
-    const unavailable = url && !notes && !entry && (error instanceof PosterSourceError || error.name==='TimeoutError');
-    if(unavailable){
-      document.getElementById('posterSourceDetails').open = true;
-      showPosterSourceStatus('This article is unavailable to the studio. Paste an excerpt for a sourced poster, or start a headline-only draft.','warning',url);
-    } else {
-      if(url && !notes) document.getElementById('posterSourceDetails').open = true;
-      showPosterSourceStatus(error.message,'warning',url && !notes ? url : '');
-    }
-    log('Poster generation: ' + error.message,unavailable ? 'warn' : 'err');
+    if(url) document.getElementById('posterSourceDetails').open = true;
+    showPosterSourceStatus(url ? error.message + ' Use the workflow or paste an excerpt.' : error.message,'warning',url);
+    log('Poster import: ' + error.message,'warn');
   } finally { setPosterBusy(false); }
 }
 
@@ -2610,53 +2631,6 @@ function applyPosterPhoto(image, message, attempt, source=''){
 function hasPosterExcerpt(title, text){
   return typeof text==='string' && text.trim().split(/\s+/).length>=12 &&
     text.trim().toLowerCase()!==String(title||'').trim().toLowerCase();
-}
-
-async function readArticleMetadata(url){
-  try {
-    const response = await fetch(url,{credentials:'omit',signal:AbortSignal.timeout(6500)});
-    if(!response.ok || !/^(text\/html|application\/xhtml\+xml)\b/i.test(response.headers.get('content-type') || '')) return {};
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let html = '', total = 0;
-    try {
-      while(total<700000 && !/<\/head[\s>]/i.test(html)){
-        const {value,done} = await reader.read();
-        if(done) break;
-        total += value.length;
-        html += decoder.decode(value,{stream:true});
-      }
-    } finally { await reader.cancel().catch(()=>{}); }
-    const head = document.createElement('template');
-    head.innerHTML = html.slice(0,700000).split(/<\/head[\s>]/i)[0];
-    const tags = ['meta[property="og:image:secure_url"]','meta[property="og:image"]','meta[property="og:image:url"]',
-      'meta[name="twitter:image"]','meta[name="twitter:image:src"]','link[rel="image_src"]'];
-    const images = tags.flatMap(tag => {
-      const node = head.content.querySelector(tag);
-      const value = node?.getAttribute('content') || node?.getAttribute('href');
-      if(!value) return [];
-      try {
-        const image = safeWebUrl(new URL(value,response.url || url).href);
-        return image ? [image] : [];
-        const meta = selector => head.content.querySelector(selector)?.getAttribute('content')?.trim() || '';
-    const canonical = head.content.querySelector('link[rel="canonical"]')?.getAttribute('href');
-    const matches = sourceKey(response.url || url)===sourceKey(url) &&
-      (!canonical || sourceKey(new URL(canonical,response.url || url).href)===sourceKey(url));
-    const title = meta('meta[property="og:title"]');
-    const description = matches && title
-      ? meta('meta[property="og:description"]') || meta('meta[name="description"]') : '';
-    return matches ? {images,title,description} : {};
-  } catch { return {}; }
-    });
-    const meta = selector => head.content.querySelector(selector)?.getAttribute('content')?.trim() || '';
-    const canonical = head.content.querySelector('link[rel="canonical"]')?.getAttribute('href');
-    const matches = sourceKey(response.url || url)===sourceKey(url) &&
-      (!canonical || sourceKey(new URL(canonical,response.url || url).href)===sourceKey(url));
-    const title = meta('meta[property="og:title"]');
-    const description = matches && title
-      ? meta('meta[property="og:description"]') || meta('meta[name="description"]') : '';
-    return matches ? {images,title,description} : {};
-  } catch { return {}; }
 }
 
 async function usePosterArticlePhoto(automatic=false, metadata){

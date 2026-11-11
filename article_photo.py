@@ -1,6 +1,9 @@
 """Retrieve a publisher's public share photo as a workflow artifact."""
 
 import argparse
+import base64
+import json
+import re
 from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
 from io import BytesIO
@@ -30,9 +33,13 @@ class SharePhoto(HTMLParser):
         super().__init__()
         self.images = {}
         self.text = {}
+        self.structured = {}
+        self.script = None
 
     def handle_starttag(self, tag, attrs):
         attributes = dict(attrs)
+        if tag == 'script' and attributes.get('type') == 'application/ld+json':
+            self.script = []
         if tag == 'meta':
             key = (attributes.get('property') or attributes.get('name') or '').lower()
             url = attributes.get('content')
@@ -45,9 +52,43 @@ class SharePhoto(HTMLParser):
         if url and key in ('og:image:secure_url', 'og:image', 'og:image:url', 'twitter:image', 'twitter:image:src', 'image_src'):
             self.images.setdefault(key, url.strip())
 
+    def handle_data(self, data):
+        if self.script is not None:
+            self.script.append(data)
+
+    def handle_endtag(self, tag):
+        if tag != 'script' or self.script is None:
+            return
+        script, self.script = ''.join(self.script), None
+        if self.structured:
+            return
+        try:
+            pending = [json.loads(script)]
+        except ValueError:
+            return
+        while pending:
+            node = pending.pop()
+            if isinstance(node, list):
+                pending.extend(reversed(node))
+            elif isinstance(node, dict):
+                types = node.get('@type', [])
+                types = types if isinstance(types, list) else [types]
+                if any(isinstance(item, str) and re.search(r'(?:^|/)(?:\w*NewsArticle|Article|BlogPosting)$', item, re.I) for item in types):
+                    self.structured = node
+                    return
+                if '@graph' in node:
+                    pending.append(node['@graph'])
+
     def urls(self, base):
         order = ('og:image:secure_url', 'og:image', 'og:image:url', 'twitter:image', 'twitter:image:src', 'image_src')
-        return list(dict.fromkeys(urljoin(base, self.images[key]) for key in order if key in self.images))
+        urls = [self.images[key] for key in order if key in self.images]
+        structured = self.structured.get('image')
+        for candidate in (structured if isinstance(structured, list) else [structured]):
+            if isinstance(candidate, dict):
+                candidate = candidate.get('url') or candidate.get('contentUrl')
+            if isinstance(candidate, str) and candidate:
+                urls.append(candidate)
+        return list(dict.fromkeys(urljoin(base, url) for url in urls))
 
 
 def validate_url(url, hosts):
@@ -136,10 +177,7 @@ def public_article_metadata(link):
         return None
 
 
-def save_article_photo(article, output):
-    page, canonical, encoding = get_public(article, PUBLISHERS)
-    parser = SharePhoto()
-    parser.feed(page.decode(encoding or 'utf-8', errors='replace'))
+def download_article_photo(parser, canonical):
     for candidate in parser.urls(canonical):
         try:
             data, photo_url, _ = get_public(candidate, PHOTO_HOSTS, photo=True)
@@ -150,26 +188,76 @@ def save_article_photo(article, output):
                 art.thumbnail((2400, 2400))
         except (requests.RequestException, OSError, ValueError, Image.DecompressionBombError):
             continue
-        output.mkdir(parents=True, exist_ok=True)
-        art.save(output / 'article-photo.jpg', quality=93, optimize=True)
-        (output / 'source.txt').write_text(f'Article: {canonical}\nPhoto: {photo_url}\n', encoding='utf-8')
-        return
+        return art, photo_url
     raise ValueError('No downloadable share photo was found on the supported publisher hosts.')
+
+
+def save_article_photo(article, output, *, draft=False):
+    page, canonical, encoding = get_public(article, PUBLISHERS)
+    parser = SharePhoto()
+    parser.feed(page.decode(encoding or 'utf-8', errors='replace'))
+    output.mkdir(parents=True, exist_ok=True)
+    title = clean_article_text(parser.structured.get('headline')) or parser.text.get('og:title', '')
+    details = next((text for text in (
+        clean_article_text(parser.structured.get('articleBody')),
+        parser.text.get('og:description'),
+        clean_article_text(parser.structured.get('description')),
+        parser.text.get('description'),
+    ) if text), '')
+    make_draft = draft and title and details and title.casefold() != details.casefold()
+    encoded_image = ''
+    try:
+        art, photo_url = download_article_photo(parser, canonical)
+    except ValueError:
+        if not make_draft:
+            raise
+        photo_url = ''
+    else:
+        art.save(output / 'article-photo.jpg', quality=93, optimize=True)
+        if make_draft:
+            art.thumbnail((1400, 1400))
+            buffer = BytesIO()
+            art.save(buffer, 'JPEG', quality=88, optimize=True)
+            encoded_image = 'data:image/jpeg;base64,' + base64.b64encode(buffer.getvalue()).decode('ascii')
+    (output / 'source.txt').write_text(f'Article: {canonical}\nPhoto: {photo_url}\n', encoding='utf-8')
+    if make_draft:
+        language = 'Kannada' if re.search(r'[\u0c80-\u0cff]', title + details) else 'English'
+        item = {'version': 1, 'mode': 'poster', 'lang': language,
+                'caption': f'{article_excerpt(title, 180)}\n\n{article_excerpt(details, 680)}\n\nSource: {canonical}',
+                'source': {'link': canonical, 'kind': 'publisher-excerpt', 'name': urlsplit(canonical).hostname},
+                'slides': [{'layout': 'news-card', 'title': article_excerpt(title, 180),
+                            'body': article_excerpt(details, 235), 'image': encoded_image,
+                            'photoSource': canonical if encoded_image else '',
+                            'photoLabel': 'Publisher photo imported from the article.' if encoded_image else ''}]}
+        (output / 'draft.json').write_text(json.dumps(item, ensure_ascii=False), encoding='utf-8')
+
+
+def clean_article_text(value):
+    return ' '.join(value.split()) if isinstance(value, str) else ''
+
+
+def article_excerpt(text, limit):
+    if len(text) <= limit:
+        return text
+    word_break = text.rfind(' ', 0, limit)
+    return text[:word_break if word_break > limit // 2 else limit - 1].rstrip() + '…'
 
 
 def main():
     args = argparse.ArgumentParser(description=__doc__)
     args.add_argument('--url', required=True)
+    args.add_argument('--draft', action='store_true')
     args.add_argument('--output', type=Path, default=Path('output/article-photo'))
     options = args.parse_args()
     try:
-        save_article_photo(options.url.strip(), options.output)
+        save_article_photo(options.url.strip(), options.output, draft=options.draft)
     except requests.RequestException as error:
         code = error.response.status_code if error.response is not None else 'unavailable'
         args.exit(1, f'The publisher could not be reached (HTTP {code}). Save the photo from the publisher page if it is available there.\n')
     except (OSError, ValueError) as error:
         args.exit(1, str(error) + '\n')
-    print('Article photo ready. Download the artifact and upload the JPEG in the poster editor.')
+    files = ', '.join(path.name for path in sorted(options.output.iterdir()))
+    print(f'Article artifact ready ({files}). Import draft.json when present or upload article-photo.jpg.')
 
 
 if __name__ == '__main__':

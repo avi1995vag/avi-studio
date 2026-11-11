@@ -11,6 +11,14 @@ AvI Studio is an editorial workspace for 4:5 carousels and single posters. GitHu
 - The News Desk uses a snapshot rebuilt by GitHub Actions every four hours and shows its update time. Source feeds can be edited in `assets/sources.json`. Poster links use a matching feed excerpt or Gemini URL Context. When the article is unavailable, paste a source excerpt or start a headline-only draft and check it against the original before publishing.
 - Browser keys are used for the current tab. Manual Meta and Zernio publishing use the credentials entered in Integrations and a Cloudinary unsigned upload preset. Keep the Cloudinary API secret in GitHub Actions secrets. The unattended workflow publishes to Instagram through Meta.
 
+## Direct article import and saved keys
+
+Use **Integrations → Save keys on this browser** to restore API keys after refresh. **Forget keys** removes them from browser storage. Use a trusted browser profile.
+
+Paste a URL and choose **Import article without AI** to use the publisher headline, a source excerpt, and any available photo. The regular **Generate poster** action also works without Gemini. It can summarize longer English text using the browser's built-in model when already available. No model download is initiated. Direct import preserves the source language.
+
+If browser access is blocked, the Article photo workflow can produce a `draft.json` with the headline, excerpt and a photo when available. Import it with **Import article draft** or **Import draft**.
+
 ## Article photos
 
 Open **Single poster → Edit Poster → Poster image → Use article photo**. The studio first looks for an exact feed match and then checks the article's public share image if the publisher allows browser access. **Import image** accepts a direct image URL. Stock search uses a separate Pexels key.
