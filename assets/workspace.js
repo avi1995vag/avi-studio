@@ -371,11 +371,14 @@ async function downloadCurrentDesign() {
 }
 
 async function configureWorkflowLinks() {
+  let config;
   try {
-    const response = await fetch('./site.json', {signal:AbortSignal.timeout(5000)});
-    if(!response.ok) return;
-    const config = await response.json();
-    void configureSocialPublishing(config.socialPublisher);
+    const response = await fetch('./site.json', {cache:'no-cache',signal:AbortSignal.timeout(5000)});
+    if(response.ok) config = await response.json();
+  } catch {}
+  void configureSocialPublishing(config?.socialPublisher);
+  if(!config) return;
+  try {
     const labels = {draft:'Scheduled drafts', publish:config.publishEnabled ? 'Scheduled publishing' : 'Publishing disabled', off:'Schedule off'};
     document.getElementById('automationMode').textContent = labels[config.scheduleMode] || labels.off;
     if(!/^[\w.-]+\/[\w.-]+$/.test(config.repository)) return;
@@ -393,7 +396,26 @@ async function configureWorkflowLinks() {
   } catch {}
 }
 
+function configureAppearance(){
+  const root = document.documentElement;
+  const toggle = document.getElementById('appearanceToggle');
+  const apply = appearance => {
+    root.dataset.appearance = appearance;
+    const action = appearance==='light' ? 'Switch to dark appearance' : 'Switch to light appearance';
+    toggle.setAttribute('aria-label',action);
+    toggle.title = action;
+    document.querySelector('meta[name="theme-color"]').content = appearance==='light' ? '#f8f9fd' : '#141827';
+  };
+  apply(lsGet('app_studioAppearance')==='light' ? 'light' : 'dark');
+  toggle.addEventListener('click',() => {
+    const appearance = root.dataset.appearance==='light' ? 'dark' : 'light';
+    lsSet('app_studioAppearance',appearance);
+    apply(appearance);
+  });
+}
+
 async function initWorkspace() {
+  configureAppearance();
   initializeCreativeTools();
   loadSettings();
   const autoPhoto = document.getElementById('posterAutoPhoto');

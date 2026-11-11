@@ -4,33 +4,40 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AvI Studio | Editorial workspace</title>
-<meta name="theme-color" content="#f6f5ef">
+<meta name="theme-color" content="#111421">
 <meta name="description" content="Create, edit and publish editorial carousels and single posters.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Instrument+Serif&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./assets/studio.css">
 </head>
 <body>
 
 <a class="skip-link" href="#workspace">Skip to workspace</a>
 <div id="protocolWarning" role="status">Open the hosted studio or use a local HTTP server to load its data files.</div>
-<div class="dashboard">
+<div class="dashboard" data-workspace="carousel">
 <header class="topbar">
   <div class="logo"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 23 15.9 7 25 23h-4.7l-4.4-8.5-4.3 8.5z"/><path d="M13.7 23h4.6v-4h-4.6z"/></svg></span> AvI <span>Studio</span></div>
-  <span class="header-division" aria-hidden="true"></span><span class="top-context">EDITORIAL WORKSPACE</span>
+  <span class="header-division" aria-hidden="true"></span><span class="top-context">Editorial workspace</span>
   <div class="spacer"></div>
   <div class="status-pill" role="status"><span class="s-dot"></span><span id="sysStatus">READY</span></div>
-  <button class="btn-sm header-button" onclick="switchMode('scheduler')">Automation</button>
+  <button id="appearanceToggle" class="icon-button appearance-toggle" type="button" aria-label="Switch to light appearance" title="Switch to light appearance">
+    <svg class="appearance-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+    <svg class="appearance-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.6A8.7 8.7 0 0 1 8.4 4a8.7 8.7 0 1 0 11.6 11.6Z"/></svg>
+  </button>
+  <button class="btn-p publish-entry" type="button" data-open-publishing aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>Publish
+  </button>
 </header>
 <aside class="col sidebar" aria-label="Workspace navigation and settings">
-  <div class="sec sidebar-label">Workspace</div>
   <nav class="tabs" aria-label="Workspace tools">
+<div class="sec sidebar-label">Create</div>
 <button class="tab-btn active" data-mode="carousel" aria-pressed="true" onclick="switchMode('carousel')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="11" height="14" rx="2"/><path d="M17 7h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1"/></svg>Carousel</button>
+<button class="tab-btn" data-mode="poster" aria-pressed="false" onclick="switchMode('poster')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 16-5-5-8 10"/></svg>Single poster</button>
+<button class="tab-btn" data-mode="imageGenerator" aria-pressed="false" onclick="switchMode('imageGenerator')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c0 6-4 10-10 10 6 0 10 4 10 10 0-6 4-10 10-10-6 0-10-4-10-10Z"/></svg>AI images</button>
+<div class="sec sidebar-label desk-label">Editorial</div>
 <button class="tab-btn" data-mode="news" aria-pressed="false" onclick="switchMode('news')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>News desk</button>
 <button class="tab-btn" data-mode="breaking" aria-pressed="false" onclick="switchMode('breaking')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-12h-7z"/></svg>Breaking</button>
-<button class="tab-btn" data-mode="poster" aria-pressed="false" onclick="switchMode('poster')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 16-5-5-8 10"/></svg>Single poster</button>
-<button class="tab-btn" data-mode="imageGenerator" aria-pressed="false" onclick="switchMode('imageGenerator')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c0 6-4 10-10 10 6 0 10 4 10 10 0-6 4-10 10-10-6 0-10-4-10-10Z"/></svg>AI Image Generator</button>
 <button class="tab-btn" data-mode="scheduler" aria-pressed="false" onclick="switchMode('scheduler')"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Automation</button>
   </nav>
   <div class="sec sidebar-label settings-label">Preferences</div>
@@ -177,22 +184,16 @@
   </div>
   <button onclick="saveSettings()" class="btn-p" style="margin-top:10px;">Save preferences</button>
   </details>
-  <div class="sidebar-note"><span class="s-dot"></span><span>AvI editorial studio</span></div>
 </aside>
 
 <main class="col col-mid" id="workspace" tabindex="-1">
   <section class="hero">
     <div class="hero-copy">
-      <p class="eyebrow" id="workspaceKicker">01 / CREATE</p>
+      <p class="eyebrow" id="workspaceKicker">Create</p>
       <h1 id="workspaceTitle">Carousel Studio</h1>
       <p id="workspaceSubtitle">Turn one idea into an editorial carousel, then refine each frame before you publish.</p>
     </div>
-    <svg class="hero-art" viewBox="0 0 300 168" fill="none" aria-hidden="true">
-      <path d="M11 30H289M11 84H289M11 138H289M46 10V158M102 10V158M158 10V158M214 10V158M270 10V158" stroke="#587063" stroke-opacity=".34"/>
-      <g transform="rotate(13 197 92)"><rect x="156" y="36" width="82" height="112" rx="5" fill="#749989" stroke="#a8c4ad"/><path d="M170 56h53M170 112h45M170 121h34" stroke="#243f36" stroke-width="2"/></g>
-      <g transform="rotate(-11 133 84)"><rect x="92" y="22" width="87" height="124" rx="5" fill="#e1ecad"/><path d="M105 41h45M105 115h58M105 124h41" stroke="#244136" stroke-width="2"/><circle cx="136" cy="78" r="22" stroke="#244136"/><ellipse cx="136" cy="78" rx="22" ry="10" stroke="#244136"/><ellipse cx="136" cy="78" rx="10" ry="22" stroke="#244136"/><circle cx="136" cy="78" r="4" fill="#244136"/></g>
-      <circle cx="53" cy="110" r="4" fill="#dce99a"/><path d="M248 43h12m-6-6v12" stroke="#dce99a"/>
-    </svg>
+    <div class="hero-art" aria-hidden="true"><span></span><span></span><span></span></div>
   </section>
 
   <!-- CAROUSEL PANEL -->
@@ -605,16 +606,19 @@
 
 <aside class="col inspector" aria-label="Draft and publishing controls">
   <div class="inspector-heading">
-    <p class="eyebrow">STUDIO DESK</p>
     <h2>Draft &amp; delivery</h2>
-    <p class="helper">Review the caption, then export or publish.</p>
+    <p class="helper draft-state" id="draftState" role="status">Drafts autosave on this device</p>
   </div>
+  <button class="publish-shortcut" type="button" data-open-publishing aria-haspopup="dialog">
+    <span class="publish-shortcut-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></span>
+    <span><strong>Direct publishing</strong><small id="socialSummary">Checking publishing service…</small></span>
+    <svg class="shortcut-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+  </button>
   <div class="draft-actions">
     <button class="btn-sm" onclick="saveDraftFile()">Export draft</button>
     <button class="btn-sm" onclick="document.getElementById('draftFile').click()">Import draft</button>
     <input type="file" id="draftFile" accept=".json,application/json" hidden>
   </div>
-  <p class="helper draft-state" id="draftState" role="status">Drafts autosave on this device</p>
   <div id="draftSourcePanel" class="draft-source-panel" hidden>
     <p id="draftSourceLabel" class="helper"></p>
     <a id="draftSource" target="_blank" rel="noopener" hidden>Open draft source ↗</a>
@@ -726,30 +730,6 @@
     <button class="deploy-btn-zip btn-p" onclick="downloadCurrentDesign()">Download artwork</button>
     <button onclick="copyCaption()">Copy caption</button>
   </div>
-  <details id="socialPublishing" class="settings-block publish-settings social-publishing" hidden>
-    <summary>Direct publishing</summary>
-    <div class="photo-actions">
-      <button id="socialConnect" class="btn-p" type="button">Sign in with Buffer</button>
-      <a class="action-link" href="https://publish.buffer.com/settings/channels" target="_blank" rel="noopener noreferrer">Connect social channels ↗</a>
-    </div>
-    <div id="socialConnected" hidden>
-      <fieldset>
-        <legend>Post to</legend>
-        <div id="socialChannels" class="social-channels"></div>
-      </fieldset>
-      <div class="photo-actions">
-        <button id="socialReload" class="btn-sm" type="button">Refresh channels</button>
-        <button id="socialDisconnect" class="btn-sm" type="button">Sign out of studio</button>
-      </div>
-      <button id="socialPublish" class="btn-p" type="button" disabled>Publish now</button>
-    </div>
-    <p id="socialStatus" class="helper" role="status"></p>
-    <ul id="socialReceipt" class="social-receipt" hidden></ul>
-    <div class="photo-actions">
-      <button id="socialCheck" class="btn-sm" type="button" hidden>Check post status</button>
-      <button id="socialNew" class="btn-sm" type="button" hidden>Start another post</button>
-    </div>
-  </details>
   <details class="settings-block publish-settings">
     <summary>Publish manually</summary>
     <p class="helper">Use credentials from Integrations to publish the current design.</p>
@@ -762,6 +742,49 @@
   </details>
 </aside>
 
+<dialog id="socialPublishing" class="social-publishing" aria-labelledby="socialTitle">
+  <header class="publishing-heading">
+    <div><p class="eyebrow">Buffer</p><h2 id="socialTitle">Direct publishing</h2></div>
+    <form method="dialog"><button class="icon-button" type="submit" aria-label="Close publishing" autofocus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></form>
+  </header>
+  <div class="publishing-grid">
+    <section class="publishing-controls" aria-labelledby="socialDestinations">
+      <h3 id="socialDestinations">Channels</h3>
+      <p id="socialStatus" class="publishing-status" role="status">Checking publishing service…</p>
+      <div class="publishing-actions">
+        <button id="socialConnect" class="btn-p" type="button" disabled>Sign in with Buffer</button>
+        <a id="socialManage" class="action-link" href="https://publish.buffer.com/settings/channels" target="_blank" rel="noopener noreferrer">Connect channels in Buffer ↗</a>
+        <button id="socialRetry" class="btn-sm" type="button" hidden>Retry connection</button>
+      </div>
+      <div id="socialConnected" hidden>
+        <fieldset id="socialChannelPicker" hidden>
+          <legend>Post to</legend>
+          <div id="socialChannels" class="social-channels"></div>
+        </fieldset>
+        <div class="publishing-actions">
+          <button id="socialReload" class="btn-sm" type="button">Refresh channels</button>
+          <button id="socialDisconnect" class="btn-sm" type="button">Sign out of studio</button>
+        </div>
+      </div>
+      <button id="socialPublish" class="btn-p" type="button" aria-describedby="socialStatus" disabled>Publish now</button>
+      <ul id="socialReceipt" class="social-receipt" hidden></ul>
+      <div class="publishing-actions">
+        <button id="socialCheck" class="btn-sm" type="button" hidden>Check post status</button>
+        <button id="socialNew" class="btn-sm" type="button" hidden>Start another post</button>
+      </div>
+    </section>
+    <section class="publishing-draft" aria-labelledby="socialDraftTitle">
+      <h3 id="socialDraftTitle">Post preview</h3>
+      <div class="publishing-artwork">
+        <canvas id="socialPreview" width="176" height="220" aria-label="First artwork in the current draft" hidden></canvas>
+        <p id="socialDraftEmpty">Create a poster or carousel to publish.</p>
+      </div>
+      <p id="socialDraftCount" class="helper" hidden></p>
+      <p id="socialDraftCaption" class="publishing-caption" hidden></p>
+      <button id="socialEditCaption" class="btn-sm" type="button" hidden>Edit caption</button>
+    </section>
+  </div>
+</dialog>
 
 </div>
 

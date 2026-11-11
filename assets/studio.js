@@ -119,17 +119,18 @@ function log(msg,type='info'){
 function setStatus(t){document.getElementById('sysStatus').textContent=t;}
 
 const WORKSPACE_VIEWS = {
-  carousel: ['01 / CREATE', 'Carousel Studio', 'Turn one idea into an editorial carousel, then refine each frame before you publish.'],
-  news: ['02 / REPORT', 'News Desk', 'Browse source headlines and build a news brief or a deeper explainer.'],
-  breaking: ['03 / DEVELOP', 'Breaking Stories', 'Build a sourced, fast-moving story from the latest coverage.'],
-  poster: ['04 / DESIGN', 'Single Poster', 'Create a standalone 4:5 design from an article, headline, or original idea.'],
+  carousel: ['Create', 'Carousel Studio', 'Turn one idea into an editorial carousel, then refine each frame before you publish.'],
+  news: ['Editorial', 'News Desk', 'Browse source headlines and build a news brief or a deeper explainer.'],
+  breaking: ['Editorial', 'Breaking Stories', 'Build a sourced, fast-moving story from the latest coverage.'],
+  poster: ['Create', 'Single Poster', 'Create a standalone 4:5 design from an article, headline, or original idea.'],
   imageGenerator: ['IMAGE STUDIO', 'AI Image Generator', 'Create a free illustration or photo-style image from a prompt.'],
-  scheduler: ['05 / PLAN', 'Automation', 'Manage scheduled editions and keep a local list of ideas.']
+  scheduler: ['Plan', 'Automation', 'Manage scheduled editions and keep a local list of ideas.']
 };
 
 function switchMode(mode){
   if(!Object.hasOwn(WORKSPACE_VIEWS, mode)) return;
   currentMode = mode;
+  document.querySelector('.dashboard').dataset.workspace = mode;
   activateDraft(mode);
   for(const key of Object.keys(WORKSPACE_VIEWS)){
     document.getElementById(key+'Panel').classList.toggle('active', key===mode);

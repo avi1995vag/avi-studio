@@ -3,6 +3,8 @@ const configureSocialPublishing = (() => {
   const panel = get('socialPublishing');
   const connect = get('socialConnect');
   const connected = get('socialConnected');
+  const manage = get('socialManage');
+  const retry = get('socialRetry');
   const reload = get('socialReload');
   const disconnect = get('socialDisconnect');
   const channelList = get('socialChannels');
@@ -16,11 +18,51 @@ const configureSocialPublishing = (() => {
   const statusLabels = {sent:'Published',sending:'Sending',scheduled:'Queued by Buffer',submitting:'Submitting',
     needs_approval:'Awaiting approval in Buffer',draft:'Draft in Buffer',error:'Failed in Buffer',
     rejected:'Rejected by Buffer',unknown:'Unconfirmed. Check Buffer before reposting.'};
-  let endpoint, token, batchId, busy = false, blocked = false;
+  let endpoint, token, batchId, busy = false, blocked = false, ready = false, checking = false;
+  let refreshOnReturn = false;
   let channels = [];
 
-  function status(message){
-    get('socialStatus').textContent = message;
+  function status(message, state=''){
+    const element = get('socialStatus');
+    element.textContent = message;
+    element.dataset.state = state;
+  }
+
+  function summary(message){
+    get('socialSummary').textContent = message;
+  }
+
+  function draftSize(){
+    return draftKind==='poster' ? Number(Boolean(posterSlide)) : slides.length;
+  }
+
+  function renderDraftPreview(){
+    const preview = get('socialPreview');
+    const empty = get('socialDraftEmpty');
+    const count = get('socialDraftCount');
+    const caption = get('socialDraftCaption');
+    const size = draftSize();
+    preview.hidden = count.hidden = caption.hidden = get('socialEditCaption').hidden = size===0;
+    empty.hidden = size>0;
+    if(!size) return;
+    let source = get('posterCanvas');
+    if(draftKind!=='poster'){
+      source = document.createElement('canvas');
+      source.width = CANVAS_W;
+      source.height = CANVAS_H;
+      drawSlide(source,slides[0],0);
+    }
+    const ctx = preview.getContext('2d');
+    ctx.clearRect(0,0,preview.width,preview.height);
+    ctx.drawImage(source,0,0,preview.width,preview.height);
+    count.textContent = draftKind==='poster' ? 'Single poster' : `Carousel · ${size} ${size===1 ? 'slide' : 'slides'}`;
+    caption.textContent = get('caption').value.trim() || 'No caption';
+  }
+
+  function openDialog(){
+    renderDraftPreview();
+    if(!panel.open) panel.showModal();
+    syncButtons();
   }
 
   function selected(){
@@ -28,7 +70,9 @@ const configureSocialPublishing = (() => {
   }
 
   function syncButtons(){
-    publishButton.disabled = busy || Boolean(batchId) || selected().length===0;
+    connect.disabled = !ready || busy;
+    retry.disabled = checking;
+    publishButton.disabled = !ready || !token || busy || Boolean(batchId) || selected().length===0 || draftSize()===0;
     reload.disabled = busy;
     disconnect.disabled = busy;
     check.disabled = busy;
@@ -37,11 +81,11 @@ const configureSocialPublishing = (() => {
     newPost.hidden = !token || !batchId || blocked;
   }
 
-  async function api(path,options={}){
+  async function api(path,options={},timeout=60_000){
     const headers = new Headers(options.headers);
     if(token) headers.set('Authorization','Bearer ' + token);
     const response = await fetch(new URL(path,endpoint),{
-      ...options,headers,redirect:'error',cache:'no-store',signal:AbortSignal.timeout(60_000)
+      ...options,headers,redirect:'error',cache:'no-store',signal:AbortSignal.timeout(timeout)
     });
     const data = await response.json();
     if(!response.ok) throw Object.assign(new Error(data.error || 'The publishing service could not complete the request.'),{status:response.status});
@@ -58,17 +102,28 @@ const configureSocialPublishing = (() => {
     else sessionStorage.removeItem(sessionKey);
     connect.hidden = Boolean(value);
     connected.hidden = !value;
-    if(!value) receiptList.hidden = true;
+    if(!value){
+      receiptList.hidden = true;
+      channels = [];
+      channelList.replaceChildren();
+      get('socialChannelPicker').hidden = true;
+      manage.classList.remove('btn-p');
+      manage.textContent = 'Connect channels in Buffer ↗';
+      summary('Sign in to Buffer');
+    }
     syncButtons();
   }
 
   function showError(error){
     if(error.status===401) setToken(null);
-    status(error instanceof TypeError || error.name==='TimeoutError' ? 'Could not reach the publishing service. Try again shortly.' : error.message);
+    status(error instanceof TypeError || error.name==='TimeoutError' ? 'Could not reach the publishing service. Try again shortly.' : error.message,'error');
   }
 
   async function loadChannels(){
+    if(!ready || !token || busy) return;
     busy = true;
+    status('Loading your Buffer channels…');
+    summary('Loading channels…');
     syncButtons();
     try {
       const previous = new Set(selected().map(channel => channel.id));
@@ -88,9 +143,16 @@ const configureSocialPublishing = (() => {
         label.append(input,name);
         channelList.append(label);
       }
-      status(channels.length ? 'Select the channels for the current artwork and caption.'
-        : 'Connect a Facebook Page, X profile, or another supported channel in Buffer, then refresh channels.');
-    } catch(error){ showError(error); }
+      get('socialChannelPicker').hidden = channels.length===0;
+      manage.classList.toggle('btn-p',channels.length===0);
+      manage.textContent = channels.length ? 'Manage channels in Buffer ↗' : 'Connect channels in Buffer ↗';
+      summary(channels.length ? `${channels.length} ${channels.length===1 ? 'channel' : 'channels'} connected` : 'Buffer connected · add channels');
+      status(channels.length ? (draftSize() ? 'Select where to publish your artwork and caption.' : 'Create a draft to publish to your channels.')
+        : 'Buffer is connected. Add a Facebook Page, X profile, or another channel in Buffer, then return here.');
+    } catch(error){
+      showError(error);
+      if(token) summary('Channels unavailable · refresh');
+    }
     finally { busy = false; syncButtons(); }
   }
 
@@ -101,7 +163,9 @@ const configureSocialPublishing = (() => {
   }
 
   async function startSignIn(){
-    connect.disabled = true;
+    if(!ready || busy) return;
+    busy = true;
+    syncButtons();
     try {
       await saveWorkspaceDraft();
       const {proof,challenge} = await randomProof();
@@ -112,7 +176,8 @@ const configureSocialPublishing = (() => {
       location.assign(next.href);
     } catch(error){
       showError(error);
-      connect.disabled = false;
+      busy = false;
+      syncButtons();
     }
   }
 
@@ -215,15 +280,39 @@ const configureSocialPublishing = (() => {
   }
 
   connect.addEventListener('click',startSignIn);
+  for(const button of document.querySelectorAll('[data-open-publishing]')){
+    button.addEventListener('click', () => {
+      openDialog();
+      if(ready && token && !batchId) void loadChannels();
+    });
+  }
+  get('socialEditCaption').addEventListener('click', () => {
+    panel.close();
+    if(currentMode==='imageGenerator') switchMode(draftKind);
+    get('caption').focus();
+  });
+  manage.addEventListener('click', () => { refreshOnReturn = true; });
+  function refreshReturningChannels(){
+    if(!refreshOnReturn || !panel.open || !ready || !token || busy || document.hidden) return;
+    refreshOnReturn = false;
+    void loadChannels();
+  }
+  window.addEventListener('focus',refreshReturningChannels);
+  document.addEventListener('visibilitychange',refreshReturningChannels);
   reload.addEventListener('click',loadChannels);
   channelList.addEventListener('change',syncButtons);
   publishButton.addEventListener('click',publishNow);
   check.addEventListener('click',checkStatus);
   disconnect.addEventListener('click',async () => {
-    try { await api('/session',{method:'DELETE'}); }
-    catch(error){ if(error.status!==401){ showError(error); return; } }
-    setToken(null);
-    status('Signed out of the studio.');
+    if(busy) return;
+    busy = true;
+    syncButtons();
+    try {
+      await api('/session',{method:'DELETE'});
+      setToken(null);
+      status('Signed out of the studio.');
+    } catch(error){ showError(error); }
+    finally { busy = false; syncButtons(); }
   });
   newPost.addEventListener('click', () => {
     setBatch(null);
@@ -231,41 +320,79 @@ const configureSocialPublishing = (() => {
     status('Select the channels for the current artwork and caption.');
   });
 
-  return async value => {
-    if(!value) return;
+  async function initialize(value){
+    if(checking) return;
+    checking = true;
+    ready = false;
+    retry.hidden = true;
+    summary('Checking publishing service…');
+    status('Checking publishing service…');
+    syncButtons();
     try {
       endpoint = new URL(value);
-      if(endpoint.protocol!=='https:' || endpoint.username || endpoint.password) return;
-      await api('/health');
-    } catch { return; }
-    panel.hidden = false;
+      if(endpoint.protocol!=='https:' || endpoint.username || endpoint.password) throw new Error('Invalid service URL.');
+      if((await api('/health',{},8000)).ready!==true) throw new Error('Publishing service is unavailable.');
+    } catch {
+      status(value ? 'The publishing service is unavailable. Retry the connection or open Buffer to manage channels.'
+        : 'Direct publishing is unavailable on this copy of the studio. You can still open Buffer to manage channels.','error');
+      summary('Publishing service unavailable');
+      retry.hidden = false;
+      checking = false;
+      syncButtons();
+      return;
+    }
+    checking = false;
+    ready = true;
     const fragment = new URLSearchParams(location.hash.slice(1));
     const handoff = fragment.get('buffer_connection');
     const failure = fragment.get('buffer_error');
+    batchId = sessionStorage.getItem(receiptKey);
     if(handoff || failure){
       history.replaceState(null,'',location.pathname + location.search);
-      panel.open = true;
+      setToken(null);
+      openDialog();
       const proof = sessionStorage.getItem(proofKey);
       sessionStorage.removeItem(proofKey);
       if(handoff){
+        busy = true;
+        status('Finishing Buffer sign-in…');
+        syncButtons();
         try {
           const result = await requestJson('/oauth/finish',{handoff,proof});
           setToken(result.token);
         } catch(error){ showError(error); return; }
+        finally { busy = false; syncButtons(); }
       } else {
-        status(failure==='account' ? 'Sign in with the Buffer account authorized for this studio.' : 'Buffer sign-in did not finish. Try again.');
+        const messages = {
+          account:'Sign in with the Buffer account authorized for this studio.',
+          expired:'The Buffer sign-in link expired. Start again from this tab.',
+          cancelled:'Buffer sign-in was canceled. You can start again here.'
+        };
+        status(messages[failure] || 'Buffer sign-in did not finish. Try again here.','error');
         return;
       }
     } else {
       setToken(sessionStorage.getItem(sessionKey));
     }
-    batchId = sessionStorage.getItem(receiptKey);
     if(token){
       await loadChannels();
       if(batchId){
-        panel.open = true;
+        openDialog();
         await checkStatus();
       }
+    } else {
+      status('Sign in with Buffer to load your connected channels.');
     }
-  };
+  }
+
+  retry.addEventListener('click',async () => {
+    retry.disabled = true;
+    let value;
+    try {
+      const response = await fetch('./site.json',{cache:'no-store',signal:AbortSignal.timeout(5000)});
+      if(response.ok) value = (await response.json()).socialPublisher;
+    } catch {}
+    await initialize(value);
+  });
+  return initialize;
 })();
