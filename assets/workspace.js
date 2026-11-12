@@ -358,6 +358,7 @@ async function downloadSinglePoster(){
 async function downloadCurrentDesign() {
   if(draftKind === 'poster') return downloadSinglePoster();
   if(!slides.length) return log('Add a frame first.', 'err');
+  const caption = document.getElementById('caption').value;
   try {
     const canvas = document.createElement('canvas');
     canvas.width = CANVAS_W; canvas.height = CANVAS_H;
@@ -369,10 +370,16 @@ async function downloadCurrentDesign() {
       name:'slide-' + String(index+1).padStart(2,'0') + '.jpg',
       bytes:new Uint8Array(await (await image).arrayBuffer())
     })));
-    files.push({name:'caption.txt',bytes:new TextEncoder().encode(document.getElementById('caption').value)});
+    files.push({name:'caption.txt',bytes:new TextEncoder().encode(caption)});
     downloadBlob(zipArtwork(files), 'avi-carousel.zip');
     log('Artwork downloaded.', 'ok');
   } catch(error) { log(error.message, 'err'); }
+}
+
+function syncArtworkDownload(){
+  const button = document.getElementById('artworkDownload');
+  button.hidden = currentMode === 'imageGenerator';
+  button.disabled = draftKind === 'poster' ? !posterSlide : !slides.length;
 }
 
 async function configureWorkflowLinks() {
@@ -419,12 +426,22 @@ function configureAppearance(){
   });
 }
 
+function usesFloatingInspector(){
+  return compactStudio.matches || currentMode === 'poster';
+}
+
+function restoreStudioInspector(){
+  const floating = usesFloatingInspector();
+  document.querySelector('.dashboard').classList.toggle('inspector-floats',floating);
+  setInspectorOpen(!floating && lsGet('app_studioInspector')!=='closed');
+}
+
 function setInspectorOpen(open, remember=false){
   const toggle = document.getElementById('inspectorToggle');
   document.querySelector('.dashboard').dataset.inspector = open ? 'open' : 'closed';
   toggle.setAttribute('aria-expanded',String(open));
   toggle.title = open ? 'Hide inspector' : 'Show inspector';
-  if(remember && !compactStudio.matches) lsSet('app_studioInspector',open ? 'open' : 'closed');
+  if(remember && !usesFloatingInspector()) lsSet('app_studioInspector',open ? 'open' : 'closed');
 }
 
 function openStudioComposer(detailsId,inputId){
@@ -495,18 +512,17 @@ function configureWorkspaceChrome(){
   document.querySelector('.tabs').addEventListener('click',event=>{
     if(event.target.closest('[data-mode]')) window.scrollTo({top:0});
   });
-  const restoreInspector = () => setInspectorOpen(!compactStudio.matches && lsGet('app_studioInspector')!=='closed');
-  restoreInspector();
-  compactStudio.addEventListener('change',restoreInspector);
+  restoreStudioInspector();
+  compactStudio.addEventListener('change',restoreStudioInspector);
   toggle.addEventListener('click',()=>{
     const open = toggle.getAttribute('aria-expanded')!=='true';
     setInspectorOpen(open,true);
-    if(open && compactStudio.matches) document.getElementById('inspectorClose').focus();
+    if(open && usesFloatingInspector()) document.getElementById('inspectorClose').focus();
   });
   const closeInspector = () => { setInspectorOpen(false,true); toggle.focus(); };
   document.getElementById('inspectorClose').addEventListener('click',closeInspector);
   inspector.addEventListener('keydown',event=>{
-    if(event.key==='Escape' && compactStudio.matches){ event.stopPropagation(); closeInspector(); }
+    if(event.key==='Escape' && usesFloatingInspector()){ event.stopPropagation(); closeInspector(); }
   });
 
   const workbench = document.getElementById('carouselWorkbench');

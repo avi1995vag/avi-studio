@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css?v=poster-tools">
+<link rel="stylesheet" href="./assets/studio.css?v=poster-canvas-sidebars">
 </head>
 <body>
 
@@ -30,6 +30,9 @@
   <button id="appearanceToggle" class="icon-button appearance-toggle" type="button" aria-label="Switch to light appearance" title="Switch to light appearance">
     <svg class="appearance-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
     <svg class="appearance-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.6A8.7 8.7 0 0 1 8.4 4a8.7 8.7 0 1 0 11.6 11.6Z"/></svg>
+  </button>
+  <button class="download-entry" id="artworkDownload" type="button" onclick="downloadCurrentDesign()" aria-label="Download artwork" title="Download artwork" disabled>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><span>Download artwork</span>
   </button>
   <button class="btn-p publish-entry" type="button" data-open-publishing aria-haspopup="dialog">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>Publish
@@ -455,7 +458,7 @@
         <div class="section-heading"><h2 id="posterPreviewTitle">Poster canvas</h2><span id="posterPreviewLabel">Sample artwork</span><div class="artboard-tools">
           <label class="visually-hidden" for="posterCanvasZoom">Poster zoom</label>
           <select id="posterCanvasZoom"><option value="fit">Fit</option><option value="width">Fill width</option><option value="75">75%</option><option value="100">100%</option></select>
-          <a class="action-link" href="#posterTools">Layouts &amp; edit</a>
+          <a class="action-link poster-tools-link" href="#posterTools">Layouts &amp; edit</a>
           <button type="button" class="btn-p btn-sm" onclick="openStudioComposer('posterCompose','posterInput')">Compose</button>
         </div></div>
         <div class="poster-canvas-wrap artboard-viewport" id="posterViewport" data-zoom="fit">
@@ -478,8 +481,7 @@
           </div>
         </div>
       </section>
-    </div>
-    <div id="posterTools" class="poster-tools" tabindex="-1">
+      <div id="posterTools" class="poster-tools" tabindex="-1">
       <section class="creative-gallery" aria-labelledby="creativeGalleryTitle">
         <div class="section-heading"><h2 id="creativeGalleryTitle">Layout gallery</h2><span id="creativeCount"></span></div>
         <label class="visually-hidden" for="creativeSearch">Search layouts</label>
@@ -582,6 +584,7 @@
       </section>
       </div>
       </section>
+      </div>
     </div>
   </div>
 
@@ -901,9 +904,9 @@
 <script src="./assets/creative.js?v=story-layouts"></script>
 <script src="./assets/photo-search.js?v=carousel-visuals"></script>
 <script src="./assets/article-import.js"></script>
-<script src="./assets/studio.js?v=poster-tools"></script>
+<script src="./assets/studio.js?v=poster-canvas-sidebars"></script>
 <script src="./assets/image-generator.js"></script>
 <script src="./assets/social-publishing.js?v=carousel-visuals"></script>
-<script src="./assets/workspace.js?v=canvas-workspace"></script>
+<script src="./assets/workspace.js?v=poster-canvas-sidebars"></script>
 </body>
 </html>

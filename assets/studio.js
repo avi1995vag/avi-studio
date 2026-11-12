@@ -129,8 +129,10 @@ const WORKSPACE_VIEWS = {
 
 function switchMode(mode){
   if(!Object.hasOwn(WORKSPACE_VIEWS, mode)) return;
+  const previousMode = currentMode;
   currentMode = mode;
   document.querySelector('.dashboard').dataset.workspace = mode;
+  if(previousMode !== mode && (previousMode === 'poster' || mode === 'poster')) restoreStudioInspector();
   activateDraft(mode);
   for(const key of Object.keys(WORKSPACE_VIEWS)){
     document.getElementById(key+'Panel').classList.toggle('active', key===mode);
@@ -1071,6 +1073,7 @@ function applyChartEdit(val) {
 
 function buildGrid(gridEl){
   queueDraftSave();
+  syncArtworkDownload();
   const gridId = {carousel:'slidesGrid',news:'newsSlidesGrid',breaking:'breakingSlidesGrid'}[currentMode];
   const grid = gridEl || document.getElementById(gridId);
   if(!grid) return;
@@ -2904,6 +2907,7 @@ function drawSlideOnCanvas(canvas, slide, idx, language){
 ═══════════════════════════════════════════════════════════ */
 function openPosterEditor(){
   if(!posterSlide) return;
+  syncArtworkDownload();
   document.getElementById('posterLayout').value = posterSlide.layout;
   updateCreativeGallery();
   const empty = document.getElementById('posterEditorEmpty');
