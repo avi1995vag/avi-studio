@@ -587,6 +587,13 @@ async function initWorkspace() {
       document.getElementById('draftState').textContent = 'Draft restored from this device';
     }
   } catch { document.getElementById('draftState').textContent = 'Local draft restore unavailable'; }
+  const studioUrl = new URL(location.href);
+  const requestedView = studioUrl.searchParams.get('view');
+  if(Object.hasOwn(WORKSPACE_VIEWS,requestedView)){
+    switchMode(requestedView);
+    studioUrl.searchParams.delete('view');
+    history.replaceState(null,'',studioUrl);
+  }
   buildGrid();
   updateCharCount();
   studioReady = true;

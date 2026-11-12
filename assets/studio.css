@@ -87,7 +87,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   padding: 0 18px; background: linear-gradient(90deg,var(--workspace-hue),var(--workspace-second)) top / 100% 2px no-repeat, var(--rail); border-bottom: 1px solid var(--border);
   position: sticky; top: 0; z-index: 5;
 }
-.logo { display: flex; align-items: center; gap: 7px; font-size: 21px; font-weight: 800; letter-spacing: -.06em; white-space: nowrap; }
+.logo { display: flex; align-items: center; gap: 7px; color: var(--text); text-decoration: none; font-size: 21px; font-weight: 800; letter-spacing: -.06em; white-space: nowrap; }
 .logo > span:last-child { font-weight: 500; color: var(--muted); }
 .brand-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: linear-gradient(140deg,#fff18f,#fd967d); margin-right: 4px; }
 .brand-icon svg { width: 27px; height: 27px; fill: #301b22; }

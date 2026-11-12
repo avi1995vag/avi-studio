@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - index.html
+      - landing.html
       - assets/**
       - build_site.py
       - feeds.py

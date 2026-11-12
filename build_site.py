@@ -14,7 +14,8 @@ ROOT = Path(__file__).resolve().parent
 
 def build(output, offline):
     output.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(ROOT / 'index.html', output / 'index.html')
+    shutil.copy2(ROOT / 'landing.html', output / 'index.html')
+    shutil.copy2(ROOT / 'index.html', output / 'studio.html')
     shutil.copytree(ROOT / 'assets', output / 'assets', dirs_exist_ok=True)
     data = {'updatedAt': None, 'feeds': {}} if offline else enrich_feed_metadata(snapshot())
     (output / 'feeds.json').write_text(json.dumps(data, ensure_ascii=False), encoding='utf-8')

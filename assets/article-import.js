@@ -1,5 +1,5 @@
 const INTEGRATION_KEYS = ['geminiKey','serperKey','pexelsKey','accessToken','zernioApiKey'];
-const INTEGRATION_STORAGE = 'avi-studio:integration-keys:' + location.pathname.replace(/(?:index\.html)?$/,'').replace(/\/$/,'');
+const INTEGRATION_STORAGE = 'avi-studio:integration-keys:' + location.pathname.replace(/\/(?:index|studio)\.html$/,'').replace(/\/$/,'');
 const keyStatus = message => { document.getElementById('keyStorageStatus').textContent = message; };
 
 function restoreIntegrationKeys(){
