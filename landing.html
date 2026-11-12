@@ -15,8 +15,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anek+Kannada:wght@600;800&family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/landing.css?v=4">
-  <script src="./assets/landing.js?v=4" defer></script>
+  <link rel="stylesheet" href="./assets/landing.css?v=5">
+  <script src="./assets/landing.js?v=5" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -24,7 +24,7 @@
     <header class="landing-header">
       <div class="page-width header-inner">
         <a class="landing-logo" href="./" aria-label="AvI Studio home"><span class="landing-mark" aria-hidden="true">A</span> AvI Studio</a>
-        <nav aria-label="Main navigation"><a href="#preview">Try a design</a><a href="#formats">Workspaces</a></nav>
+        <nav aria-label="Main navigation"><a href="#preview">Try a design</a><a href="#tools">Creator tools</a><a href="#formats">Workspaces</a></nav>
         <a class="button header-action" href="./studio.html">Open Studio <span aria-hidden="true">↗</span></a>
       </div>
     </header>
@@ -82,6 +82,45 @@
         </section>
       </section>
 
+      <section class="landing-tools" id="tools" aria-labelledby="tools-title">
+        <div class="page-width">
+          <div class="section-heading">
+            <h2 id="tools-title">Ready for <em>every format.</em></h2>
+            <p>Crop the artwork, find its colors, and check the caption before you publish.</p>
+          </div>
+          <div class="landing-tool-grid">
+            <article class="landing-tool-card resize-card">
+              <div class="tool-card-copy">
+                <h3>Image Lab</h3>
+                <p>Crop, resize, and convert images. Export five sizes in one ZIP or copy colors from the source photo.</p>
+                <a class="button tool-open" href="./studio.html?view=tools">Open Image Lab <span aria-hidden="true">↗</span></a>
+              </div>
+              <div class="resize-sample" data-preview-size="portrait">
+                <div class="resize-window">
+                  <img src="./assets/landing-staircase.webp" alt="Coral spiral staircase beside a round blue window" width="960" height="640" loading="lazy">
+                </div>
+                <div class="resize-options" role="group" aria-label="Sample crop">
+                  <button type="button" data-sample-size="portrait" aria-label="Portrait, 4 by 5" aria-pressed="true">4:5</button>
+                  <button type="button" data-sample-size="square" aria-label="Square, 1 by 1" aria-pressed="false">1:1</button>
+                  <button type="button" data-sample-size="story" aria-label="Story, 9 by 16" aria-pressed="false">9:16</button>
+                </div>
+                <p class="sr-only" id="crop-sample-status" role="status"></p>
+              </div>
+            </article>
+            <article class="landing-tool-card caption-card">
+              <div class="tool-card-copy">
+                <h3>Caption Lab</h3>
+                <p>Clean up spacing and hashtags, check platform lengths, then send the caption to your draft.</p>
+                <a class="button tool-open" href="./studio.html?view=tools&amp;panel=caption">Open Caption Lab <span aria-hidden="true">↗</span></a>
+              </div>
+              <div class="caption-sample" aria-hidden="true">
+                <div class="caption-paper"><strong>After the rain.</strong><p lang="kn">ಮಳೆಯ ನಂತರ ನಗರ ಮತ್ತೆ ಚಲಿಸತೊಡಗಿತು.</p><span>#Bengaluru</span></div>
+                <div class="caption-stickers"><span>Instagram</span><span>Threads</span><span>X</span></div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
       <section class="formats" id="formats" aria-labelledby="formats-title">
         <div class="page-width">
           <div class="section-heading">
@@ -192,7 +231,7 @@
     </main>
     <footer class="landing-footer"><div class="page-width">
       <a class="landing-logo" href="./"><span class="landing-mark" aria-hidden="true">A</span> AvI Studio</a>
-      <nav aria-label="Footer navigation"><a href="#workflow">How it works</a><a href="./assets/publishing-privacy.html">Publishing privacy</a><a href="./studio.html">Open Studio ↗</a></nav>
+      <nav aria-label="Footer navigation"><a href="#tools">Creator tools</a><a href="#workflow">How it works</a><a href="./assets/publishing-privacy.html">Publishing privacy</a><a href="./studio.html">Open Studio ↗</a></nav>
     </div></footer>
   </div>
 </body>

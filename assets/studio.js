@@ -124,6 +124,7 @@ const WORKSPACE_VIEWS = {
   breaking: ['Breaking Stories', 'Build a story from the latest coverage.'],
   poster: ['Single Poster', 'Design a standalone poster from an article, headline or idea.'],
   imageGenerator: ['AI Image Generator', 'Create an illustration or photo-style image from a prompt.'],
+  tools: ['Creator Tools', 'Resize images, build a color palette, and prepare captions for publishing.'],
   scheduler: ['Automation', 'Manage scheduled editions and save ideas for later.']
 };
 
@@ -143,11 +144,11 @@ function switchMode(mode){
     button.setAttribute('aria-pressed', String(active));
     if(active) document.getElementById('topWorkspace').textContent = button.textContent.trim();
   }
-  document.getElementById('inspectorToggle').hidden = mode==='imageGenerator';
+  document.getElementById('inspectorToggle').hidden = ['imageGenerator','tools'].includes(mode);
   ['workspaceTitle','workspaceSubtitle'].forEach((id,index) => {
     document.getElementById(id).textContent = WORKSPACE_VIEWS[mode][index];
   });
-  if(mode === 'poster' || mode === 'scheduler' || mode === 'imageGenerator'){
+  if(['poster','scheduler','imageGenerator','tools'].includes(mode)){
     closeSlideEditor();
   }
   buildGrid();

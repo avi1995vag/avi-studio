@@ -3,6 +3,7 @@ const draftCaptions = {carousel: '', poster: ''};
 const draftSources = {carousel: null, poster: null};
 const persistedImages = new WeakMap();
 const frameLayouts = new Set(['brief','cover','cta','split','text-focus','magazine','minimal','tweet','stats','timeline','news-card','chart-bar','hero-split','minimal-quote','dateline','spotlight','world-update','breaking-banner','editorial',...Object.keys(CREATIVE_TEMPLATES),...Object.keys(CAROUSEL_LAYOUTS)]);
+const independentWorkspaces = new Set(['scheduler','imageGenerator','tools']);
 let draftKind = 'carousel';
 let draftDB;
 let draftTimer;
@@ -16,7 +17,7 @@ function escapeHtml(value) {
 
 function activateDraft(mode) {
   const kind = mode === 'poster' ? 'poster' : 'carousel';
-  if(mode !== 'scheduler' && mode !== 'imageGenerator' && draftKind !== kind) {
+  if(!independentWorkspaces.has(mode) && draftKind !== kind) {
     const caption = document.getElementById('caption');
     draftCaptions[draftKind] = caption.value;
     draftKind = kind;
@@ -378,7 +379,7 @@ async function downloadCurrentDesign() {
 
 function syncArtworkDownload(){
   const button = document.getElementById('artworkDownload');
-  button.hidden = currentMode === 'imageGenerator';
+  button.hidden = ['imageGenerator','tools'].includes(currentMode);
   button.disabled = draftKind === 'poster' ? !posterSlide : !slides.length;
 }
 
@@ -581,7 +582,7 @@ async function initWorkspace() {
       if(saved.carousel) await hydrateDraft(saved.carousel);
       if(saved.poster) await hydrateDraft(saved.poster);
       const savedDraft = (saved.activeDraft || saved.mode) === 'poster' ? saved.poster : saved.carousel;
-      if(['scheduler','imageGenerator'].includes(saved.mode) && savedDraft?.mode === 'poster') activateDraft('poster');
+      if(independentWorkspaces.has(saved.mode) && savedDraft?.mode === 'poster') activateDraft('poster');
       if(Object.hasOwn(THEMES, savedDraft?.theme)) setTheme(savedDraft.theme);
       switchMode(saved.mode);
       document.getElementById('draftState').textContent = 'Draft restored from this device';
@@ -600,6 +601,7 @@ async function initWorkspace() {
       openStudioSettings();
     },
     integrations: () => openStudioSettings('serperKey'),
+    caption: () => openCreatorTool('captionLabTab'),
     publish: () => document.querySelector('.publish-entry').click(),
   };
   if(Object.hasOwn(WORKSPACE_VIEWS,requestedView)){

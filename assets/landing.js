@@ -182,3 +182,14 @@ workflowTabList.addEventListener('keydown', event => {
   selectWorkflowTab(tab);
   tab.focus();
 });
+
+const cropSample = document.querySelector('.resize-sample');
+for (const button of cropSample.querySelectorAll('[data-sample-size]')) {
+  button.addEventListener('click', () => {
+    cropSample.dataset.previewSize = button.dataset.sampleSize;
+    for (const option of cropSample.querySelectorAll('[data-sample-size]')) {
+      option.setAttribute('aria-pressed',String(option === button));
+    }
+    document.getElementById('crop-sample-status').textContent = button.getAttribute('aria-label') + ' crop shown';
+  });
+}

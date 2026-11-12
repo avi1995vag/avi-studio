@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css?v=landing-entry">
+<link rel="stylesheet" href="./assets/studio.css?v=creator-tools">
 </head>
 <body>
 
@@ -44,6 +44,7 @@
 <button class="tab-btn active" data-mode="carousel" aria-pressed="true" onclick="switchMode('carousel')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="11" height="14" rx="2"/><path d="M17 7h1a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-1"/></svg>Carousel</button>
 <button class="tab-btn" data-mode="poster" aria-pressed="false" onclick="switchMode('poster')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 16-5-5-8 10"/></svg>Single poster</button>
 <button class="tab-btn" data-mode="imageGenerator" aria-pressed="false" onclick="switchMode('imageGenerator')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c0 6-4 10-10 10 6 0 10 4 10 10 0-6 4-10 10-10-6 0-10-4-10-10Z"/></svg>AI images</button>
+<button class="tab-btn" data-mode="tools" aria-pressed="false" onclick="switchMode('tools')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 16h16M8 5v6m8 2v6"/></svg>Tools</button>
 <div class="sec sidebar-label desk-label">Editorial</div>
 <button class="tab-btn" data-mode="news" aria-pressed="false" onclick="switchMode('news')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>News desk</button>
 <button class="tab-btn" data-mode="breaking" aria-pressed="false" onclick="switchMode('breaking')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-12h-7z"/></svg>Breaking</button>
@@ -625,6 +626,83 @@
     </div>
   </div>
 
+  <div id="toolsPanel" class="panel">
+    <div class="creator-tabs" role="tablist" aria-label="Creator tools">
+      <button type="button" id="imageLabTab" role="tab" aria-selected="true" aria-controls="imageLab">Image Lab</button>
+      <button type="button" id="captionLabTab" role="tab" aria-selected="false" aria-controls="captionLab" tabindex="-1">Caption Lab</button>
+    </div>
+
+    <div id="imageLab" role="tabpanel" tabindex="0" aria-labelledby="imageLabTab">
+      <div class="lab-grid">
+        <section class="gen-area lab-controls" aria-labelledby="imageLabControls">
+          <h2 id="imageLabControls">Prepare an image</h2>
+          <div class="field"><label for="labFile">Upload a JPEG, PNG, or WebP</label><input type="file" id="labFile" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"></div>
+          <div class="lab-actions"><button type="button" id="labSample">Try sample</button><button type="button" id="labLoadPoster">Use current poster</button></div>
+          <div class="field"><label for="labSize">Output size</label>
+            <select id="labSize">
+              <option value="portrait">Portrait · 1080 × 1350</option>
+              <option value="square">Square · 1080 × 1080</option>
+              <option value="story">Story · 1080 × 1920</option>
+              <option value="landscape">Landscape · 1200 × 628</option>
+              <option value="thumbnail">Thumbnail · 1280 × 720</option>
+              <option value="custom">Custom size</option>
+            </select>
+          </div>
+          <div class="lab-fields" id="labCustom" hidden>
+            <div class="field"><label for="labWidth">Width (px)</label><input type="number" id="labWidth" min="32" max="4096" step="1" value="1080" required></div>
+            <div class="field"><label for="labHeight">Height (px)</label><input type="number" id="labHeight" min="32" max="4096" step="1" value="1350" required></div>
+          </div>
+          <div class="lab-fields">
+            <div class="field"><label for="labFit">Placement</label><select id="labFit"><option value="fill">Fill and crop</option><option value="fit">Fit with padding</option></select></div>
+            <div class="field"><label for="labFormat">Format</label><select id="labFormat"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select></div>
+          </div>
+          <div class="lab-fields" id="labPosition">
+            <div class="field"><label for="labX">Horizontal crop</label><input id="labX" type="range" min="0" max="100" value="50"></div>
+            <div class="field"><label for="labY">Vertical crop</label><input id="labY" type="range" min="0" max="100" value="50"></div>
+          </div>
+          <div class="field" id="labQualityField"><label for="labQuality">Export quality <output id="labQualityValue" for="labQuality">90%</output></label><input id="labQuality" type="range" min="35" max="100" value="90"></div>
+          <p class="helper">Images are processed on this device. The size pack includes all five presets.</p>
+        </section>
+        <section class="gen-area lab-output" aria-labelledby="labPreviewTitle">
+          <div class="lab-preview-header"><h2 id="labPreviewTitle">Image preview</h2><span id="labDimensions" class="helper"></span></div>
+          <div class="lab-stage" id="labStage">
+            <p id="labEmpty">Choose an image to preview the crop.</p>
+            <canvas id="labCanvas" width="1" height="1" role="img" aria-label="Resized image preview" hidden></canvas>
+          </div>
+          <div class="lab-actions">
+            <button type="button" id="labDownload" class="btn-p" disabled>Download image</button>
+            <button type="button" id="labPack" disabled>Download size pack</button>
+            <button type="button" id="labApply" disabled>Use in poster</button>
+          </div>
+          <div id="labPalette" class="lab-palette" hidden><h3>Image palette</h3><div id="labSwatches" class="lab-swatches"></div></div>
+          <p id="labStatus" role="status" class="helper lab-status"></p>
+        </section>
+      </div>
+    </div>
+
+    <div id="captionLab" role="tabpanel" tabindex="0" aria-labelledby="captionLabTab" hidden>
+      <div class="lab-grid">
+        <section class="gen-area lab-controls" aria-labelledby="captionLabControls">
+          <h2 id="captionLabControls">Write a caption</h2>
+          <div class="field"><label for="labCaption">Caption text</label><textarea id="labCaption" rows="7" maxlength="12000" placeholder="Write in English, Kannada, or both…"></textarea></div>
+          <div class="field"><label for="labHashtags">Hashtags to append</label><input id="labHashtags" maxlength="500" placeholder="#Bengaluru #CityLife"></div>
+          <label class="lab-check"><input type="checkbox" id="labClean" checked> Clean extra spaces and blank lines</label>
+          <button type="button" id="labLoadCaption">Load current draft caption</button>
+        </section>
+        <section class="gen-area lab-output" aria-labelledby="captionLabPreviewTitle">
+          <h2 id="captionLabPreviewTitle">Caption preview</h2>
+          <p id="labCaptionPreview" class="lab-caption-preview">Your formatted caption will appear here.</p>
+          <ul id="labCaptionLimits" class="lab-limits" aria-label="Caption length by channel"></ul>
+          <p class="helper">Link-based counts are estimates. Buffer validates your connected channels when you submit. <a href="https://developers.buffer.com/guides/character-limits.html" target="_blank" rel="noopener noreferrer">Counting rules ↗</a></p>
+          <div class="lab-actions">
+            <button type="button" id="labUseCaption" class="btn-p" disabled>Use in current draft</button>
+            <button type="button" id="labCopyCaption" disabled>Copy caption</button>
+          </div>
+          <p id="labCaptionStatus" role="status" class="helper lab-status"></p>
+        </section>
+      </div>
+    </div>
+  </div>
   <!-- SCHEDULER PANEL -->
   <div id="schedulerPanel" class="panel">
     <div class="mode-badge"><span class="mb-dot"></span>Publishing workflow</div>
@@ -838,6 +916,7 @@
   <div class="delivery-actions">
     <button class="deploy-btn-zip btn-p" onclick="downloadCurrentDesign()">Download artwork</button>
     <button onclick="copyCaption()">Copy caption</button>
+    <button type="button" id="openCaptionLab">Check caption</button>
   </div>
   <details class="settings-block publish-settings">
     <summary>Publish manually</summary>
@@ -904,9 +983,10 @@
 <script src="./assets/creative.js?v=story-layouts"></script>
 <script src="./assets/photo-search.js?v=carousel-visuals"></script>
 <script src="./assets/article-import.js?v=landing-entry"></script>
-<script src="./assets/studio.js?v=poster-canvas-sidebars"></script>
+<script src="./assets/studio.js?v=creator-tools"></script>
 <script src="./assets/image-generator.js"></script>
 <script src="./assets/social-publishing.js?v=carousel-visuals"></script>
-<script src="./assets/workspace.js?v=landing-panels"></script>
+<script src="./assets/creator-tools.js?v=1"></script>
+<script src="./assets/workspace.js?v=creator-tools"></script>
 </body>
 </html>
