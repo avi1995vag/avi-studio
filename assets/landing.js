@@ -149,3 +149,36 @@ reducedMotion.addEventListener('change', () => animation?.cancel());
 
 updateComparison();
 renderPreview({ animate: false, announce: false });
+
+const workflowTabList = document.querySelector('.workflow-tabs');
+const workflowTabs = [...workflowTabList.querySelectorAll('[role="tab"]')];
+
+function selectWorkflowTab(selected) {
+  for (const tab of workflowTabs) {
+    const active = tab === selected;
+    tab.setAttribute('aria-selected', String(active));
+    tab.tabIndex = active ? 0 : -1;
+    document.getElementById(tab.getAttribute('aria-controls')).hidden = !active;
+  }
+}
+
+for (const tab of workflowTabs) {
+  tab.addEventListener('click', () => selectWorkflowTab(tab));
+}
+
+workflowTabList.addEventListener('keydown', event => {
+  const index = workflowTabs.indexOf(event.target);
+  if (index < 0) return;
+  const last = workflowTabs.length - 1;
+  const destinations = {
+    ArrowLeft: (index + last) % workflowTabs.length,
+    ArrowRight: (index + 1) % workflowTabs.length,
+    Home: 0,
+    End: last,
+  };
+  if (!Object.hasOwn(destinations, event.key)) return;
+  event.preventDefault();
+  const tab = workflowTabs[destinations[event.key]];
+  selectWorkflowTab(tab);
+  tab.focus();
+});

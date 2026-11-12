@@ -589,13 +589,30 @@ async function initWorkspace() {
   } catch { document.getElementById('draftState').textContent = 'Local draft restore unavailable'; }
   const studioUrl = new URL(location.href);
   const requestedView = studioUrl.searchParams.get('view');
+  const requestedPanel = studioUrl.searchParams.get('panel');
+  const panelActions = {
+    article: () => {
+      switchMode('poster');
+      openStudioComposer('posterCompose','posterInput');
+    },
+    brand: () => {
+      document.getElementById('defaultCoverLayout').closest('details').open = true;
+      openStudioSettings();
+    },
+    integrations: () => openStudioSettings('serperKey'),
+    publish: () => document.querySelector('.publish-entry').click(),
+  };
   if(Object.hasOwn(WORKSPACE_VIEWS,requestedView)){
     switchMode(requestedView);
     studioUrl.searchParams.delete('view');
-    history.replaceState(null,'',studioUrl);
   }
   buildGrid();
   updateCharCount();
+  if(Object.hasOwn(panelActions,requestedPanel)){
+    panelActions[requestedPanel]();
+    studioUrl.searchParams.delete('panel');
+  }
+  if(studioUrl.href!==location.href) history.replaceState(null,'',studioUrl);
   studioReady = true;
   configureWorkflowLinks();
   document.fonts.ready.then(() => {

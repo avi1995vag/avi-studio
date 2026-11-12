@@ -15,8 +15,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anek+Kannada:wght@600;800&family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/landing.css?v=3">
-  <script src="./assets/landing.js?v=3" defer></script>
+  <link rel="stylesheet" href="./assets/landing.css?v=4">
+  <script src="./assets/landing.js?v=4" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -85,33 +85,114 @@
       <section class="formats" id="formats" aria-labelledby="formats-title">
         <div class="page-width">
           <div class="section-heading">
-            <h2 id="formats-title">Find your <em>format.</em></h2>
-            <p>Start from an idea or bring in an article. Each workspace gives the story a different amount of room.</p>
+            <h2 id="formats-title">Find your <em>workspace.</em></h2>
+            <p>Choose the canvas, newsroom, or tool you need for your next story.</p>
           </div>
           <div class="format-gallery">
             <a class="gallery-card gallery-poster" href="./studio.html?view=poster">
               <div class="gallery-art" aria-hidden="true"><figure><img src="./assets/landing-dancer.webp" alt="" width="760" height="950" loading="lazy"><strong>Afterglow.</strong></figure></div>
-              <div class="gallery-caption"><div><h3>Single Poster</h3><p>One image. One headline.</p></div><span aria-hidden="true">↗</span></div>
+              <div class="gallery-caption"><div><h3>Single Poster</h3><p>Build a standalone visual with a searchable layout gallery and a large canvas.</p></div><span aria-hidden="true">↗</span></div>
             </a>
             <a class="gallery-card gallery-carousel" href="./studio.html?view=carousel">
               <div class="gallery-art" aria-hidden="true"><div><strong>Find your<br>stride.</strong></div><figure><img src="./assets/landing-runner.webp" alt="" width="720" height="900" loading="lazy"></figure><div><strong>The city<br>is yours.</strong></div></div>
-              <div class="gallery-caption"><div><h3>Carousel</h3><p>Take the story frame by frame.</p></div><span aria-hidden="true">↗</span></div>
+              <div class="gallery-caption"><div><h3>Carousel</h3><p>Fit layouts to the story. Edit and reorder frames on the canvas or grid.</p></div><span aria-hidden="true">↗</span></div>
+            </a>
+            <a class="gallery-card gallery-image" href="./studio.html?view=imageGenerator">
+              <div class="gallery-art" aria-hidden="true"><img src="./assets/landing-heron.webp" alt="" width="900" height="600" loading="lazy"><span>Sample illustration</span></div>
+              <div class="gallery-caption"><div><h3>AI Images</h3><p>Generate with the free community queue, then download the image or use it in a poster.</p></div><span aria-hidden="true">↗</span></div>
             </a>
             <a class="gallery-card gallery-news" href="./studio.html?view=news">
               <div class="gallery-art" aria-hidden="true"><figure><strong lang="kn">ಮಳೆಯ ನಂತರ</strong><img src="./assets/landing-market.webp" alt="" width="880" height="1100" loading="lazy"></figure></div>
-              <div class="gallery-caption"><div><h3>News Desk</h3><p>Turn a headline into a visual brief.</p></div><span aria-hidden="true">↗</span></div>
+              <div class="gallery-caption"><div><h3>News Desk</h3><p>Browse English and Kannada feeds and turn headlines into a news roundup.</p></div><span aria-hidden="true">↗</span></div>
+            </a>
+            <a class="gallery-card gallery-breaking" href="./studio.html?view=breaking">
+              <div class="gallery-art" aria-hidden="true"><div class="breaking-sheet"><span>Breaking story</span><strong>What<br>changed?</strong><div><b>Timeline</b><b>Impact</b><b>Reactions</b></div></div></div>
+              <div class="gallery-caption"><div><h3>Breaking Stories</h3><p>Research a developing topic with Gemini and build a timeline, explainer, or reaction roundup.</p></div><span aria-hidden="true">↗</span></div>
+            </a>
+            <a class="gallery-card gallery-automation" href="./studio.html?view=scheduler">
+              <div class="gallery-art" aria-hidden="true"><div class="edition-sheet"><strong>Scheduled editions</strong><p><time>08:17</time> India brief</p><p lang="kn"><time>13:23</time> ಕರ್ನಾಟಕ ಸುದ್ದಿ</p><p><time>19:37</time> World brief</p></div></div>
+              <div class="gallery-caption"><div><h3>Automation</h3><p>Plan ideas in your browser, run scheduled drafts, or publish editions once configured.</p></div><span aria-hidden="true">↗</span></div>
             </a>
           </div>
-          <div class="closing">
-            <p>Have an image in mind?</p>
-            <a class="button secondary" href="./studio.html?view=imageGenerator">Open AI Images <span aria-hidden="true">↗</span></a>
+        </div>
+      </section>
+
+      <section class="feature-section" id="workflow" aria-labelledby="workflow-title">
+        <div class="page-width">
+          <div class="section-heading">
+            <h2 id="workflow-title">From source <em>to post.</em></h2>
+            <p>Follow a sample story through the tools you’ll use to make it and share it.</p>
+          </div>
+          <div class="workflow-tabs" role="tablist" aria-label="Story workflow">
+            <button type="button" role="tab" id="tab-source" aria-controls="workflow-source" aria-selected="true">Source</button>
+            <button type="button" role="tab" id="tab-design" aria-controls="workflow-design" aria-selected="false" tabindex="-1">Design</button>
+            <button type="button" role="tab" id="tab-delivery" aria-controls="workflow-delivery" aria-selected="false" tabindex="-1">Publish &amp; export</button>
+          </div>
+
+          <div class="workflow-panel" id="workflow-source" role="tabpanel" tabindex="0" aria-labelledby="tab-source">
+            <div class="workflow-copy">
+              <h3>Bring the article into the studio.</h3>
+              <ul>
+                <li><strong>Import a link</strong> and pull in the headline, text, and lead photo from supported articles. You can also paste an excerpt or import without AI.</li>
+                <li><strong>Find another image</strong> with Commons or connected Google Images and Pexels search, or supply your own upload or image URL.</li>
+              </ul>
+              <div class="workflow-actions">
+                <a class="button feature-action" href="./studio.html?view=poster&amp;panel=article">Open article import <span aria-hidden="true">↗</span></a>
+                <a class="feature-link" href="./studio.html?panel=integrations">Search and saved keys <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+            <div class="workflow-art source-art" aria-hidden="true">
+              <div class="source-sheet">
+                <img src="./assets/landing-market.webp" alt="" width="880" height="1100" loading="lazy">
+                <div><span>Sample article</span><strong>Back in motion.</strong><p>A morning at the market after the rain.</p></div>
+              </div>
+              <div class="source-chips"><span>Headline</span><span>Article text</span><span>Lead photo</span></div>
+            </div>
+          </div>
+
+          <div class="workflow-panel" id="workflow-design" role="tabpanel" tabindex="0" aria-labelledby="tab-design" hidden>
+            <div class="workflow-copy">
+              <h3>Make the layout your own.</h3>
+              <ul>
+                <li><strong>Shape the composition</strong> with searchable poster layouts, story-aware carousel layouts, colors, type sizes, and image placement.</li>
+                <li><strong>Work in English or Kannada</strong> or set a poster in both. Adjust brand defaults and keep editable drafts on this device or export them for later.</li>
+              </ul>
+              <div class="workflow-actions">
+                <a class="button feature-action" href="./studio.html?view=poster">Open layout gallery <span aria-hidden="true">↗</span></a>
+                <a class="feature-link" href="./studio.html?panel=brand">Brand settings <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+            <div class="workflow-art design-art" aria-hidden="true">
+              <div class="design-sheet"><img src="./assets/landing-dancer.webp" alt="" width="760" height="950" loading="lazy"><strong>Afterglow.</strong></div>
+              <div class="design-sheet"><strong lang="kn">ಮುಸ್ಸಂಜೆ</strong><img src="./assets/landing-dancer.webp" alt="" width="760" height="950" loading="lazy"></div>
+              <div class="design-colors"><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+
+          <div class="workflow-panel" id="workflow-delivery" role="tabpanel" tabindex="0" aria-labelledby="tab-delivery" hidden>
+            <div class="workflow-copy">
+              <h3>Send it where it needs to go.</h3>
+              <ul>
+                <li><strong>Download artwork</strong> as a portrait, square, or story-sized JPEG or PNG. Save carousel frames and the caption together as a ZIP.</li>
+                <li><strong>Publish through Buffer</strong> to connected channels such as Facebook Pages, Instagram Business, X, LinkedIn, Threads, Bluesky, or Mastodon. Edit the caption and check the result in the studio.</li>
+              </ul>
+              <div class="workflow-actions">
+                <a class="button feature-action" href="./studio.html?panel=publish">Open direct publishing <span aria-hidden="true">↗</span></a>
+                <a class="feature-link" href="./studio.html?view=scheduler">Open automation <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+            <div class="workflow-art delivery-art" aria-hidden="true">
+              <div class="delivery-sheet"><img src="./assets/landing-runner.webp" alt="" width="720" height="900" loading="lazy"><strong>Find your<br>stride.</strong></div>
+              <div class="delivery-formats"><span>JPEG</span><span>PNG</span><span>ZIP</span></div>
+              <div class="delivery-channel"><strong>Direct publishing</strong><span>Connect with Buffer <b>↗</b></span></div>
+            </div>
           </div>
         </div>
       </section>
     </main>
     <footer class="landing-footer"><div class="page-width">
       <a class="landing-logo" href="./"><span class="landing-mark" aria-hidden="true">A</span> AvI Studio</a>
-      <a href="./assets/publishing-privacy.html">Publishing privacy</a>
+      <nav aria-label="Footer navigation"><a href="#workflow">How it works</a><a href="./assets/publishing-privacy.html">Publishing privacy</a><a href="./studio.html">Open Studio ↗</a></nav>
     </div></footer>
   </div>
 </body>
