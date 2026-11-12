@@ -27,5 +27,6 @@ jobs:
       - run: node --check assets/creative.js && node --check assets/photo-search.js && node --check assets/article-import.js && node --check assets/studio.js && node --check assets/image-generator.js && node --check assets/workspace.js
       - run: node --check assets/creator-tools.js && node --check assets/landing.js
       - run: node --check assets/social-publishing.js && node --test publishing/worker.test.mjs tests/carousel-layouts.test.mjs
+      - run: node --check assets/graphics-tools.js && node --check assets/photo-studio.js && node --check assets/vision-worker.js
       - run: python build_site.py --offline
       - run: python main.py --sample

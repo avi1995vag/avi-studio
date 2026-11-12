@@ -528,3 +528,37 @@ canvas.preview.selected { border-color: var(--accent); outline: 2px solid var(--
   .lab-grid { grid-template-columns: minmax(0,1fr); gap: 10px; }
   .lab-stage canvas { max-height: min(57dvh,460px); }
 }
+.graphic-stage {
+  display: grid;
+  place-items: center;
+  min-height: 260px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: radial-gradient(ellipse at center, var(--bg3), var(--bg));
+}
+.graphic-stage canvas {
+  display: block;
+  max-width: 100%;
+  max-height: min(65dvh,700px);
+  object-fit: contain;
+  box-shadow: 0 16px 34px #0005;
+}
+.photo-workbench {
+  background:
+    repeating-conic-gradient(var(--bg3) 0% 25%, var(--bg) 0% 50%) 0 / 24px 24px;
+}
+.photo-workbench img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: min(63dvh,680px);
+  object-fit: contain;
+  box-shadow: 0 13px 28px #0004;
+}
+#cutoutColor { width: 100%; min-height: 40px; }
+@media (max-width: 760px) {
+  .creator-tabs { gap: 5px; }
+  .creator-tabs button { padding-inline: 11px; }
+  .graphic-stage canvas, .photo-workbench img { max-height: 58dvh; }
+}

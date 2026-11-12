@@ -602,6 +602,10 @@ async function initWorkspace() {
     },
     integrations: () => openStudioSettings('serperKey'),
     caption: () => openCreatorTool('captionLabTab'),
+    infographic: () => openCreatorTool('infographicTab'),
+    map: () => openCreatorTool('mapGraphicsTab'),
+    background: () => openCreatorTool('backgroundTab'),
+    hd: () => openCreatorTool('hdTab'),
     publish: () => document.querySelector('.publish-entry').click(),
   };
   if(Object.hasOwn(WORKSPACE_VIEWS,requestedView)){

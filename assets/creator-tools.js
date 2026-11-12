@@ -8,7 +8,9 @@ const selectCreatorTab = (() => {
       const active = item === tab;
       item.setAttribute('aria-selected', String(active));
       item.tabIndex = active ? 0 : -1;
-      document.getElementById(item.getAttribute('aria-controls')).hidden = !active;
+      const panel = document.getElementById(item.getAttribute('aria-controls'));
+      panel.hidden = !active;
+      if (active) panel.dispatchEvent(new Event('creator-tool-open'));
     }
   }
 
@@ -16,7 +18,10 @@ const selectCreatorTab = (() => {
   tabList.addEventListener('keydown', event => {
     if (!tabs.includes(event.target) || !['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
     event.preventDefault();
-    const next = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs.at(-1) : tabs.find(tab => tab !== event.target);
+    const index = tabs.indexOf(event.target);
+    const step = event.key === 'ArrowLeft' ? -1 : 1;
+    const next = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs.at(-1)
+      : tabs[(index + step + tabs.length) % tabs.length];
     select(next);
     next.focus();
   });
@@ -29,6 +34,21 @@ function openCreatorTool(tabId) {
   selectCreatorTab(tab);
   tab.focus({preventScroll:true});
   window.scrollTo({top:0});
+}
+
+async function applyCreatorImage(blob, description) {
+  const image = new Image();
+  image.src = await new Promise((resolve,reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+  await image.decode();
+  if (!posterSlide) createBlankPoster();
+  else switchMode('poster');
+  applyPosterPhoto(image,description,++posterPhotoAttempt);
+  document.querySelector('.poster-stage').scrollIntoView({block:'start'});
 }
 
 (() => {
@@ -208,18 +228,7 @@ function openCreatorTool(tabId) {
           downloadBlob(blob,baseName + '-' + w + 'x' + h + '.' + extension);
           status.textContent = 'Downloaded ' + w + ' × ' + h + ' image.';
         } else {
-          const result = new Image();
-          result.src = await new Promise((resolve,reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(blob);
-          });
-          await result.decode();
-          if (!posterSlide) createBlankPoster();
-          else switchMode('poster');
-          applyPosterPhoto(result,'Image prepared in Image Lab.',++posterPhotoAttempt);
-          get('posterPreviewTitle').closest('.poster-stage').scrollIntoView({block:'start'});
+          await applyCreatorImage(blob,'Image prepared in Image Lab.');
           status.textContent = 'Image applied to the poster.';
         }
       }

@@ -124,7 +124,7 @@ const WORKSPACE_VIEWS = {
   breaking: ['Breaking Stories', 'Build a story from the latest coverage.'],
   poster: ['Single Poster', 'Design a standalone poster from an article, headline or idea.'],
   imageGenerator: ['AI Image Generator', 'Create an illustration or photo-style image from a prompt.'],
-  tools: ['Creator Tools', 'Resize images, build a color palette, and prepare captions for publishing.'],
+  tools: ['Creator Tools', 'Create graphics, prepare images, and refine captions for publishing.'],
   scheduler: ['Automation', 'Manage scheduled editions and save ideas for later.']
 };
 

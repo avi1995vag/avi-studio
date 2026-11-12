@@ -6,6 +6,7 @@ on:
       - landing.html
       - assets/**
       - build_site.py
+      - prepare_graphics_assets.py
       - feeds.py
       - article_photo.py
       - requirements.txt
@@ -41,6 +42,7 @@ jobs:
           AUTOPILOT_SCHEDULE: ${{ vars.AUTOPILOT_SCHEDULE }}
           PUBLISH_ENABLED: ${{ vars.PUBLISH_ENABLED }}
           SOCIAL_PUBLISHER_URL: ${{ vars.SOCIAL_PUBLISHER_URL || 'https://avi-studio-publisher.avinasha-vagarnal.workers.dev' }}
+      - run: python prepare_graphics_assets.py _site/assets/vision
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

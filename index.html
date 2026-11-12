@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css?v=creator-tools">
+<link rel="stylesheet" href="./assets/studio.css?v=graphic-tools">
 </head>
 <body>
 
@@ -630,6 +630,10 @@
     <div class="creator-tabs" role="tablist" aria-label="Creator tools">
       <button type="button" id="imageLabTab" role="tab" aria-selected="true" aria-controls="imageLab">Image Lab</button>
       <button type="button" id="captionLabTab" role="tab" aria-selected="false" aria-controls="captionLab" tabindex="-1">Caption Lab</button>
+      <button type="button" id="infographicTab" role="tab" aria-selected="false" aria-controls="infographicLab" tabindex="-1">Infographics</button>
+      <button type="button" id="mapGraphicsTab" role="tab" aria-selected="false" aria-controls="mapGraphicsLab" tabindex="-1">Map graphics</button>
+      <button type="button" id="backgroundTab" role="tab" aria-selected="false" aria-controls="backgroundLab" tabindex="-1">Remove background</button>
+      <button type="button" id="hdTab" role="tab" aria-selected="false" aria-controls="hdLab" tabindex="-1">Make HD</button>
     </div>
 
     <div id="imageLab" role="tabpanel" tabindex="0" aria-labelledby="imageLabTab">
@@ -699,6 +703,114 @@
             <button type="button" id="labCopyCaption" disabled>Copy caption</button>
           </div>
           <p id="labCaptionStatus" role="status" class="helper lab-status"></p>
+        </section>
+      </div>
+    </div>
+    <div id="infographicLab" role="tabpanel" tabindex="0" aria-labelledby="infographicTab" hidden>
+      <div class="lab-grid">
+        <section class="gen-area lab-controls" aria-labelledby="infographicHeading">
+          <h2 id="infographicHeading">Build an infographic</h2>
+          <div class="lab-fields">
+            <div class="field"><label for="infoTemplate">Layout</label><select id="infoTemplate"><option value="bars">Bar chart</option><option value="timeline">Timeline</option><option value="stats">Key figures</option><option value="comparison">Comparison</option></select></div>
+            <div class="field"><label for="infoTheme">Palette</label><select id="infoTheme"><option value="violet">Night violet</option><option value="cream">Paper &amp; coral</option><option value="green">Forest &amp; lime</option></select></div>
+          </div>
+          <div class="field"><label for="infoTitle">Title</label><input id="infoTitle" maxlength="90" value="How a story takes shape"></div>
+          <div class="field"><label for="infoDeck">Subtitle</label><input id="infoDeck" maxlength="140" value="A sample editorial workflow"></div>
+          <div class="field"><label for="infoData">Entries</label><textarea id="infoData" rows="6" maxlength="1400" aria-describedby="infoHint">Research | 32
+Writing | 25
+Design | 28
+Review | 15</textarea><p class="helper" id="infoHint">One label and value per line, separated by a vertical bar. Up to six entries.</p></div>
+          <div class="field"><label for="infoSource">Source or credit</label><input id="infoSource" maxlength="120" value="Illustrative data"></div>
+          <div class="field"><label for="infoShape">Canvas</label><select id="infoShape"><option value="1350">Portrait · 1080 × 1350</option><option value="1080">Square · 1080 × 1080</option><option value="1920">Story · 1080 × 1920</option></select></div>
+          <button type="button" id="infoSample">Load sample for this layout</button>
+        </section>
+        <section class="gen-area lab-output" aria-label="Infographic preview">
+          <div class="graphic-stage"><canvas id="infoCanvas" width="1080" height="1350" role="img" aria-label="Infographic preview"></canvas></div>
+          <p id="infoStatus" role="status" class="helper lab-status"></p>
+          <div class="lab-actions"><button type="button" class="btn-p" id="infoDownload">Download PNG</button><button type="button" id="infoApply">Use in poster</button></div>
+        </section>
+      </div>
+    </div>
+
+    <div id="mapGraphicsLab" role="tabpanel" tabindex="0" aria-labelledby="mapGraphicsTab" hidden>
+      <div class="lab-grid">
+        <section class="gen-area lab-controls" aria-labelledby="mapHeading">
+          <h2 id="mapHeading">Design a map graphic</h2>
+          <div class="lab-fields">
+            <div class="field"><label for="mapRegion">View</label><select id="mapRegion"><option value="southAsia">South Asia</option><option value="india">India and neighbors</option><option value="world">World</option><option value="europe">Europe</option><option value="africa">Africa</option><option value="americas">Americas</option><option value="eastAsia">East Asia &amp; Oceania</option></select></div>
+            <div class="field"><label for="mapTheme">Palette</label><select id="mapTheme"><option value="cream">Paper &amp; coral</option><option value="violet">Night violet</option><option value="green">Forest &amp; lime</option></select></div>
+          </div>
+          <div class="field"><label for="mapTitle">Title</label><input id="mapTitle" maxlength="90" value="A story from South Asia"></div>
+          <div class="field"><label for="mapDeck">Subtitle</label><input id="mapDeck" maxlength="140" value="Sample highlight and location pins"></div>
+          <div class="field"><label for="mapValues">Countries to highlight or shade</label><textarea id="mapValues" rows="4" maxlength="2200" aria-describedby="mapValueHint">IND</textarea><p id="mapValueHint" class="helper">One country name or three-letter code per line. Add a vertical bar and a number to shade by value, e.g. IND | 42.</p></div>
+          <div class="field"><label for="mapPins">Location pins</label><textarea id="mapPins" rows="3" maxlength="1200" aria-describedby="mapPinHint">ಬೆಂಗಳೂರು | 12.9716 | 77.5946</textarea><p id="mapPinHint" class="helper">One label, latitude, and longitude per line, separated by vertical bars.</p></div>
+          <div class="lab-fields">
+            <div class="field"><label for="mapSource">Source or credit</label><input id="mapSource" maxlength="120" placeholder="Add a data source"></div>
+            <div class="field"><label for="mapShape">Canvas</label><select id="mapShape"><option value="1350">Portrait</option><option value="1080">Square</option><option value="1920">Story</option></select></div>
+          </div>
+          <p class="helper">Natural Earth uses de facto country boundaries at this scale.</p>
+        </section>
+        <section class="gen-area lab-output" aria-label="Map preview">
+          <div class="graphic-stage"><canvas id="mapCanvas" width="1080" height="1350" role="img" aria-label="Map graphic preview"></canvas></div>
+          <p id="mapStatus" role="status" class="helper lab-status"></p>
+          <div class="lab-actions"><button type="button" class="btn-p" id="mapDownload" disabled>Download PNG</button><button type="button" id="mapApply" disabled>Use in poster</button></div>
+        </section>
+      </div>
+    </div>
+
+    <div id="backgroundLab" role="tabpanel" tabindex="0" aria-labelledby="backgroundTab" hidden>
+      <div class="lab-grid">
+        <section class="gen-area lab-controls" aria-labelledby="backgroundHeading">
+          <h2 id="backgroundHeading">Remove a background</h2>
+          <div class="field"><label for="cutoutFile">Upload a JPEG, PNG, or WebP</label><input type="file" id="cutoutFile" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"></div>
+          <button type="button" id="cutoutSample">Try sample</button>
+          <div class="field"><label for="cutoutMethod">Method</label><select id="cutoutMethod"><option value="subject">Auto subject</option><option value="color">Solid background color</option></select></div>
+          <div class="lab-fields" id="cutoutColorOptions" hidden>
+            <div class="field"><label for="cutoutColor">Background color</label><input id="cutoutColor" type="color" value="#ffffff"></div>
+            <div class="field"><label for="cutoutTolerance">Color tolerance</label><input id="cutoutTolerance" type="range" min="5" max="120" value="35"></div>
+          </div>
+          <div class="lab-fields">
+            <div class="field"><label for="cutoutEdge">Edge threshold</label><input id="cutoutEdge" type="range" min="10" max="90" value="45"></div>
+            <div class="field"><label for="cutoutSoft">Edge softness</label><input id="cutoutSoft" type="range" min="1" max="45" value="12"></div>
+          </div>
+          <button type="button" class="btn-p" id="cutoutRun" disabled>Remove background</button>
+          <p class="helper">Your photo stays in this browser. Auto subject loads the model and runtime the first time you use it.</p>
+        </section>
+        <section class="gen-area lab-output" aria-label="Cutout preview">
+          <div class="lab-stage photo-workbench"><p id="cutoutEmpty">Choose an image to get started.</p><img id="cutoutPreview" alt="Background removal preview" hidden></div>
+          <div class="lab-actions">
+            <button type="button" id="cutoutCompare" aria-pressed="false" disabled>Show original</button>
+            <button type="button" class="btn-p" id="cutoutDownload" disabled>Download transparent PNG</button>
+            <button type="button" id="cutoutApply" disabled>Use in poster</button>
+          </div>
+          <p id="cutoutStatus" role="status" class="helper lab-status"></p>
+        </section>
+      </div>
+    </div>
+
+    <div id="hdLab" role="tabpanel" tabindex="0" aria-labelledby="hdTab" hidden>
+      <div class="lab-grid">
+        <section class="gen-area lab-controls" aria-labelledby="hdHeading">
+          <h2 id="hdHeading">Upscale an image</h2>
+          <div class="field"><label for="hdFile">Upload a JPEG, PNG, or WebP</label><input type="file" id="hdFile" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"></div>
+          <button type="button" id="hdSample">Try sample</button>
+          <div class="lab-fields">
+            <div class="field"><label for="hdScale">Scale</label><select id="hdScale"><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select></div>
+            <div class="field"><label for="hdFormat">Format</label><select id="hdFormat"><option value="image/png">PNG</option><option value="image/jpeg">JPEG</option><option value="image/webp">WebP</option></select></div>
+          </div>
+          <div class="field"><label for="hdSharpen">Sharpen detail</label><input id="hdSharpen" type="range" min="0" max="100" value="24"></div>
+          <p class="helper" id="hdDimensions"></p>
+          <button type="button" class="btn-p" id="hdRun" disabled>Upscale image</button>
+          <p class="helper">Uses high-quality resizing and optional sharpening. Maximum 4,096 px per side and 12 megapixels.</p>
+        </section>
+        <section class="gen-area lab-output" aria-label="Upscale preview">
+          <div class="lab-stage photo-workbench"><p id="hdEmpty">Choose an image to preview it here.</p><img id="hdPreview" alt="Upscaled image preview" hidden></div>
+          <div class="lab-actions">
+            <button type="button" id="hdCompare" aria-pressed="false" disabled>Show original</button>
+            <button type="button" class="btn-p" id="hdDownload" disabled>Download HD image</button>
+            <button type="button" id="hdApply" disabled>Use in poster</button>
+          </div>
+          <p id="hdStatus" role="status" class="helper lab-status"></p>
         </section>
       </div>
     </div>
@@ -983,10 +1095,12 @@
 <script src="./assets/creative.js?v=story-layouts"></script>
 <script src="./assets/photo-search.js?v=carousel-visuals"></script>
 <script src="./assets/article-import.js?v=landing-entry"></script>
-<script src="./assets/studio.js?v=creator-tools"></script>
+<script src="./assets/studio.js?v=graphic-tools"></script>
 <script src="./assets/image-generator.js"></script>
 <script src="./assets/social-publishing.js?v=carousel-visuals"></script>
-<script src="./assets/creator-tools.js?v=1"></script>
-<script src="./assets/workspace.js?v=creator-tools"></script>
+<script src="./assets/creator-tools.js?v=2"></script>
+<script src="./assets/graphics-tools.js?v=1"></script>
+<script src="./assets/photo-studio.js?v=1"></script>
+<script src="./assets/workspace.js?v=graphic-tools"></script>
 </body>
 </html>

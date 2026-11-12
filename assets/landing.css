@@ -627,3 +627,58 @@ h1, h2, h3, p, figure { margin: 0; }
     .landing-tool-card { grid-row: span 2; grid-template-rows: subgrid; row-gap: 0; }
   }
 }
+
+.graphics-gallery {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.graphics-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #39224726;
+  border-radius: 14px;
+  background: #fffaf2;
+}
+.graphics-card:hover { border-color: #8f5689; }
+.graphics-art {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(145px,15vw,215px);
+  overflow: hidden;
+  isolation: isolate;
+}
+.graphics-art img { width: auto; height: 88%; box-shadow: 0 8px 22px #28133455; transition: transform .23s; }
+.graphics-infographic { background: #bf9def; }
+.graphics-infographic img { transform: rotate(-8deg); }
+.graphics-map { background: #f1aa90; }
+.graphics-map img { transform: rotate(7deg); }
+.graphics-card:hover .graphics-art img { transform: translateY(-4px) rotate(0deg); }
+.graphics-cutout {
+  gap: 0;
+  background: repeating-conic-gradient(#e9d9fd 0% 25%, #f7efff 0% 50%) 0 / 22px 22px;
+}
+.graphics-cutout img { width: 50%; height: 100%; object-fit: contain; box-shadow: none; }
+.graphics-cutout img:first-child { background: #231d48; }
+.graphics-cutout img:last-child { border-left: 1px solid #6b418f; }
+.graphics-card:hover .graphics-cutout img { transform: none; }
+.graphics-hd { background: #4b518f; }
+.graphics-hd img { width: 100%; height: 100%; object-fit: cover; box-shadow: none; }
+.graphics-card:hover .graphics-hd img { transform: scale(1.06); }
+.graphics-hd strong { position: absolute; inset: auto 8px 8px auto; padding: 5px 8px; border-radius: 999px; color: #fff4ef; background: #2c1831; font-size: .8rem; }
+.graphics-caption { display: flex; align-items: start; justify-content: space-between; gap: 8px; padding: 13px; }
+.graphics-caption h3 { font: 800 1.1rem/1.05 var(--headline); letter-spacing: -.04em; }
+.graphics-caption p { margin-top: 5px; color: #584958; font-size: .88rem; line-height: 1.4; }
+.graphics-caption > span { color: #78458e; font-size: 1.15rem; }
+@media (max-width: 850px) {
+  .graphics-gallery { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 355px) {
+  .graphics-caption { padding: 9px; }
+  .graphics-caption h3 { font-size: 1rem; }
+}
