@@ -3,87 +3,139 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#121611">
-  <meta name="description" content="Create posters and carousels in English and Kannada. Design, edit, download, and publish with AvI Studio.">
-  <title>AvI Studio | Make the story visual</title>
+  <meta name="theme-color" content="#f8f7f2">
+  <meta name="description" content="Design posters, carousels, and news graphics in English and Kannada. Edit, download, or publish with AvI Studio.">
+  <title>AvI Studio | Design stories worth stopping for</title>
   <script>
     const fragment = new URLSearchParams(location.hash.slice(1));
-    if (fragment.has('buffer_connection') || fragment.has('buffer_error') || ['#posterStage','#posterTools','#workspace'].includes(location.hash)) {
+    if (fragment.has('buffer_connection') || fragment.has('buffer_error') || ['#posterStage', '#posterTools', '#workspace'].includes(location.hash)) {
       location.replace('./studio.html' + location.search + location.hash);
     }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anek+Kannada:wght@600;800&family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/landing.css">
-  <script src="./assets/landing.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Kannada:wght@600;800&family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/landing.css?v=2">
+  <script src="./assets/landing.js?v=2" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
   <header class="landing-header">
     <div class="page-width header-inner">
-      <a class="landing-logo" href="./" aria-label="AvI Studio home"><span class="landing-mark" aria-hidden="true">A</span><span>AvI<span class="logo-studio"> Studio</span></span></a>
-      <nav aria-label="Main navigation"><a href="#workspaces">Workspaces</a><a href="#workflow">How it works</a></nav>
-      <a class="landing-button primary" href="./studio.html">Open Studio <span aria-hidden="true">↗</span></a>
+      <a class="landing-logo" href="./" aria-label="AvI Studio home"><span class="landing-mark" aria-hidden="true">A</span><span>AvI Studio</span></a>
+      <nav aria-label="Main navigation">
+        <a href="#preview">Live preview</a>
+        <a href="#formats">Formats</a>
+      </nav>
+      <a class="button ink" href="./studio.html">Open Studio <span aria-hidden="true">↗</span></a>
     </div>
   </header>
+
   <main id="main">
-    <section class="hero page-width" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <h1 id="hero-title">Make the story <em>visual.</em></h1>
-        <p>Create posters and carousels in English and Kannada. Start with an article or idea, then edit, download, or publish.</p>
-        <div class="hero-actions">
-          <a class="landing-button primary" href="./studio.html">Start creating <span aria-hidden="true">↗</span></a>
-          <a class="landing-button secondary" href="#workspaces">Explore workspaces <span aria-hidden="true">↓</span></a>
-        </div>
-      </div>
-      <div class="hero-display" data-hero-display aria-label="Poster and carousel artwork examples">
-        <div class="display-label"><span aria-hidden="true"></span> Design preview</div>
-        <div class="artwork-stack">
-          <div class="artwork artwork-back" aria-hidden="true"><span>Bengaluru</span><strong>After<br>the rain.</strong><div class="art-rings"></div></div>
-          <figure class="artwork artwork-main">
-            <img src="./assets/landing-market.webp" alt="Illustrative image of a red umbrella in a Bengaluru market after rain" width="880" height="1100" fetchpriority="high">
-            <figcaption><span>City life</span><strong>Monsoon<br>on the move</strong></figcaption>
-          </figure>
-          <div class="artwork artwork-front" aria-hidden="true"><span lang="kn">ಬೆಂಗಳೂರು</span><strong lang="kn">ಮಳೆಯ<br>ನಂತರ</strong></div>
-        </div>
-        <div class="display-footer"><span>Single poster</span><span>1080 × 1350</span></div>
-      </div>
-    </section>
-
-    <section class="workspaces" id="workspaces" aria-labelledby="workspace-heading">
+    <section class="hero" aria-labelledby="hero-title">
       <div class="page-width">
-        <div class="section-intro"><h2 id="workspace-heading">Pick a workspace.</h2><p>Choose a format and see what you can make in the studio.</p></div>
-        <div class="workspace-tabs" role="tablist" aria-label="Workspace previews">
-          <button type="button" id="tab-poster" role="tab" aria-selected="true" aria-controls="demo-poster">Single Poster</button>
-          <button type="button" id="tab-carousel" role="tab" aria-selected="false" aria-controls="demo-carousel" tabindex="-1">Carousel</button>
-          <button type="button" id="tab-news" role="tab" aria-selected="false" aria-controls="demo-news" tabindex="-1">News Desk</button>
+        <div class="hero-copy">
+          <h1 id="hero-title">Design stories <em>worth stopping for.</em></h1>
+          <p>Create posters, carousels, and news graphics in English and Kannada. Design on a large canvas, then download or publish.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="./studio.html">Start designing <span aria-hidden="true">↗</span></a>
+            <a class="button outline" href="#preview">Try the live preview <span aria-hidden="true">↓</span></a>
+          </div>
         </div>
-        <div class="workspace-demo" id="demo-poster" role="tabpanel" aria-labelledby="tab-poster" tabindex="0">
-          <div class="demo-copy"><h3>One story.<br>One frame.</h3><p>Try different layouts on a large canvas. Edit text, adjust images, and export at the size you need.</p><a class="landing-button dark" href="./studio.html?view=poster">Open Single Poster <span aria-hidden="true">↗</span></a></div>
-          <div class="demo-art poster-demo" aria-hidden="true"><div class="mini-poster"><img src="./assets/landing-market.webp" alt="" width="880" height="1100" loading="lazy"><div><span>City life</span><strong>Monsoon<br>on the move</strong></div></div></div>
-        </div>
-        <div class="workspace-demo" id="demo-carousel" role="tabpanel" aria-labelledby="tab-carousel" tabindex="0" hidden>
-          <div class="demo-copy"><h3>Tell it<br>frame by frame.</h3><p>Build a carousel from one idea. Fit layouts to the story and reorder frames as you edit.</p><a class="landing-button dark" href="./studio.html?view=carousel">Open Carousel <span aria-hidden="true">↗</span></a></div>
-          <div class="demo-art carousel-demo" aria-hidden="true"><div><span>01 / 03</span><strong>The city<br>after rain</strong></div><div><span>02 / 03</span><img src="./assets/landing-market.webp" alt="" width="880" height="1100" loading="lazy"></div><div><span>03 / 03</span><strong>Back on<br>the move</strong></div></div>
-        </div>
-        <div class="workspace-demo" id="demo-news" role="tabpanel" aria-labelledby="tab-news" tabindex="0" hidden>
-          <div class="demo-copy"><h3>From headline<br>to visual.</h3><p>Browse headlines and turn them into a news brief or a deeper explainer.</p><a class="landing-button dark" href="./studio.html?view=news">Open News Desk <span aria-hidden="true">↗</span></a></div>
-          <div class="demo-art news-demo" aria-hidden="true"><div class="news-sheet"><span>City desk</span><strong>A city in<br>motion</strong><img src="./assets/landing-market.webp" alt="" width="880" height="1100" loading="lazy"></div></div>
-        </div>
+
+        <section class="preview" id="preview" aria-labelledby="preview-heading" tabindex="-1">
+          <header class="preview-bar">
+            <div><span class="live-dot" aria-hidden="true"></span><h2 id="preview-heading">Studio preview</h2></div>
+            <span class="preview-dimensions">1080 × 1350 <span aria-hidden="true">·</span> 4:5</span>
+            <a href="./studio.html" class="preview-open">Open editor <span aria-hidden="true">↗</span></a>
+          </header>
+          <div class="preview-body">
+            <aside class="preview-tools" aria-label="Preview controls">
+              <div class="tool-group">
+                <p id="format-label" class="tool-label">Format</p>
+                <div class="format-controls" role="group" aria-labelledby="format-label">
+                  <button type="button" data-format="poster" aria-pressed="true"><span class="format-icon icon-poster" aria-hidden="true"></span>Poster</button>
+                  <button type="button" data-format="carousel" aria-pressed="false"><span class="format-icon icon-carousel" aria-hidden="true"></span>Carousel</button>
+                  <button type="button" data-format="news" aria-pressed="false"><span class="format-icon icon-news" aria-hidden="true"></span>News</button>
+                </div>
+              </div>
+              <div class="tool-group language-group">
+                <label for="preview-language" class="tool-label">Language</label>
+                <select id="preview-language">
+                  <option value="en">English</option>
+                  <option value="kn" lang="kn">ಕನ್ನಡ</option>
+                </select>
+              </div>
+            </aside>
+
+            <div class="preview-stage" data-format="poster" data-layout="0">
+              <div class="artwork-deck">
+                <div class="deck-side deck-left" aria-hidden="true"></div>
+                <div class="deck-side deck-right" aria-hidden="true"></div>
+                <article class="preview-art" aria-labelledby="art-title">
+                  <img id="art-photo" src="./assets/landing-runner.webp" alt="Runner in an orange jacket on a blue stadium track" width="720" height="900" fetchpriority="high">
+                  <div class="art-top"><span id="art-category">Bengaluru / Sport</span><span id="art-series">AvI Studio</span></div>
+                  <div class="art-copy">
+                    <h3 id="art-title">City in<br>motion.</h3>
+                    <p id="art-description">The streets are yours.</p>
+                  </div>
+                </article>
+              </div>
+              <div class="frame-controls" hidden aria-label="Carousel frames">
+                <button type="button" id="previous-frame" aria-label="Previous frame">←</button>
+                <output id="frame-count">1 / 3</output>
+                <button type="button" id="next-frame" aria-label="Next frame">→</button>
+              </div>
+              <p class="sr-only" id="preview-status" role="status"></p>
+            </div>
+
+            <aside class="preview-layouts" aria-labelledby="layout-label">
+              <p class="tool-label" id="layout-label">Layout</p>
+              <div class="layout-controls" role="group" aria-labelledby="layout-label">
+                <button type="button" data-layout="0" aria-pressed="true"><span class="layout-thumb thumb-cover" aria-hidden="true"></span><span>Cover</span></button>
+                <button type="button" data-layout="1" aria-pressed="false"><span class="layout-thumb thumb-editorial" aria-hidden="true"></span><span>Editorial</span></button>
+                <button type="button" data-layout="2" aria-pressed="false"><span class="layout-thumb thumb-split" aria-hidden="true"></span><span>Split</span></button>
+              </div>
+              <a href="./studio.html?view=poster" id="workspace-link" class="button workspace-link">Open Single Poster <span aria-hidden="true">↗</span></a>
+            </aside>
+          </div>
+        </section>
       </div>
     </section>
 
-    <section class="workflow page-width" id="workflow" aria-labelledby="workflow-heading">
-      <h2 id="workflow-heading">From idea to publish.</h2>
-      <ol class="workflow-steps">
-        <li><h3>Bring a story</h3><p>Start with a topic, a headline, or an article link.</p></li>
-        <li><h3>Make it yours</h3><p>Choose a layout, refine the copy, and place the images.</p></li>
-        <li><h3>Get it out</h3><p>Download your artwork or publish to a connected channel.</p></li>
-      </ol>
-      <a class="landing-button primary" href="./studio.html">Open AvI Studio <span aria-hidden="true">↗</span></a>
+    <section id="formats" class="page-width formats" aria-labelledby="formats-title">
+      <div class="section-heading">
+        <h2 id="formats-title">A format for<br>every story.</h2>
+        <p>Give a headline one striking frame or give a longer story room to unfold.</p>
+      </div>
+      <div class="format-gallery">
+        <a class="gallery-card" href="#preview" data-preview-format="poster">
+          <div class="gallery-art gallery-poster" aria-hidden="true">
+            <div><img src="./assets/landing-runner.webp" alt="" width="720" height="900" loading="lazy"><strong>City in<br>motion.</strong></div>
+          </div>
+          <div class="gallery-caption"><div><h3>Single Poster</h3><p>One frame for the big idea.</p></div><span aria-hidden="true">↗</span></div>
+        </a>
+        <a class="gallery-card" href="#preview" data-preview-format="carousel">
+          <div class="gallery-art gallery-carousel" aria-hidden="true"><div><strong>After<br>the rain.</strong></div><div><img src="./assets/landing-market.webp" alt="" width="880" height="1100" loading="lazy"></div><div><strong>Back in<br>motion.</strong></div></div>
+          <div class="gallery-caption"><div><h3>Carousel</h3><p>Take the story frame by frame.</p></div><span aria-hidden="true">↗</span></div>
+        </a>
+        <a class="gallery-card" href="#preview" data-preview-format="news">
+          <div class="gallery-art gallery-news" aria-hidden="true"><div><strong lang="kn">ಮಳೆಯ<br>ನಂತರ</strong><img src="./assets/landing-market.webp" alt="" width="880" height="1100" loading="lazy"></div></div>
+          <div class="gallery-caption"><div><h3>News Desk</h3><p>Turn a headline into a visual brief.</p></div><span aria-hidden="true">↗</span></div>
+        </a>
+      </div>
+    </section>
+
+    <section class="closing page-width" aria-labelledby="closing-title">
+      <div class="closing-inner">
+        <h2 id="closing-title">Ready when<br><em>your story is.</em></h2>
+        <a class="button light" href="./studio.html">Open AvI Studio <span aria-hidden="true">↗</span></a>
+      </div>
     </section>
   </main>
-  <footer class="landing-footer"><div class="page-width"><a class="landing-logo" href="./"><span class="landing-mark" aria-hidden="true">A</span><span>AvI<span class="logo-studio"> Studio</span></span></a><a href="./assets/publishing-privacy.html">Publishing privacy</a></div></footer>
+  <footer class="landing-footer page-width">
+    <a class="landing-logo" href="./"><span class="landing-mark" aria-hidden="true">A</span><span>AvI Studio</span></a>
+    <a href="./assets/publishing-privacy.html">Publishing privacy</a>
+  </footer>
 </body>
 </html>
