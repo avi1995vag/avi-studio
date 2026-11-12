@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css?v=graphic-tools">
+<link rel="stylesheet" href="./assets/studio.css?v=india-cutouts">
 </head>
 <body>
 
@@ -737,18 +737,28 @@ Review | 15</textarea><p class="helper" id="infoHint">One label and value per li
         <section class="gen-area lab-controls" aria-labelledby="mapHeading">
           <h2 id="mapHeading">Design a map graphic</h2>
           <div class="lab-fields">
-            <div class="field"><label for="mapRegion">View</label><select id="mapRegion"><option value="southAsia">South Asia</option><option value="india">India and neighbors</option><option value="world">World</option><option value="europe">Europe</option><option value="africa">Africa</option><option value="americas">Americas</option><option value="eastAsia">East Asia &amp; Oceania</option></select></div>
+            <div class="field"><label for="mapRegion">View</label><select id="mapRegion"><option value="indiaStates">India · States and UTs</option><option value="indiaOutline">India · National outline</option><option value="southAsia">South Asia</option><option value="world">World</option><option value="europe">Europe</option><option value="africa">Africa</option><option value="americas">Americas</option><option value="eastAsia">East Asia &amp; Oceania</option></select></div>
             <div class="field"><label for="mapTheme">Palette</label><select id="mapTheme"><option value="cream">Paper &amp; coral</option><option value="violet">Night violet</option><option value="green">Forest &amp; lime</option></select></div>
           </div>
-          <div class="field"><label for="mapTitle">Title</label><input id="mapTitle" maxlength="90" value="A story from South Asia"></div>
-          <div class="field"><label for="mapDeck">Subtitle</label><input id="mapDeck" maxlength="140" value="Sample highlight and location pins"></div>
-          <div class="field"><label for="mapValues">Countries to highlight or shade</label><textarea id="mapValues" rows="4" maxlength="2200" aria-describedby="mapValueHint">IND</textarea><p id="mapValueHint" class="helper">One country name or three-letter code per line. Add a vertical bar and a number to shade by value, e.g. IND | 42.</p></div>
+          <div class="field"><label for="mapTitle">Title</label><input id="mapTitle" maxlength="90" value="India at a glance"></div>
+          <div class="field"><label for="mapDeck">Subtitle</label><input id="mapDeck" maxlength="140" value="State highlights and a location pin"></div>
+          <div class="field" id="mapCountryOptions" hidden><label for="mapValues">Countries to highlight or shade</label><textarea id="mapValues" rows="4" maxlength="2200" aria-describedby="mapValueHint">IND</textarea><p id="mapValueHint" class="helper">One country name or three-letter code per line. Add a vertical bar and a number to shade by value, e.g. IND | 42.</p></div>
+          <div class="map-state-tools" id="mapStateOptions">
+            <div class="field"><label for="mapStatePick">State or union territory</label><select id="mapStatePick" disabled><option>Loading states…</option></select></div>
+            <div class="lab-actions"><button type="button" id="mapStateHighlight" disabled>Toggle highlight</button><button type="button" id="mapStateFocus" aria-pressed="false" disabled>Focus state</button></div>
+            <div class="field"><label for="mapStateValues">Highlights and values</label><textarea id="mapStateValues" rows="3" maxlength="2200" aria-describedby="mapStateHint">Karnataka
+Maharashtra
+Jammu and Kashmir
+Ladakh</textarea><p id="mapStateHint" class="helper">Click a state on the preview or select it above. To shade by value, use a line like Karnataka | 42.</p></div>
+            <div class="field"><label for="mapLabels">Map labels</label><select id="mapLabels"><option value="highlights">Highlighted states</option><option value="codes">State codes</option><option value="off">Off</option></select></div>
+          </div>
           <div class="field"><label for="mapPins">Location pins</label><textarea id="mapPins" rows="3" maxlength="1200" aria-describedby="mapPinHint">ಬೆಂಗಳೂರು | 12.9716 | 77.5946</textarea><p id="mapPinHint" class="helper">One label, latitude, and longitude per line, separated by vertical bars.</p></div>
           <div class="lab-fields">
             <div class="field"><label for="mapSource">Source or credit</label><input id="mapSource" maxlength="120" placeholder="Add a data source"></div>
             <div class="field"><label for="mapShape">Canvas</label><select id="mapShape"><option value="1350">Portrait</option><option value="1080">Square</option><option value="1920">Story</option></select></div>
           </div>
-          <p class="helper">Natural Earth uses de facto country boundaries at this scale.</p>
+          <p class="helper" id="mapIndiaCredits">National outline follows the <a href="https://www.naturalearthdata.com/blog/admin-0-countries-point-of-views/" target="_blank" rel="noopener noreferrer">Natural Earth India viewpoint</a>. State lines are generalized from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a> via Vardhan Maps. <a href="./assets/india-map-sources.txt">Sources and licensing</a> · <a href="./assets/india-map.json.gz" download>Download map data</a></p>
+          <p class="helper" id="mapWorldCredits" hidden>Regional and world views use Natural Earth’s de facto boundaries.</p>
         </section>
         <section class="gen-area lab-output" aria-label="Map preview">
           <div class="graphic-stage"><canvas id="mapCanvas" width="1080" height="1350" role="img" aria-label="Map graphic preview"></canvas></div>
@@ -764,21 +774,36 @@ Review | 15</textarea><p class="helper" id="infoHint">One label and value per li
           <h2 id="backgroundHeading">Remove a background</h2>
           <div class="field"><label for="cutoutFile">Upload a JPEG, PNG, or WebP</label><input type="file" id="cutoutFile" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"></div>
           <button type="button" id="cutoutSample">Try sample</button>
-          <div class="field"><label for="cutoutMethod">Method</label><select id="cutoutMethod"><option value="subject">Auto subject</option><option value="color">Solid background color</option></select></div>
-          <div class="lab-fields" id="cutoutColorOptions" hidden>
-            <div class="field"><label for="cutoutColor">Background color</label><input id="cutoutColor" type="color" value="#ffffff"></div>
-            <div class="field"><label for="cutoutTolerance">Color tolerance</label><input id="cutoutTolerance" type="range" min="5" max="120" value="35"></div>
-          </div>
-          <div class="lab-fields">
-            <div class="field"><label for="cutoutEdge">Edge threshold</label><input id="cutoutEdge" type="range" min="10" max="90" value="45"></div>
-            <div class="field"><label for="cutoutSoft">Edge softness</label><input id="cutoutSoft" type="range" min="1" max="45" value="12"></div>
-          </div>
           <button type="button" class="btn-p" id="cutoutRun" disabled>Remove background</button>
-          <p class="helper">Your photo stays in this browser. Auto subject loads the model and runtime the first time you use it.</p>
+          <p class="helper">Upload a photo for automatic background removal. Processing stays in your browser.</p>
+          <details class="cutout-advanced">
+            <summary>Adjust removal</summary>
+            <div class="field"><label for="cutoutMethod">Method</label><select id="cutoutMethod"><option value="subject">Automatic subject</option><option value="portrait">Portrait and hair</option><option value="color">Solid background color</option></select></div>
+            <div class="lab-fields" id="cutoutColorOptions" hidden>
+              <div class="field"><label for="cutoutColor">Background color</label><input id="cutoutColor" type="color" value="#ffffff"></div>
+              <div class="field"><label for="cutoutTolerance">Color tolerance</label><input id="cutoutTolerance" type="range" min="5" max="120" value="35"></div>
+            </div>
+            <div class="lab-fields">
+              <div class="field"><label for="cutoutEdge">Edge threshold</label><input id="cutoutEdge" type="range" min="10" max="90" value="45"></div>
+              <div class="field"><label for="cutoutSoft">Edge softness</label><input id="cutoutSoft" type="range" min="1" max="45" value="12"></div>
+            </div>
+            <label class="lab-check" id="cutoutCleanupOption"><input type="checkbox" id="cutoutCleanup" checked> Clean up small stray patches</label>
+            <p class="helper">The first use of each automatic method loads its model.</p>
+          </details>
         </section>
         <section class="gen-area lab-output" aria-label="Cutout preview">
-          <div class="lab-stage photo-workbench"><p id="cutoutEmpty">Choose an image to get started.</p><img id="cutoutPreview" alt="Background removal preview" hidden></div>
+          <div class="lab-stage photo-workbench">
+            <p id="cutoutEmpty">Choose an image to get started.</p>
+            <img id="cutoutPreview" alt="Background removal preview" hidden>
+            <canvas id="cutoutBrushCanvas" role="img" aria-label="Cutout touch-up canvas. Drag to erase or restore parts of the photo." hidden></canvas>
+          </div>
+          <div class="cutout-brush-tools" id="cutoutBrushTools" hidden>
+            <div class="field"><label for="cutoutBrushMode">Brush</label><select id="cutoutBrushMode"><option value="erase">Erase</option><option value="restore">Restore</option></select></div>
+            <div class="field"><label for="cutoutBrushSize">Size</label><input id="cutoutBrushSize" type="range" min="1" max="15" value="5"></div>
+            <button type="button" id="cutoutUndo" disabled>Undo stroke</button>
+          </div>
           <div class="lab-actions">
+            <button type="button" id="cutoutEdit" aria-pressed="false" disabled>Touch up</button>
             <button type="button" id="cutoutCompare" aria-pressed="false" disabled>Show original</button>
             <button type="button" class="btn-p" id="cutoutDownload" disabled>Download transparent PNG</button>
             <button type="button" id="cutoutApply" disabled>Use in poster</button>
@@ -1099,8 +1124,9 @@ Review | 15</textarea><p class="helper" id="infoHint">One label and value per li
 <script src="./assets/image-generator.js"></script>
 <script src="./assets/social-publishing.js?v=carousel-visuals"></script>
 <script src="./assets/creator-tools.js?v=2"></script>
-<script src="./assets/graphics-tools.js?v=1"></script>
-<script src="./assets/photo-studio.js?v=1"></script>
+<script src="./assets/graphics-tools.js?v=2"></script>
+<script src="./assets/cutout-brush.js?v=1"></script>
+<script src="./assets/photo-studio.js?v=2"></script>
 <script src="./assets/workspace.js?v=graphic-tools"></script>
 </body>
 </html>

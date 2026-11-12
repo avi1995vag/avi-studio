@@ -1,7 +1,6 @@
 /* Runs segmentation and image resampling off the main thread. */
-let session;
+const sessions = {};
 let cachedMask;
-const modelSide = 320;
 const maxPixels = 12_000_000;
 const maxSide = 4096;
 
@@ -17,48 +16,51 @@ function canvasContext(width,height) {
   return {canvas,ctx};
 }
 
-async function subjectMask(bitmap,sourceId,progress) {
-  if (cachedMask?.sourceId === sourceId) return cachedMask.canvas;
-  if (!session) {
-    progress('Loading the local subject model…');
+async function subjectMask(bitmap,options,progress) {
+  const {sourceId,method} = options;
+  if (cachedMask?.sourceId===sourceId && cachedMask.method===method) return cachedMask;
+  const portrait = method === 'portrait';
+  if (!sessions[method]) {
+    progress(portrait ? 'Loading the portrait model…' : 'Loading the automatic removal model…');
     if (!self.ort) importScripts('./vision/ort.wasm.min.js');
     ort.env.wasm.numThreads = 1;
     ort.env.wasm.wasmPaths = new URL('./vision/',self.location.href).href;
-    const response = await fetch('./vision/u2netp.onnx');
-    if (!response.ok) throw new Error('The subject model could not load. Try the solid-color method or retry.');
-    session = await ort.InferenceSession.create(await response.arrayBuffer(),{executionProviders:['wasm']});
+    const response = await fetch(portrait ? './vision/modnet.onnx' : './vision/u2netp.onnx');
+    if (!response.ok) throw new Error('The removal model could not load. Try again or use the solid-color method.');
+    sessions[method] = await ort.InferenceSession.create(await response.arrayBuffer(),{executionProviders:['wasm']});
   }
-  progress('Finding the subject…');
-  const {canvas,ctx} = canvasContext(modelSide,modelSide);
+  const session = sessions[method];
+  progress(portrait ? 'Separating the portrait and hair…' : 'Finding the subject…');
+  const ratio = Math.min(512/Math.min(bitmap.width,bitmap.height),768/Math.max(bitmap.width,bitmap.height));
+  const width = portrait ? Math.max(32,Math.round(bitmap.width*ratio/32)*32) : 320;
+  const height = portrait ? Math.max(32,Math.round(bitmap.height*ratio/32)*32) : 320;
+  const {ctx} = canvasContext(width,height);
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0,0,modelSide,modelSide);
-  ctx.drawImage(bitmap,0,0,modelSide,modelSide);
-  const frame = ctx.getImageData(0,0,modelSide,modelSide);
-  const plane = modelSide*modelSide;
+  ctx.fillRect(0,0,width,height);
+  ctx.drawImage(bitmap,0,0,width,height);
+  const {data:pixels} = ctx.getImageData(0,0,width,height);
+  const plane = width*height;
   const input = new Float32Array(3*plane);
-  const mean = [.485,.456,.406], dev = [.229,.224,.225];
+  const mean = portrait ? [.5,.5,.5] : [.485,.456,.406];
+  const dev = portrait ? [.5,.5,.5] : [.229,.224,.225];
   for (let channel=0; channel<3; channel++) {
-    for (let i=0; i<plane; i++) input[channel*plane+i] = (frame.data[4*i+channel]/255-mean[channel])/dev[channel];
+    for (let i=0; i<plane; i++) input[channel*plane+i] = (pixels[4*i+channel]/255-mean[channel])/dev[channel];
   }
-  const tensor = new ort.Tensor('float32',input,[1,3,modelSide,modelSide]);
+  const tensor = new ort.Tensor('float32',input,[1,3,height,width]);
   const name = session.outputNames[0];
-  const result = await session.run({[session.inputNames[0]]:tensor},[name]);
-  const data = result[name].data;
+  const outputs = await session.run({[session.inputNames[0]]:tensor},[name]);
+  const data = outputs[name].data;
   if (data.length < plane) throw new Error('The subject model returned an incomplete mask.');
   let low = Infinity, high = -Infinity;
   for (let i=0; i<plane; i++) {
     low = Math.min(low,data[i]);
     high = Math.max(high,data[i]);
   }
-  if (!(high-low > .00001)) throw new Error('A clear subject was not detected. Try a different photo or the solid-color method.');
-  for (let i=0; i<plane; i++) {
-    const level = (data[i]-low)/(high-low)*255;
-    frame.data[4*i] = frame.data[4*i+1] = frame.data[4*i+2] = level;
-    frame.data[4*i+3] = 255;
-  }
-  ctx.putImageData(frame,0,0);
-  cachedMask = {sourceId,canvas};
-  return canvas;
+  if (!(high-low > .00001)) throw new Error('A clear subject was not detected. Try the portrait or solid-color method.');
+  const alpha = new Float32Array(plane);
+  for (let i=0; i<plane; i++) alpha[i] = portrait ? data[i] : (data[i]-low)/(high-low);
+  cachedMask = {sourceId,method,width,height,alpha};
+  return cachedMask;
 }
 
 function smoothstep(value,start,end) {
@@ -66,23 +68,59 @@ function smoothstep(value,start,end) {
   return level*level*(3-2*level);
 }
 
+/* Discard tiny disconnected islands while retaining separate, substantial objects. */
+function clearSpecks(alpha,width,height) {
+  const visited = new Uint8Array(alpha.length);
+  const queue = new Int32Array(alpha.length);
+  const components = [];
+  let largest = 0;
+  function add(index,end) {
+    if (visited[index] || alpha[index]<14) return end;
+    visited[index] = 1;
+    queue[end] = index;
+    return end+1;
+  }
+  for (let i=0; i<alpha.length; i++) {
+    if (visited[i] || alpha[i]<14) continue;
+    const start = components.length ? components.at(-1)[1] : 0;
+    let end = add(i,start);
+    for (let head=start; head<end; head++) {
+      const pixel = queue[head], x = pixel%width;
+      if (x>0) end = add(pixel-1,end);
+      if (x+1<width) end = add(pixel+1,end);
+      if (pixel>=width) end = add(pixel-width,end);
+      if (pixel+width<width*height) end = add(pixel+width,end);
+    }
+    largest = Math.max(largest,end-start);
+    components.push([start,end]);
+  }
+  const cutoff = Math.max(16,largest*.012);
+  for (const [start,end] of components) {
+    if (end-start>=cutoff || end-start===largest) continue;
+    for (let j=start; j<end; j++) alpha[queue[j]] = 0;
+  }
+  for (let i=0; i<alpha.length; i++) if (!visited[i]) alpha[i] = 0;
+}
+
 async function removeBackground(bitmap,options,progress) {
   const [width,height] = fitSize(bitmap.width,bitmap.height,1);
   const {canvas,ctx} = canvasContext(width,height);
   ctx.drawImage(bitmap,0,0,width,height);
-  const frame = ctx.getImageData(0,0,width,height);
-  if (options.method === 'subject') {
-    const mask = await subjectMask(bitmap,options.sourceId,progress);
-    const {ctx:maskCtx} = canvasContext(width,height);
-    maskCtx.drawImage(mask,0,0,width,height);
-    const alpha = maskCtx.getImageData(0,0,width,height).data;
+  if (options.method !== 'color') {
+    const mask = await subjectMask(bitmap,options,progress);
+    const {canvas:matte,ctx:maskCtx} = canvasContext(mask.width,mask.height);
+    const pixels = maskCtx.createImageData(mask.width,mask.height);
     const threshold = options.edge / 100;
-    const softness = options.soft / 100;
-    for (let i=0; i<frame.data.length; i+=4) {
-      frame.data[i+3] *= smoothstep(alpha[i]/255,threshold-softness,threshold+softness);
-    }
+    const softness = options.method==='portrait' ? Math.min(.5,options.soft/100+.25) : options.soft/100;
+    const alpha = Uint8ClampedArray.from(mask.alpha,value=>smoothstep(value,threshold-softness,threshold+softness)*255);
+    if (options.cleanup) clearSpecks(alpha,mask.width,mask.height);
+    for (let i=0; i<alpha.length; i++) pixels.data[i*4+3] = alpha[i];
+    maskCtx.putImageData(pixels,0,0);
+    ctx.globalCompositeOperation = 'destination-in';
+    ctx.drawImage(matte,0,0,width,height);
   } else {
     progress('Removing the selected background color…');
+    const frame = ctx.getImageData(0,0,width,height);
     const [r,g,b] = options.color.slice(1).match(/../g).map(pair => parseInt(pair,16));
     const softness = Math.max(2,options.soft);
     const start = Math.max(0,options.tolerance-softness);
@@ -91,8 +129,8 @@ async function removeBackground(bitmap,options,progress) {
       const dr=frame.data[i]-r, dg=frame.data[i+1]-g, db=frame.data[i+2]-b;
       frame.data[i+3] *= smoothstep(Math.sqrt(dr*dr+dg*dg+db*db),start,end);
     }
+    ctx.putImageData(frame,0,0);
   }
-  ctx.putImageData(frame,0,0);
   return {blob:await canvas.convertToBlob({type:'image/png'}),width,height};
 }
 

@@ -3,14 +3,15 @@
   const get = id => document.getElementById(id);
   const settings = {
     cutout: {
-      sample:'./assets/landing-dancer.webp', name:'avi-dancer', suffix:'cutout', applyLabel:'Background removed in AvI Studio.',
-      controls:['cutoutMethod','cutoutColor','cutoutTolerance','cutoutEdge','cutoutSoft'],
+      sample:'./assets/landing-runner.webp', name:'avi-runner', suffix:'cutout', applyLabel:'Background removed in AvI Studio.',
+      controls:['cutoutMethod','cutoutColor','cutoutTolerance','cutoutEdge','cutoutSoft','cutoutCleanup'],
       options:sourceId => ({sourceId,method:get('cutoutMethod').value,color:get('cutoutColor').value,
-        tolerance:get('cutoutTolerance').valueAsNumber,edge:get('cutoutEdge').valueAsNumber,soft:get('cutoutSoft').valueAsNumber}),
+        tolerance:get('cutoutTolerance').valueAsNumber,edge:get('cutoutEdge').valueAsNumber,soft:get('cutoutSoft').valueAsNumber,cleanup:get('cutoutCleanup').checked}),
       beforeRender:() => {
         const solid = get('cutoutMethod').value === 'color';
         get('cutoutColorOptions').hidden = !solid;
-        get('cutoutEdge').disabled = solid;
+        get('cutoutEdge').disabled = solid || get('cutoutMethod').disabled;
+        get('cutoutCleanupOption').hidden = solid;
       },
     },
     hd: {
@@ -48,17 +49,23 @@
     let busy = false;
     let showOriginal = true;
     let dirty = false;
+    const editor = mode === 'cutout' ? createCutoutBrush(() => {
+      if (editor.active) showOriginal = false;
+      render();
+    },message => { status.textContent = message; }) : null;
 
     function render() {
       const blocked = config.beforeRender(source);
       input.disabled = sample.disabled = busy;
       run.disabled = !source || loading || busy || blocked;
-      compare.disabled = !result || loading || busy;
+      compare.disabled = !result || loading || busy || Boolean(editor?.active);
       download.disabled = apply.disabled = !result || loading || busy || dirty;
-      preview.hidden = !source;
+      const painted = editor?.sync(Boolean(result) && !loading && !busy && !dirty,showOriginal);
+      preview.hidden = !source || painted;
       element('Empty').hidden = Boolean(source);
       compare.textContent = showOriginal ? 'Show result' : 'Show original';
       compare.setAttribute('aria-pressed',String(showOriginal && Boolean(result)));
+      if (mode==='cutout') run.textContent = result ? 'Update cutout' : 'Remove background';
       const url = (showOriginal ? source : result)?.url;
       if (url && preview.getAttribute('src') !== url) preview.src = url;
     }
@@ -70,6 +77,7 @@
       status.textContent = 'Opening image…';
       render();
       let bitmap;
+      let loaded = false;
       try {
         const blob = await read();
         if (blob.size>32_000_000) throw new Error('Choose a file smaller than 32 MB.');
@@ -80,6 +88,8 @@
         if (result) URL.revokeObjectURL(result.url);
         source = {blob,name,url:URL.createObjectURL(blob),width:bitmap.width,height:bitmap.height,id:attempt};
         result = null;
+        editor?.setImages(null,null);
+        loaded = true;
         dirty = false;
         showOriginal = true;
         status.textContent = source.width + ' × ' + source.height + ' px';
@@ -87,12 +97,16 @@
         if (attempt === revision) status.textContent = error.name === 'Error' ? error.message : 'This image could not be opened.';
       } finally {
         bitmap?.close();
-        if (attempt === revision) { loading = false; render(); }
+        if (attempt === revision) {
+          loading = false;
+          render();
+          if (loaded && mode==='cutout' && get('cutoutMethod').value!=='color') run.click();
+        }
       }
     }
 
     function process(job) {
-      if (!worker) worker = new Worker('./assets/vision-worker.js?v=1');
+      if (!worker) worker = new Worker('./assets/vision-worker.js?v=2');
       return new Promise((resolve,reject) => {
         const timer = setTimeout(() => {
           worker.terminate();
@@ -140,6 +154,7 @@
       const options = config.options(source.id);
       const controls = config.controls.map(get);
       busy = true;
+      editor?.hide();
       status.textContent = 'Preparing image…';
       for (const control of controls) control.disabled = true;
       render();
@@ -147,6 +162,7 @@
         const output = await process({id:source.id,mode,blob:source.blob,options});
         if (result) URL.revokeObjectURL(result.url);
         result = {...output,url:URL.createObjectURL(output.blob)};
+        editor?.setImages(source,result);
         showOriginal = false;
         dirty = false;
         status.textContent = output.width + ' × ' + output.height + ' px · ready to download';
@@ -158,16 +174,22 @@
       }
     });
     compare.addEventListener('click',() => { showOriginal = !showOriginal; render(); });
-    download.addEventListener('click',() => {
-      if (!result || dirty) return;
-      const extension = {'image/png':'png','image/webp':'webp','image/jpeg':'jpg'}[result.blob.type];
-      downloadBlob(result.blob,source.name + '-' + config.suffix + '-' + result.width + 'x' + result.height + '.' + extension);
+    download.addEventListener('click',async () => {
+      if (!result || dirty || busy) return;
+      busy = true;
+      render();
+      try {
+        const blob = editor?.edited ? await editor.exportBlob() : result.blob;
+        const extension = {'image/png':'png','image/webp':'webp','image/jpeg':'jpg'}[blob.type];
+        downloadBlob(blob,source.name + '-' + config.suffix + '-' + result.width + 'x' + result.height + '.' + extension);
+      } catch { status.textContent = 'The image could not be downloaded. Try again.'; }
+      finally { busy = false; render(); }
     });
     apply.addEventListener('click',async () => {
       if (!result || dirty || busy) return;
       busy = true;
       render();
-      try { await applyCreatorImage(result.blob,config.applyLabel); }
+      try { await applyCreatorImage(editor?.edited ? await editor.exportBlob() : result.blob,config.applyLabel); }
       catch { status.textContent = 'The image could not be added to the poster.'; }
       finally { busy = false; render(); }
     });

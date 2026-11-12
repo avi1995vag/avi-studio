@@ -16,6 +16,14 @@ ASSETS = {
         'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx',
         '309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8',
     ),
+    'modnet.onnx': (
+        'https://huggingface.co/Xenova/modnet/resolve/fa2fa546052fba4c08921230a26cc69a333fca12/onnx/model_quantized.onnx',
+        '92e49898c3e05a6d7a944fc67a8cb87c4aad754ffb6ebd949528c7d1105fee3a',
+    ),
+    'modnet-license.txt': (
+        'https://raw.githubusercontent.com/ZHKKKe/MODNet/master/LICENSE',
+        'c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4',
+    ),
     'ort.wasm.min.js': (
         ORT + 'ort.wasm.min.js',
         '65e09376df69107e881b5c34d2d37aed333a366b6d941073ec518168e269b87d',

@@ -1,0 +1,22 @@
+AvI Studio India map geometry
+
+National outline
+Natural Earth 1:10m Admin 0 Countries, India point of view, v5.1.1 (public domain).
+https://www.naturalearthdata.com/blog/admin-0-countries-point-of-views/
+https://www.naturalearthdata.com/about/terms-of-use/
+
+States and union territories
+© OpenStreetMap contributors, under the Open Database License (ODbL) 1.0.
+State features are derived from vardhan-maps 0.19.0 with upstream editorial boundary
+adjustments. Geometry was generalized for small-scale graphics and combined with
+the separate Natural Earth outline. This is illustrative geographic data.
+https://www.openstreetmap.org/copyright
+https://opendatacommons.org/licenses/odbl/1-0/
+https://github.com/Vardhan-Systems/vardhan-maps/blob/2c829a3543171810a4b28162ea736fb76dfdef40/ATTRIBUTION.md
+
+The data used by this viewer is available in india-map.json.gz. The adapted state
+geometry is distributed under ODbL 1.0.
+
+Official reference
+Survey of India outline and political maps.
+https://surveyofindia.gov.in/pages/outline-maps-of-india

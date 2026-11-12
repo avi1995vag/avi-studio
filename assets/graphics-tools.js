@@ -247,13 +247,21 @@
   const mapStatus = get('mapStatus');
   const enableMap = actions('map',mapCanvas,'avi-map-graphic.png','Map graphic created in AvI Studio.');
   const regions = {
-    world:[-180,180,-58,84], southAsia:[59,101,4,42], india:[65,98,6,37],
+    world:[-180,180,-58,84], southAsia:[59,101,4,42],
     europe:[-25,45,33,72], africa:[-26,58,-38,39], americas:[-169,-29,-58,76], eastAsia:[90,180,-48,55],
   };
-  const mapKey = value => String(value || '').normalize('NFKC').trim().toLowerCase();
-  let features;
-  let countries;
-  let loadingMap = false;
+  const territory = get('mapRegion');
+  const statePick = get('mapStatePick');
+  const stateFocus = get('mapStateFocus');
+  const stateValues = get('mapStateValues');
+  const mapKey = value => String(value || '').normalize('NFKC').trim().toLowerCase().replace(/\s*&\s*/g,' and ');
+  const isIndia = () => territory.value.startsWith('india');
+  const isStates = () => territory.value === 'indiaStates';
+  const dataSets = {};
+  let focusCode = '';
+  let hitAreas = [];
+  let outlineHitPath;
+  let open = false;
 
   function projector(bounds,top,bottom) {
     const [west,east,south,north] = bounds;
@@ -264,24 +272,59 @@
     return {x,y,width,height,point:([lon,lat]) => [x+(lon-west)*scale*aspect,y+(north-lat)*scale]};
   }
 
+  function indiaBounds([west,south,east,north], zoom=false) {
+    const pad = zoom ? Math.max(.08,(east-west)*.13,(north-south)*.13) : .7;
+    return [west-pad,east+pad,south-pad,north+pad];
+  }
+
   function mixColor(a,b,t) {
     const rgb = value => value.slice(1).match(/../g).map(pair => parseInt(pair,16));
     const from = rgb(a), to = rgb(b);
     return 'rgb(' + from.map((channel,i) => Math.round(channel + (to[i]-channel)*t)).join(',') + ')';
   }
 
+  function polygonPath(geometry,project) {
+    const path = new Path2D();
+    const polygons = geometry.type==='Polygon' ? [geometry.coordinates] : geometry.coordinates;
+    for (const polygon of polygons) for (const ring of polygon) {
+      if (!ring.length) continue;
+      path.moveTo(...project(ring[0]));
+      for (let i=1; i<ring.length; i++) path.lineTo(...project(ring[i]));
+      path.closePath();
+    }
+    return path;
+  }
+
   function renderMap() {
-    if (!features) return;
+    const india = isIndia(), stateMode = isStates();
+    get('mapCountryOptions').hidden = india;
+    get('mapStateOptions').hidden = !stateMode;
+    get('mapIndiaCredits').hidden = !india;
+    get('mapWorldCredits').hidden = india;
+    stateFocus.setAttribute('aria-pressed',String(Boolean(focusCode)));
+    stateFocus.textContent = focusCode ? 'Show all India' : 'Focus state';
+    hitAreas = [];
+    outlineHitPath = null;
+    const data = dataSets[india ? 'india' : 'world'];
+    if (!data) {
+      enableMap(false);
+      if (open) void loadMap(india ? 'india' : 'world');
+      return;
+    }
+
     const theme = palettes[get('mapTheme').value];
     const height = Number(get('mapShape').value);
-    const credit = [get('mapSource').value.trim(),'Made with Natural Earth'].filter(Boolean).join('  ·  ');
+    const credit = [get('mapSource').value.trim(),stateMode ? 'India viewpoint · Natural Earth · © OpenStreetMap contributors (openstreetmap.org/copyright)'
+      : india ? 'Made with Natural Earth · India viewpoint' : 'Made with Natural Earth'].filter(Boolean).join('  ·  ');
     const {ctx,top,bottom} = begin(mapCanvas,height,theme,get('mapTitle').value || 'Untitled map',get('mapDeck').value,credit,'MAP GRAPHIC');
-    const view = regions[get('mapRegion').value];
+    const focus = stateMode && focusCode ? data.states.find(state => state.code === focusCode) : null;
+    const view = india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : regions[territory.value];
     const fills = new Map();
     let skipped = 0;
-    for (const line of get('mapValues').value.split('\n').filter(value => value.trim())) {
-      const [country,raw] = line.split('|');
-      const id = countries.get(mapKey(country));
+    const input = stateMode ? stateValues.value : india ? '' : get('mapValues').value;
+    for (const line of input.split('\n').filter(value => value.trim())) {
+      const [label,raw] = line.split('|');
+      const id = data.names.get(mapKey(label));
       const value = raw?.trim();
       if (!id || (value && !validNumber(value))) skipped++;
       else fills.set(id,value ? Number(value) : null);
@@ -289,34 +332,97 @@
     const values = [...fills.values()].filter(Number.isFinite);
     const low = values.length ? Math.min(...values) : 0;
     const high = values.length ? Math.max(...values) : 1;
+    const categorical = ['#a43e50','#416a8b','#507850','#a75332','#6b4d8a','#277d79'];
     const map = projector(view,top,bottom-(values.length ? 77 : 8));
+    const labelBoxes = [];
     block(ctx,map.x-13,map.y-13,map.width+26,map.height+26,18,theme.card);
     ctx.save();
     ctx.beginPath();
     ctx.rect(map.x,map.y,map.width,map.height);
     ctx.clip();
     ctx.lineJoin = 'round';
-    ctx.lineWidth = 1.25;
-    for (const feature of features) {
-      const geometry = feature.geometry;
-      if (!geometry || !['Polygon','MultiPolygon'].includes(geometry.type)) continue;
-      const polygons = geometry.type==='Polygon' ? [geometry.coordinates] : geometry.coordinates;
-      const id = feature.properties.ADM0_A3;
-      const value = fills.get(id);
-      ctx.fillStyle = !fills.has(id) ? mixColor(theme.card,theme.ink,.21)
-        : value === null ? theme.accent : mixColor(theme.card,theme.accent,high===low ? .9 : .28 + .72*((value-low)/(high-low)));
-      ctx.strokeStyle = theme.bg;
-      ctx.beginPath();
-      for (const polygon of polygons) for (const ring of polygon) {
-        if (!ring.length) continue;
-        ctx.moveTo(...map.point(ring[0]));
-        for (const point of ring.slice(1)) ctx.lineTo(...map.point(point));
-        ctx.closePath();
+
+    function labelAt(label,x,y,color) {
+      font(ctx,23,800);
+      const width = Math.min(250,ctx.measureText(label).width) + 18;
+      const clamp = (value,min,max) => Math.max(min,Math.min(max,value));
+      const candidates = [[0,0],[0,-36],[0,36],[30,-65],[-30,65]];
+      for (const [dx,dy] of candidates) {
+        const left = clamp(x+dx-width/2,map.x+4,map.x+map.width-width-4);
+        const top = clamp(y+dy-20,map.y+4,map.y+map.height-34);
+        const box = [left,top,left+width,top+30];
+        if (labelBoxes.some(([l,t,r,b]) => box[0]<r+4 && box[2]>l-4 && box[1]<b+4 && box[3]>t-4)) continue;
+        labelBoxes.push(box);
+        if (dx || dy) {
+          ctx.beginPath();
+          ctx.moveTo(x,y);
+          ctx.lineTo(clamp(x,left,left+width),clamp(y,top,top+30));
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = theme.line;
+          ctx.stroke();
+        }
+        block(ctx,left,top,width,30,6,theme.bg);
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        text(ctx,label,left+width/2,top+22,width-12);
+        ctx.textAlign = 'left';
+        return;
       }
-      ctx.fill('evenodd');
-      ctx.stroke();
     }
-    ctx.restore();
+
+    function featureColor(id,index) {
+      const value = fills.get(id);
+      if (!fills.has(id)) return mixColor(theme.card,theme.ink,.18);
+      if (value===null) return stateMode ? categorical[index%categorical.length] : theme.accent;
+      return mixColor(theme.card,theme.accent,high===low ? .9 : .28 + .72*((value-low)/(high-low)));
+    }
+
+    if (india) {
+      const outline = polygonPath(data.outline,map.point);
+      ctx.fillStyle = stateMode ? mixColor(theme.card,theme.ink,.18) : theme.accent;
+      outlineHitPath = outline;
+      if (!focus) ctx.fill(outline,'evenodd');
+      if (stateMode) {
+        ctx.save();
+        ctx.clip(outline,'evenodd');
+        const states = focus ? [focus] : data.states;
+        for (const state of states) {
+          const path = polygonPath(state.geometry,map.point);
+          ctx.fillStyle = focus && !fills.has(state.code) ? theme.accent : featureColor(state.code,[...fills.keys()].indexOf(state.code));
+          ctx.fill(path,'evenodd');
+          ctx.lineWidth = 1.55;
+          ctx.strokeStyle = theme.bg;
+          ctx.stroke(path);
+          hitAreas.push({code:state.code,path});
+        }
+        ctx.restore();
+        const labels = get('mapLabels').value;
+        if (labels !== 'off') {
+          const named = [...states].sort((a,b)=>Number(fills.has(b.code))-Number(fills.has(a.code)));
+          for (const state of named) {
+            if (!focus && !fills.has(state.code) && labels !== 'codes') continue;
+            const [x,y] = map.point(state.anchor);
+            const value = fills.get(state.code);
+            const name = focus || labels==='highlights' ? state.name : state.code.slice(3);
+            labelAt(name+(Number.isFinite(value) ? ' · '+number(value) : ''),x,y,theme.ink);
+          }
+        }
+      }
+      ctx.lineWidth = 2.1;
+      ctx.strokeStyle = theme.line;
+      if (!focus) ctx.stroke(outline);
+    } else {
+      ctx.lineWidth = 1.25;
+      for (const {geometry,properties} of data.features) {
+        if (!geometry || !['Polygon','MultiPolygon'].includes(geometry.type)) continue;
+        const path = polygonPath(geometry,map.point);
+        ctx.fillStyle = featureColor(properties.ADM0_A3,0);
+        ctx.strokeStyle = theme.bg;
+        ctx.fill(path,'evenodd');
+        ctx.stroke(path);
+      }
+    }
+
     let pinCount = 0;
     for (const line of get('mapPins').value.split('\n').filter(value => value.trim())) {
       const [label,latText,lonText] = line.split('|').map(value => value.trim());
@@ -326,22 +432,20 @@
         continue;
       }
       if (lon<view[0] || lon>view[1] || lat<view[2] || lat>view[3]) continue;
-      pinCount++;
       const [x,y] = map.point([lon,lat]);
+      if (focus && !ctx.isPointInPath(hitAreas[0].path,x,y,'evenodd')) continue;
+      pinCount++;
       ctx.beginPath();
-      ctx.arc(x,y,11,0,Math.PI*2);
+      ctx.arc(x,y,10,0,Math.PI*2);
       ctx.fillStyle = theme.secondary;
       ctx.fill();
-      ctx.strokeStyle = theme.ink;
+      ctx.strokeStyle = theme.bg;
       ctx.lineWidth = 3;
       ctx.stroke();
-      font(ctx,26,800);
-      const labelWidth = Math.min(235,ctx.measureText(label).width);
-      const xLabel = Math.min(985-labelWidth,x+15);
-      block(ctx,xLabel-5,y-24,labelWidth+10,35,5,theme.bg);
-      ctx.fillStyle = theme.ink;
-      text(ctx,label,xLabel,y+1,labelWidth);
+      labelAt(label,x+30,y+22,theme.ink);
     }
+    ctx.restore();
+
     if (values.length) {
       const x = 95, y = bottom-44, width = 320;
       const gradient = ctx.createLinearGradient(x,0,x+width,0);
@@ -359,33 +463,84 @@
       }
     }
     mapStatus.textContent = skipped ? skippedRows(skipped) + ' Check names, coordinates, and formats.' : '';
-    mapCanvas.setAttribute('aria-label',(get('mapTitle').value || 'Map graphic') + '. ' + fills.size + ' highlighted countries and ' + pinCount + ' visible pins.');
+    const subject = stateMode ? (focus ? focus.name : 'India, 36 states and union territories') : india ? 'India national outline' : 'Regional map';
+    mapCanvas.setAttribute('aria-label',subject + '. ' + fills.size + ' highlights and ' + pinCount + ' visible pins.');
     enableMap(true);
   }
 
-  async function loadMap() {
-    if (features || loadingMap) return;
-    loadingMap = true;
+  const inflight = new Set();
+  async function loadMap(key) {
+    if (inflight.has(key)) return;
+    inflight.add(key);
     mapStatus.textContent = 'Loading map data…';
     try {
-      const response = await fetch('./assets/vision/world.geojson');
-      if (!response.ok) throw new Error();
-      const data = await response.json();
-      if (!Array.isArray(data.features) || !data.features.length) throw new Error();
-      features = data.features;
-      countries = new Map();
-      for (const {properties:p} of features) for (const value of [p.ADMIN,p.NAME,p.NAME_LONG,p.ADM0_A3,p.ISO_A2,p.ISO_A3,p.ISO_A3_EH]) {
-        if (value && value!=='-99') countries.set(mapKey(value),p.ADM0_A3);
+      if (key==='india') {
+        const response = await fetch('./assets/india-map.json.gz');
+        if (!response.ok) throw new Error();
+        const bytes = await response.arrayBuffer();
+        const header = new Uint8Array(bytes,0,2);
+        const data = header[0]===31 && header[1]===139
+          ? await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).json()
+          : JSON.parse(new TextDecoder().decode(bytes));
+        if (data.states?.length!==36 || !data.outline) throw new Error();
+        data.names = new Map();
+        const options = [];
+        for (const state of data.states) {
+          for (const value of [state.name,state.code,state.code.slice(3)]) data.names.set(mapKey(value),state.code);
+          const option = document.createElement('option');
+          option.value = state.code;
+          option.textContent = state.name;
+          options.push(option);
+        }
+        for (const [alias,code] of [['ಕರ್ನಾಟಕ','IN-KA'],['Orissa','IN-OD'],['Telengana','IN-TG'],['Pondicherry','IN-PY'],['Uttaranchal','IN-UT'],['New Delhi','IN-DL']]) data.names.set(mapKey(alias),code);
+        statePick.replaceChildren(...options);
+        statePick.value = 'IN-KA';
+        statePick.disabled = get('mapStateHighlight').disabled = stateFocus.disabled = false;
+        dataSets.india = data;
+      } else {
+        const response = await fetch('./assets/vision/world.geojson');
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        if (!Array.isArray(data.features) || !data.features.length) throw new Error();
+        data.names = new Map();
+        for (const {properties:p} of data.features) for (const value of [p.ADMIN,p.NAME,p.NAME_LONG,p.ADM0_A3,p.ISO_A2,p.ISO_A3,p.ISO_A3_EH]) {
+          if (value && value!=='-99') data.names.set(mapKey(value),p.ADM0_A3);
+        }
+        dataSets.world = data;
       }
-      renderMap();
+      if (key===(isIndia() ? 'india' : 'world')) renderMap();
     } catch {
-      features = null;
-      enableMap(false);
-      mapStatus.textContent = 'Map data could not load. Switch tabs and return to try again.';
-    } finally { loadingMap = false; }
+      if (key===(isIndia() ? 'india' : 'world')) mapStatus.textContent = 'Map data could not load. Switch tabs and return to try again.';
+    } finally { inflight.delete(key); }
   }
 
-  editable(['mapRegion','mapTheme','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape'],'app_mapGraphic',renderMap);
-  get('mapGraphicsLab').addEventListener('creator-tool-open',loadMap);
-  document.fonts.ready.then(() => { renderInfo(); renderMap(); });
+  const saveMap = editable(['mapRegion','mapTheme','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape','mapStateValues','mapLabels'],'app_mapGraphic',renderMap);
+  function toggleState(code) {
+    const data = dataSets.india;
+    const state = data?.states.find(item=>item.code===code);
+    if (!state) return;
+    const lines = stateValues.value.split('\n').filter(line=>line.trim());
+    const remaining = lines.filter(line=>data.names.get(mapKey(line.split('|')[0]))!==code);
+    stateValues.value = (remaining.length === lines.length ? [...lines,state.name] : remaining).join('\n');
+    saveMap();
+  }
+
+  get('mapStateHighlight').addEventListener('click',()=>toggleState(statePick.value));
+  stateFocus.addEventListener('click',()=>{ focusCode = focusCode ? '' : statePick.value; renderMap(); });
+  statePick.addEventListener('change',()=>{ if (focusCode) { focusCode = statePick.value; renderMap(); } });
+  territory.addEventListener('change',()=>{ focusCode = ''; renderMap(); });
+  mapCanvas.addEventListener('click',event=>{
+    if (!isStates() || !hitAreas.length) return;
+    const rect = mapCanvas.getBoundingClientRect();
+    const x = (event.clientX-rect.left)*mapCanvas.width/rect.width;
+    const y = (event.clientY-rect.top)*mapCanvas.height/rect.height;
+    const ctx = mapCanvas.getContext('2d');
+    if (!outlineHitPath || !ctx.isPointInPath(outlineHitPath,x,y,'evenodd')) return;
+    const hit = hitAreas.find(({path})=>ctx.isPointInPath(path,x,y,'evenodd'));
+    if (!hit) return;
+    statePick.value = hit.code;
+    toggleState(hit.code);
+  });
+  get('mapGraphicsLab').addEventListener('creator-tool-open',()=>{ open = true; renderMap(); });
+  document.fonts.ready.then(() => { renderInfo(); if(open) renderMap(); });
 })();

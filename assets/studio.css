@@ -562,3 +562,16 @@ canvas.preview.selected { border-color: var(--accent); outline: 2px solid var(--
   .creator-tabs button { padding-inline: 11px; }
   .graphic-stage canvas, .photo-workbench img { max-height: 58dvh; }
 }
+
+.map-state-tools { display: grid; gap: 9px; }
+#mapGraphicsLab:has(#mapStateOptions:not([hidden])) #mapCanvas { cursor: pointer; }
+.cutout-advanced { padding: 10px; border: 1px solid var(--border); border-radius: var(--r); }
+.cutout-advanced summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+.cutout-advanced[open] { display: grid; gap: 9px; }
+.cutout-brush-tools { display: grid; grid-template-columns: minmax(80px,1fr) minmax(90px,1.2fr) auto; gap: 8px; align-items: end; }
+.cutout-brush-tools button { width: auto; }
+#cutoutBrushCanvas[data-editing] { touch-action: none; cursor: crosshair; }
+@media (max-width: 410px) {
+  .cutout-brush-tools { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .cutout-brush-tools button { justify-self: start; }
+}
