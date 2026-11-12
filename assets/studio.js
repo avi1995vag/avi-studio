@@ -2906,8 +2906,10 @@ function openPosterEditor(){
   if(!posterSlide) return;
   document.getElementById('posterLayout').value = posterSlide.layout;
   updateCreativeGallery();
-  const ed = document.getElementById('posterEditor');
-  ed.style.display = 'block';
+  const empty = document.getElementById('posterEditorEmpty');
+  const startedFromEditor = empty.contains(document.activeElement);
+  empty.hidden = true;
+  document.getElementById('posterEditorFields').hidden = false;
   document.getElementById('posterEditLayout').value = posterSlide.layout || 'news-card';
   for(const [field,value] of [['photoX',.5],['photoY',.15],['photoZoom',1]]){
     document.getElementById(field).value = Math.round(100*(posterSlide[field] ?? value));
@@ -2924,6 +2926,7 @@ function openPosterEditor(){
   const tsb = document.getElementById('titleSizeBadge'); if(tsb) tsb.textContent = parseFloat(ts).toFixed(2)+'×';
   const bsb = document.getElementById('bodySizeBadge'); if(bsb) bsb.textContent = parseFloat(bs).toFixed(2)+'×';
   syncPosterColorInputs();
+  if(startedFromEditor) document.getElementById('posterEditTitle').focus({preventScroll:true});
 }
 
 function syncPosterColorInputs(){

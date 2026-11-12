@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css?v=canvas-workspace">
+<link rel="stylesheet" href="./assets/studio.css?v=poster-tools">
 </head>
 <body>
 
@@ -451,10 +451,11 @@
     </div>
     </details>
     <div class="poster-design-workspace">
-      <section class="poster-stage" aria-labelledby="posterPreviewTitle">
+      <section class="poster-stage" id="posterStage" aria-labelledby="posterPreviewTitle" tabindex="-1">
         <div class="section-heading"><h2 id="posterPreviewTitle">Poster canvas</h2><span id="posterPreviewLabel">Sample artwork</span><div class="artboard-tools">
           <label class="visually-hidden" for="posterCanvasZoom">Poster zoom</label>
           <select id="posterCanvasZoom"><option value="fit">Fit</option><option value="width">Fill width</option><option value="75">75%</option><option value="100">100%</option></select>
+          <a class="action-link" href="#posterTools">Layouts &amp; edit</a>
           <button type="button" class="btn-p btn-sm" onclick="openStudioComposer('posterCompose','posterInput')">Compose</button>
         </div></div>
         <div class="poster-canvas-wrap artboard-viewport" id="posterViewport" data-zoom="fit">
@@ -477,6 +478,8 @@
           </div>
         </div>
       </section>
+    </div>
+    <div id="posterTools" class="poster-tools" tabindex="-1">
       <section class="creative-gallery" aria-labelledby="creativeGalleryTitle">
         <div class="section-heading"><h2 id="creativeGalleryTitle">Layout gallery</h2><span id="creativeCount"></span></div>
         <label class="visually-hidden" for="creativeSearch">Search layouts</label>
@@ -484,12 +487,19 @@
         <div id="creativeTemplates" class="creative-templates"></div>
         <p id="creativeEmpty" class="helper" hidden>No matching layouts.</p>
       </section>
-    </div>
-
-
-    <!-- POSTER EDITOR -->
-    <div id="posterEditor" class="gen-area poster-editor" style="display:none;">
-      <h2>Edit poster</h2>
+      <section id="posterEditor" class="gen-area poster-editor" aria-labelledby="posterEditorTitle">
+      <div class="section-heading">
+        <h2 id="posterEditorTitle">Edit poster</h2>
+        <a class="action-link" href="#posterStage">View canvas</a>
+      </div>
+      <div id="posterEditorEmpty">
+        <p class="helper">Start a draft with the selected layout to edit its text and images.</p>
+        <div class="photo-actions">
+          <button type="button" class="btn-p btn-sm" onclick="createBlankPoster()">Start blank poster</button>
+          <button type="button" class="btn-sm" onclick="loadCreativeSample()">Edit sample</button>
+        </div>
+      </div>
+      <div id="posterEditorFields" hidden>
       <div class="field"><label for="posterEditLayout">🎨 Switch Layout</label>
         <select id="posterEditLayout" onchange="switchPosterLayout(this.value)">
           <optgroup label="── News Layouts ──">
@@ -569,6 +579,8 @@
             <button class="btn-sm" onclick="refreshPosterImage()">Search stock photos</button>
           </div>
         </div>
+      </section>
+      </div>
       </section>
     </div>
   </div>
@@ -889,7 +901,7 @@
 <script src="./assets/creative.js?v=story-layouts"></script>
 <script src="./assets/photo-search.js?v=carousel-visuals"></script>
 <script src="./assets/article-import.js"></script>
-<script src="./assets/studio.js?v=canvas-workspace"></script>
+<script src="./assets/studio.js?v=poster-tools"></script>
 <script src="./assets/image-generator.js"></script>
 <script src="./assets/social-publishing.js?v=carousel-visuals"></script>
 <script src="./assets/workspace.js?v=canvas-workspace"></script>
