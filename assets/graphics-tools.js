@@ -263,12 +263,13 @@
   let outlineHitPath;
   let open = false;
 
-  function projector(bounds,top,bottom) {
+  function projector(bounds,top,bottom,frame) {
     const [west,east,south,north] = bounds;
     const aspect = Math.cos((south+north)*Math.PI/360);
-    const scale = Math.min(900/((east-west)*aspect),(bottom-top-38)/(north-south));
+    const area = frame || {x:90,y:top,width:900,height:bottom-top};
+    const scale = Math.min(area.width/((east-west)*aspect),(area.height-38)/(north-south));
     const width = (east-west)*scale*aspect, height = (north-south)*scale;
-    const x = (1080-width)/2, y = (top+bottom-height)/2;
+    const x = area.x+(area.width-width)/2, y = area.y+(area.height-height)/2;
     return {x,y,width,height,point:([lon,lat]) => [x+(lon-west)*scale*aspect,y+(north-lat)*scale]};
   }
 
@@ -295,10 +296,75 @@
     return path;
   }
 
+  function drawCalloutRail(ctx,rows,theme,top,bottom,map,layout) {
+    const selected = rows.slice(0,4);
+    if (!selected.length) return;
+    const x = 64, w = 334;
+    const available = bottom-top-20;
+    const h = Math.max(98,Math.min(138,(available-(selected.length-1)*16)/selected.length));
+    selected.forEach((row,index) => {
+      const y = top+10+index*(h+16);
+      const accent = ['#ef6b73','#f4bd50','#5ed1c5','#8674f7'][index];
+      const [anchorX,anchorY] = map.point(row.state.anchor);
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(anchorX,anchorY);
+      ctx.lineTo(map.x-18,anchorY);
+      ctx.lineTo(map.x-18,y+h/2);
+      ctx.lineTo(x+w,y+h/2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(anchorX,anchorY,17,0,Math.PI*2);
+      ctx.fillStyle = accent;
+      ctx.fill();
+      ctx.strokeStyle = theme.bg;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = theme.bg;
+      ctx.textAlign = 'center';
+      font(ctx,20,800);
+      text(ctx,String(index+1),anchorX,anchorY+7,28);
+      ctx.textAlign = 'left';
+      block(ctx,x,y,w,h,18,theme.card);
+      block(ctx,x+18,y+17,42,42,21,accent);
+      ctx.fillStyle = theme.bg;
+      ctx.textAlign = 'center';
+      font(ctx,22,800);
+      text(ctx,String(index+1),x+39,y+45,30);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = theme.ink;
+      font(ctx,25,800);
+      text(ctx,row.state.name,x+75,y+35,w-92);
+      if (Number.isFinite(row.value)) {
+        ctx.fillStyle = accent;
+        font(ctx,24,800);
+        text(ctx,number(row.value),x+75,y+62,w-92);
+      }
+      ctx.fillStyle = theme.soft;
+      font(ctx,19,600);
+      lines(ctx,row.note || 'Highlighted state',x+18,y+h-24,w-36,23,2);
+    });
+    if (layout==='dashboard') {
+      const y = bottom-118;
+      block(ctx,x,y,w,108,18,theme.bg);
+      ctx.fillStyle = theme.accent;
+      font(ctx,18,800);
+      text(ctx,'STORY SIGNAL',x+18,y+30,w-36);
+      ctx.fillStyle = theme.ink;
+      font(ctx,39,800);
+      text(ctx,String(rows.length).padStart(2,'0'),x+18,y+78,110);
+      ctx.fillStyle = theme.soft;
+      font(ctx,19,600);
+      lines(ctx,'state highlights ready for your story',x+100,y+57,w-118,23,2);
+    }
+  }
+
   function renderMap() {
     const india = isIndia(), stateMode = isStates();
     get('mapCountryOptions').hidden = india;
     get('mapStateOptions').hidden = !stateMode;
+    get('mapLayoutField').hidden = !stateMode;
     get('mapIndiaCredits').hidden = !india;
     get('mapWorldCredits').hidden = india;
     stateFocus.setAttribute('aria-pressed',String(Boolean(focusCode)));
@@ -313,6 +379,7 @@
     }
 
     const theme = palettes[get('mapTheme').value];
+    const layout = stateMode ? get('mapLayout').value : 'atlas';
     const height = Number(get('mapShape').value);
     const credit = [get('mapSource').value.trim(),stateMode ? 'India viewpoint · Natural Earth · © OpenStreetMap contributors (openstreetmap.org/copyright)'
       : india ? 'Made with Natural Earth · India viewpoint' : 'Made with Natural Earth'].filter(Boolean).join('  ·  ');
@@ -320,20 +387,31 @@
     const focus = stateMode && focusCode ? data.states.find(state => state.code === focusCode) : null;
     const view = india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : regions[territory.value];
     const fills = new Map();
+    const stateRows = [];
     let skipped = 0;
     const input = stateMode ? stateValues.value : india ? '' : get('mapValues').value;
     for (const line of input.split('\n').filter(value => value.trim())) {
-      const [label,raw] = line.split('|');
+      const [label,raw,note] = line.split('|');
       const id = data.names.get(mapKey(label));
       const value = raw?.trim();
       if (!id || (value && !validNumber(value))) skipped++;
-      else fills.set(id,value ? Number(value) : null);
+      else {
+        const numeric = value ? Number(value) : null;
+        fills.set(id,numeric);
+        if (stateMode) {
+          const state = data.states.find(item => item.code===id);
+          if (state) stateRows.push({id,state,value:numeric,note:note?.trim() || ''});
+        }
+      }
     }
     const values = [...fills.values()].filter(Number.isFinite);
     const low = values.length ? Math.min(...values) : 0;
     const high = values.length ? Math.max(...values) : 1;
     const categorical = ['#a43e50','#416a8b','#507850','#a75332','#6b4d8a','#277d79'];
-    const map = projector(view,top,bottom-(values.length ? 77 : 8));
+    const railLayout = stateMode && !focus && layout!=='atlas';
+    const legendSpace = values.length ? 77 : 8;
+    const railWidth = railLayout ? 520 : 0;
+    const map = projector(view,top,bottom-legendSpace,railLayout ? {x:railWidth,y:top,width:500,height:bottom-top-legendSpace} : undefined);
     const labelBoxes = [];
     block(ctx,map.x-13,map.y-13,map.width+26,map.height+26,18,theme.card);
     ctx.save();
@@ -396,7 +474,7 @@
           hitAreas.push({code:state.code,path});
         }
         ctx.restore();
-        const labels = get('mapLabels').value;
+        const labels = railLayout ? 'off' : get('mapLabels').value;
         if (labels !== 'off') {
           const named = [...states].sort((a,b)=>Number(fills.has(b.code))-Number(fills.has(a.code)));
           for (const state of named) {
@@ -446,6 +524,8 @@
     }
     ctx.restore();
 
+    if (railLayout) drawCalloutRail(ctx,stateRows,theme,top,bottom-legendSpace,map,layout);
+
     if (values.length) {
       const x = 95, y = bottom-44, width = 320;
       const gradient = ctx.createLinearGradient(x,0,x+width,0);
@@ -475,13 +555,18 @@
     mapStatus.textContent = 'Loading map data…';
     try {
       if (key==='india') {
-        const response = await fetch('./assets/india-map.json.gz');
-        if (!response.ok) throw new Error();
-        const bytes = await response.arrayBuffer();
-        const header = new Uint8Array(bytes,0,2);
-        const data = header[0]===31 && header[1]===139
-          ? await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).json()
-          : JSON.parse(new TextDecoder().decode(bytes));
+        const localMap = self.AVI_INDIA_MAP;
+        let data;
+        if (localMap) data = JSON.parse(JSON.stringify(localMap));
+        else {
+          const response = await fetch('./assets/india-map.json.gz');
+          if (!response.ok) throw new Error();
+          const bytes = await response.arrayBuffer();
+          const header = new Uint8Array(bytes,0,2);
+          data = header[0]===31 && header[1]===139
+            ? await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).json()
+            : JSON.parse(new TextDecoder().decode(bytes));
+        }
         if (data.states?.length!==36 || !data.outline) throw new Error();
         data.names = new Map();
         const options = [];
@@ -514,7 +599,7 @@
     } finally { inflight.delete(key); }
   }
 
-  const saveMap = editable(['mapRegion','mapTheme','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape','mapStateValues','mapLabels'],'app_mapGraphic',renderMap);
+  const saveMap = editable(['mapRegion','mapTheme','mapLayout','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape','mapStateValues','mapLabels'],'app_mapGraphic',renderMap);
   function toggleState(code) {
     const data = dataSets.india;
     const state = data?.states.find(item=>item.code===code);
