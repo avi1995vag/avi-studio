@@ -639,7 +639,7 @@
         statePick.disabled = get('mapStateHighlight').disabled = stateFocus.disabled = false;
         dataSets.india = data;
       } else if (key==='districts') {
-        const response = await fetch('./assets/map-data/india-districts-display.geojson');
+        const response = await fetch('./assets/india-districts-display.geojson');
         if (!response.ok) throw new Error();
         const data = await response.json();
         if (!Array.isArray(data.features) || data.features.length < 700) throw new Error();
