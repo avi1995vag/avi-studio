@@ -311,8 +311,11 @@
       if (Number.isFinite(value[0]) && Number.isFinite(value[1])) values.push(value);
       else for (const item of value) stack.push(item);
     }
-    const lons = values.map(point=>point?.[0]).filter(Number.isFinite), lats = values.map(point=>point?.[1]).filter(Number.isFinite);
-    return lons.length ? [Math.min(...lons),Math.max(...lons),Math.min(...lats),Math.max(...lats)] : [65,98,5,37];
+    let west=Infinity,east=-Infinity,south=Infinity,north=-Infinity;
+    for (const point of values) if (Number.isFinite(point?.[0]) && Number.isFinite(point?.[1])) {
+      west=Math.min(west,point[0]); east=Math.max(east,point[0]); south=Math.min(south,point[1]); north=Math.max(north,point[1]);
+    }
+    return Number.isFinite(west) ? [west,east,south,north] : [65,98,5,37];
   }
 
   function featureIdentity(properties={}) {
