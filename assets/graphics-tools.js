@@ -725,7 +725,7 @@
       if (key===mapDataKey()) renderMap();
     } catch (error) {
       console.error('Map layer error',key,error);
-      if (key===mapDataKey()) mapStatus.textContent = 'Map data could not load. Switch tabs and return to try again.';
+      if (key===mapDataKey()) mapStatus.textContent = 'Map data could not load: ' + (error?.message || 'unknown error');
     } finally { inflight.delete(key); }
   }
 
