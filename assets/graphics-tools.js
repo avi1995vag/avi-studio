@@ -516,7 +516,8 @@
     const fills = new Map();
     const stateRows = [];
     let skipped = 0;
-    const input = stateMode ? stateValues.value : (india && !boundaryLayer) ? '' : get('mapValues').value;
+    const savedValues = get('mapValues').value;
+    const input = stateMode || (india && !boundaryLayer) || (boundaryLayer && savedValues.trim().toUpperCase()==='IND') ? '' : savedValues;
     for (const line of input.split('\n').filter(value => value.trim())) {
       const [label,raw,note] = line.split('|');
       const id = data.names.get(mapKey(label));
