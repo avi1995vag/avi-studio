@@ -268,6 +268,16 @@
   const statePick = get('mapStatePick');
   const stateFocus = get('mapStateFocus');
   const stateValues = get('mapStateValues');
+  const featurePick = get('mapFeaturePick');
+  const markColor = get('mapMarkColor');
+  const placePins = {
+    koppal:[15.3505,76.1548], raichur:[16.2076,77.3463], ballari:[15.1394,76.9214], gangavati:[15.4316,76.5290],
+    vijayanagara:[15.267,76.391], hosapete:[15.2689,76.3909], bengaluru:[12.9716,77.5946], bangalore:[12.9716,77.5946],
+    mysuru:[12.2958,76.6394], mysore:[12.2958,76.6394], hubballi:[15.3647,75.1240], dharwad:[15.4589,75.0078],
+    kalaburagi:[17.3297,76.8343], gulbarga:[17.3297,76.8343], mangaluru:[12.9141,74.8560], belagavi:[15.8497,74.4977],
+    shivamogga:[13.9299,75.5681], tumakuru:[13.3379,77.1173], newdelhi:[28.6139,77.2090], delhi:[28.6139,77.2090],
+  };
+  const markColors = {saffron:'#f47a21',blue:'#2675d8',green:'#20a56b',red:'#dd4451',violet:'#8467d7',grey:'#84909b'};
   const mapKey = value => String(value || '').normalize('NFKC').trim().toLowerCase().replace(/\s*&\s*/g,' and ');
   const isIndia = () => territory.value.startsWith('india');
   const isStates = () => territory.value === 'indiaStates';
@@ -284,10 +294,11 @@
   let dragAreas = [];
   let dragState = null;
   let suppressMapClick = false;
-  let mapPositions = {title:{x:0,y:0},deck:{x:0,y:0},map:{x:0,y:0},pins:{x:0,y:0},rail:{x:0,y:0}};
+  let mapPositions = {title:{x:0,y:0},deck:{x:0,y:0},map:{x:0,y:0},pins:{x:0,y:0},rail:{x:0,y:0},image:{x:0,y:0}};
+  let mapOverlayImage = null;
 
   function safePositions(value) {
-    const next = {title:{x:0,y:0},deck:{x:0,y:0},map:{x:0,y:0},pins:{x:0,y:0},rail:{x:0,y:0}};
+    const next = {title:{x:0,y:0},deck:{x:0,y:0},map:{x:0,y:0},pins:{x:0,y:0},rail:{x:0,y:0},image:{x:0,y:0}};
     for (const key of Object.keys(next)) if (value?.[key] && Number.isFinite(value[key].x) && Number.isFinite(value[key].y)) {
       next[key] = {x:Math.max(-300,Math.min(300,value[key].x)),y:Math.max(-300,Math.min(300,value[key].y))};
     }
@@ -366,6 +377,80 @@
     const options = [...states.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en-IN')).map(([key,name])=>new Option(name,key));
     mapScope.replaceChildren(new Option('All India','all'),...options);
     mapScope.value = [...mapScope.options].some(option=>option.value===current) ? current : 'all';
+  }
+
+  function featureAnchor(feature) {
+    const [west,east,south,north] = featureBounds([feature]);
+    return [(west+east)/2,(south+north)/2];
+  }
+
+  function refreshFeaturePicker(data,features,scopeName) {
+    const tools = get('mapBoundaryTools');
+    const boundaryLayer = isBoundaryLayer();
+    tools.hidden = !boundaryLayer;
+    if (!boundaryLayer) return;
+    const signature = mapDataKey() + '|' + mapScope.value;
+    if (featurePick.dataset.signature === signature) return;
+    const current = featurePick.value;
+    const options = [...features].sort((a,b)=>featureLabel(a.properties).localeCompare(featureLabel(b.properties),'en-IN'))
+      .map(feature=>{
+        const option = new Option(featureLabel(feature.properties),featureIdentity(feature.properties));
+        option.dataset.label = featureLabel(feature.properties);
+        return option;
+      });
+    featurePick.replaceChildren(new Option('Choose a ' + (isDistricts() ? 'district' : isPC() ? 'Lok Sabha seat' : 'Assembly seat') + '…',''),...options);
+    featurePick.dataset.signature = signature;
+    featurePick.value = options.some(option=>option.value===current) ? current : '';
+    const enabled = options.length > 0;
+    featurePick.disabled = get('mapFeatureMark').disabled = get('mapFeaturePin').disabled = get('mapFeatureClear').disabled = !enabled;
+    get('mapFeatureHint').textContent = enabled
+      ? scopeName + ' · ' + options.length.toLocaleString('en-IN') + ' available. Choose one or click a boundary to colour and label it.'
+      : 'Choose a State / UT first to load available boundaries.';
+  }
+
+  function drawBoundaryStoryRail(ctx,rows,theme,top,bottom,map,layout,scopeName,count,offset={x:0,y:0}) {
+    const selected = rows.slice(0,4);
+    const right = layout === 'briefing' || layout === 'election';
+    const x = (right ? 678 : 54) + offset.x, w = 348;
+    const y = top + 6 + offset.y;
+    const header = isPC() ? 'LOK SABHA' : isAC() ? 'ASSEMBLY' : 'DISTRICTS';
+    block(ctx,x,y,w,116,20,theme.card);
+    ctx.fillStyle = theme.accent;
+    font(ctx,18,800);
+    text(ctx,header,x+22,y+31,w-44);
+    ctx.fillStyle = theme.ink;
+    font(ctx,46,850);
+    text(ctx,String(count),x+21,y+80,155);
+    ctx.fillStyle = theme.soft;
+    font(ctx,21,650);
+    lines(ctx,(scopeName==='All India' ? 'mapped boundaries' : scopeName + ' boundaries'),x+150,y+57,w-170,25,2);
+    const cards = selected.length ? selected : [{label:'Choose a boundary',color:theme.accent,note:'Use Colour & label to build this story.'}];
+    const cardH = Math.max(74,Math.min(108,(bottom-y-138-(cards.length-1)*12)/cards.length));
+    cards.forEach((row,index)=>{
+      const cy = y+132+index*(cardH+12);
+      block(ctx,x,cy,w,cardH,16,theme.card);
+      block(ctx,x+15,cy+15,10,cardH-30,5,row.color || theme.accent);
+      ctx.fillStyle = theme.ink;
+      font(ctx,24,800);
+      text(ctx,row.label,x+42,cy+35,w-58);
+      ctx.fillStyle = theme.soft;
+      font(ctx,18,600);
+      lines(ctx,row.note || 'Marked for this story',x+42,cy+60,w-58,22,2);
+    });
+  }
+
+  function resolvePin(label,latText,lonText,data,features) {
+    const lat = Number(latText), lon = Number(lonText);
+    if (Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat)<=90 && Math.abs(lon)<=180) return {lat,lon};
+    const known = placePins[mapKey(label).replace(/\s+/g,'')];
+    if (known) return {lat:known[0],lon:known[1]};
+    const id = data.names?.get(mapKey(label));
+    const feature = features.find(item=>featureIdentity(item.properties)===String(id));
+    if (feature) {
+      const [featureLon,featureLat] = featureAnchor(feature);
+      return {lat:featureLat,lon:featureLon};
+    }
+    return null;
   }
 
   function projector(bounds,top,bottom,frame) {
@@ -514,20 +599,28 @@
     const scopeName = boundaryLayer && scopeKey !== 'all'
       ? (mapScope.options[mapScope.selectedIndex]?.textContent || 'the selected state')
       : 'All India';
+    refreshFeaturePicker(data,scopedFeatures,scopeName);
     const view = boundaryLayer ? featureBounds(scopedFeatures) : india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : regions[territory.value];
     const fills = new Map();
+    const markStyles = new Map();
     const stateRows = [];
     let skipped = 0;
     const savedValues = get('mapValues').value;
-    const input = stateMode || india ? '' : savedValues;
+    const input = stateMode || (india && !boundaryLayer) ? '' : savedValues;
     for (const line of input.split('\n').filter(value => value.trim())) {
       const [label,raw,note] = line.split('|');
       const id = data.names.get(mapKey(label));
       const value = raw?.trim();
-      if (!id || (value && !validNumber(value))) skipped++;
+      if (!id) {
+        // Boundary marks are controlled by the picker. Old names saved from a
+        // previous layer should not create a distracting error state.
+        if (!boundaryLayer) skipped++;
+      }
+      else if (value && !validNumber(value) && !markColors[mapKey(value)]) skipped++;
       else {
-        const numeric = value ? Number(value) : null;
+        const numeric = value && validNumber(value) ? Number(value) : null;
         fills.set(id,numeric);
+        if (value && markColors[mapKey(value)]) markStyles.set(id,markColors[mapKey(value)]);
         if (stateMode) {
           const state = data.states.find(item => item.code===id);
           if (state) stateRows.push({id,state,value:numeric,note:note?.trim() || ''});
@@ -538,10 +631,10 @@
     const low = values.length ? Math.min(...values) : 0;
     const high = values.length ? Math.max(...values) : 1;
     const categorical = ['#a43e50','#416a8b','#507850','#a75332','#6b4d8a','#277d79'];
-    const railLayout = stateMode && !focus && layout!=='atlas' && layout!=='spotlight';
+    const railLayout = (stateMode || boundaryLayer) && !focus && ['callouts','dashboard','briefing','election','seats'].includes(layout);
     const legendSpace = values.length ? 77 : 8;
     const railWidth = railLayout ? 520 : 0;
-    const rightRail = layout === 'briefing';
+    const rightRail = layout === 'briefing' || layout === 'election';
     const mapScale = Number(get('mapScale').value)/100;
     const defaultFrame = railLayout ? {x:rightRail ? 64 : railWidth,y:top,width:500,height:bottom-top-legendSpace} : {x:90,y:top,width:900,height:bottom-top-legendSpace};
     const scaledFrame = {width:defaultFrame.width*mapScale,height:(defaultFrame.height)*mapScale};
@@ -554,6 +647,7 @@
       {key:'map',x:map.x-22,y:map.y-22,w:map.width+44,h:map.height+44},
     ];
     const labelBoxes = [];
+    const boundaryRows = [];
     block(ctx,map.x-13,map.y-13,map.width+26,map.height+26,18,theme.bg);
     ctx.save();
     ctx.beginPath();
@@ -592,6 +686,7 @@
     function featureColor(id,index) {
       const value = fills.get(id);
       if (!fills.has(id)) return mixColor(theme.card,theme.ink,.18);
+      if (markStyles.has(id)) return markStyles.get(id);
       if (value===null) return stateMode ? categorical[index%categorical.length] : theme.accent;
       return mixColor(theme.card,theme.accent,high===low ? .9 : .28 + .72*((value-low)/(high-low)));
     }
@@ -632,13 +727,23 @@
       if (!focus) ctx.stroke(outline);
     } else {
       ctx.lineWidth = 1.25;
-      for (const {geometry,properties} of scopedFeatures) {
+      for (const feature of scopedFeatures) {
+        const {geometry,properties} = feature;
         if (!geometry || !['Polygon','MultiPolygon'].includes(geometry.type)) continue;
+        const id = featureIdentity(properties);
         const path = polygonPath(geometry,map.point);
-        ctx.fillStyle = featureColor(featureIdentity(properties),0);
+        hitAreas.push({code:id,path});
+        ctx.fillStyle = featureColor(id,boundaryRows.length);
         ctx.strokeStyle = theme.bg;
         ctx.fill(path,'evenodd');
         ctx.stroke(path);
+        if (fills.has(id)) {
+          const [lon,lat] = featureAnchor(feature);
+          const [x,y] = map.point([lon,lat]);
+          const label = featureLabel(properties);
+          boundaryRows.push({id,label,color:markStyles.get(id) || theme.accent,note:'Marked on the map',anchor:[lon,lat]});
+          labelAt(label,x,y,theme.ink);
+        }
       }
     }
 
@@ -662,11 +767,12 @@
     let pinCount = 0;
     for (const line of get('mapPins').value.split('\n').filter(value => value.trim())) {
       const [label,latText,lonText] = line.split('|').map(value => value.trim());
-      const lat = Number(latText), lon = Number(lonText);
-      if (!label || !latText || !lonText || !Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat)>90 || Math.abs(lon)>180 || pinCount===10) {
+      const point = label && pinCount < 10 ? resolvePin(label,latText,lonText,data,scopedFeatures) : null;
+      if (!point) {
         skipped++;
         continue;
       }
+      const {lat,lon} = point;
       if (lon<view[0] || lon>view[1] || lat<view[2] || lat>view[3]) continue;
       const [baseX,baseY] = map.point([lon,lat]);
       const x = baseX+mapPositions.pins.x, y = baseY+mapPositions.pins.y;
@@ -683,11 +789,26 @@
       labelAt(label,x+marker+20,y+marker+12,theme.ink);
       dragAreas.push({key:'pins',x:x-marker-14,y:y-marker-14,w:marker*2+28,h:marker*2+28});
     }
+    if (mapOverlayImage) {
+      const ratio = mapOverlayImage.naturalWidth / mapOverlayImage.naturalHeight || 1;
+      const maxWidth = Math.min(250,map.width*.36), maxHeight = Math.min(210,map.height*.30);
+      let width = maxWidth, height = width/ratio;
+      if (height>maxHeight) { height=maxHeight; width=height*ratio; }
+      const x = map.x+map.width-width-18+mapPositions.image.x;
+      const y = map.y+18+mapPositions.image.y;
+      block(ctx,x-7,y-7,width+14,height+14,12,theme.bg);
+      ctx.drawImage(mapOverlayImage,x,y,width,height);
+      ctx.strokeStyle = theme.accent;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x,y,width,height);
+      dragAreas.push({key:'image',x:x-12,y:y-12,w:width+24,h:height+24});
+    }
     ctx.restore();
 
     if (railLayout) {
-      drawCalloutRail(ctx,stateRows,theme,top,bottom-legendSpace,map,layout,mapPositions.rail);
-      dragAreas.push({key:'rail',x:(layout==='briefing' ? 660 : 44)+mapPositions.rail.x,y:top+mapPositions.rail.y,w:376,h:bottom-top-legendSpace});
+      if (boundaryLayer) drawBoundaryStoryRail(ctx,boundaryRows,theme,top,bottom-legendSpace,map,layout,scopeName,scopedFeatures.length,mapPositions.rail);
+      else drawCalloutRail(ctx,stateRows,theme,top,bottom-legendSpace,map,layout,mapPositions.rail);
+      dragAreas.push({key:'rail',x:(rightRail ? 660 : 44)+mapPositions.rail.x,y:top+mapPositions.rail.y,w:376,h:bottom-top-legendSpace});
     }
 
     if (values.length) {
@@ -708,9 +829,10 @@
     }
     const scopedMessage = boundaryLayer ? 'Showing ' + scopedFeatures.length.toLocaleString('en-IN') + ' ' + (isDistricts() ? 'district' : isPC() ? 'Lok Sabha constituency' : 'Assembly constituency') + (scopeKey==='all' ? ' boundaries across India.' : ' boundaries in ' + scopeName + '.') + ' ' : '';
     const markerMessage = editorialMarkers.length ? 'Vijayanagara is marked at its district headquarters; the supplied boundary layer predates its 2021 creation, so no boundary has been invented. ' : '';
-    mapStatus.textContent = (skipped ? skippedRows(skipped) + ' Check names, coordinates, and formats. ' : '') + scopedMessage + markerMessage + 'Drag headline, map, pins, or fact cards to arrange this composition.';
+    const markMessage = boundaryLayer && boundaryRows.length ? boundaryRows.length + (boundaryRows.length===1 ? ' boundary marked. ' : ' boundaries marked. ') : boundaryLayer ? 'Choose a boundary above to colour and label it. ' : '';
+    mapStatus.textContent = (skipped ? skippedRows(skipped) + ' Add a supported place name or Label | latitude | longitude. ' : '') + scopedMessage + markMessage + markerMessage + 'Drag headline, map, pins, story cards, or an uploaded photo to arrange this composition.';
     const subject = stateMode ? (focus ? focus.name : 'India, 36 states and union territories') : boundaryLayer ? scopeName + ' boundary map' : india ? 'India national outline' : 'Regional map';
-    mapCanvas.setAttribute('aria-label',subject + '. ' + fills.size + ' highlights and ' + pinCount + ' visible pins.');
+    mapCanvas.setAttribute('aria-label',subject + '. ' + boundaryRows.length + ' marked boundaries and ' + pinCount + ' visible pins.');
     enableMap(true);
   }
 
@@ -800,7 +922,7 @@
     } finally { inflight.delete(key); }
   }
 
-  const saveMap = editable(['mapRegion','mapScope','mapDesign','mapTheme','mapLayout','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape','mapStateValues','mapLabels','mapFont','mapCustomFont','mapTitleSize','mapBodySize','mapScale','mapMarkerSize','mapUseCustomColors','mapTextColor','mapAccentColor','mapPanelColor'],'app_mapGraphic',renderMap);
+  const saveMap = editable(['mapRegion','mapScope','mapDesign','mapTheme','mapLayout','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape','mapStateValues','mapLabels','mapFont','mapCustomFont','mapTitleSize','mapBodySize','mapScale','mapMarkerSize','mapUseCustomColors','mapTextColor','mapAccentColor','mapPanelColor','mapMarkColor'],'app_mapGraphic',renderMap);
   const syncMapControls = () => {
     get('mapCustomColors').hidden = !get('mapUseCustomColors').checked;
     for (const [id,suffix] of [['mapTitleSize',''],['mapBodySize',''],['mapScale','%'],['mapMarkerSize','%']]) get(id+'Out').textContent = get(id).value+suffix;
@@ -809,6 +931,51 @@
   for (const id of ['mapTitleSize','mapBodySize','mapScale','mapMarkerSize','mapUseCustomColors']) get(id).addEventListener('input',syncMapControls);
   get('mapUseCustomColors').addEventListener('change',syncMapControls);
   get('mapResetPositions').addEventListener('click',()=>{ mapPositions = safePositions(); lsSet('app_mapPositions',JSON.stringify(mapPositions)); renderMap(); });
+  function selectedBoundaryFeature() {
+    const data = dataSets[mapDataKey()];
+    if (!data || !isBoundaryLayer() || !featurePick.value) return null;
+    return data.features.find(feature=>featureIdentity(feature.properties)===featurePick.value) || null;
+  }
+  function markBoundary(addPin=false) {
+    const feature = selectedBoundaryFeature();
+    if (!feature) return;
+    const label = featureLabel(feature.properties);
+    const data = dataSets[mapDataKey()];
+    const id = featureIdentity(feature.properties);
+    const lines = get('mapValues').value.split('\n').filter(Boolean)
+      .filter(line=>data.names.get(mapKey(line.split('|')[0]))!==id);
+    lines.push(label + ' | ' + markColor.value);
+    get('mapValues').value = lines.join('\n');
+    if (addPin) {
+      const [lon,lat] = featureAnchor(feature);
+      const pins = get('mapPins').value.split('\n').filter(Boolean);
+      if (!pins.some(line=>mapKey(line.split('|')[0])===mapKey(label))) pins.push(label + ' | ' + lat.toFixed(4) + ' | ' + lon.toFixed(4));
+      get('mapPins').value = pins.join('\n');
+    }
+    saveMap();
+  }
+  get('mapFeatureMark').addEventListener('click',()=>markBoundary(false));
+  get('mapFeaturePin').addEventListener('click',()=>markBoundary(true));
+  get('mapFeatureClear').addEventListener('click',()=>{ get('mapValues').value = ''; saveMap(); });
+  for (const button of document.querySelectorAll('[data-map-nudge]')) button.addEventListener('click',()=>{
+    const target = get('mapNudgeTarget').value;
+    const delta = {left:[-12,0],right:[12,0],up:[0,-12],down:[0,12]}[button.dataset.mapNudge];
+    if (!mapPositions[target] || !delta) return;
+    mapPositions[target] = {x:mapPositions[target].x+delta[0],y:mapPositions[target].y+delta[1]};
+    mapPositions = safePositions(mapPositions);
+    lsSet('app_mapPositions',JSON.stringify(mapPositions));
+    renderMap();
+  });
+  get('mapOverlayFile').addEventListener('change',async event=>{
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.src = url;
+    try { await image.decode(); mapOverlayImage = image; get('mapOverlayClear').disabled = false; renderMap(); }
+    catch { mapStatus.textContent = 'That overlay image could not be opened. Try a JPEG, PNG, or WebP.'; }
+  });
+  get('mapOverlayClear').addEventListener('click',()=>{ mapOverlayImage = null; get('mapOverlayFile').value = ''; get('mapOverlayClear').disabled = true; renderMap(); });
   syncMapControls();
 
   function canvasPoint(event) {
@@ -868,14 +1035,19 @@
   mapScope.addEventListener('change',renderMap);
   mapCanvas.addEventListener('click',event=>{
     if (suppressMapClick) { suppressMapClick = false; return; }
-    if (!isStates() || !hitAreas.length) return;
+    if ((!isStates() && !isBoundaryLayer()) || !hitAreas.length) return;
     const rect = mapCanvas.getBoundingClientRect();
     const x = (event.clientX-rect.left)*mapCanvas.width/rect.width;
     const y = (event.clientY-rect.top)*mapCanvas.height/rect.height;
     const ctx = mapCanvas.getContext('2d');
-    if (!outlineHitPath || !ctx.isPointInPath(outlineHitPath,x,y,'evenodd')) return;
+    if (isStates() && (!outlineHitPath || !ctx.isPointInPath(outlineHitPath,x,y,'evenodd'))) return;
     const hit = hitAreas.find(({path})=>ctx.isPointInPath(path,x,y,'evenodd'));
     if (!hit) return;
+    if (isBoundaryLayer()) {
+      featurePick.value = hit.code;
+      markBoundary(false);
+      return;
+    }
     statePick.value = hit.code;
     toggleState(hit.code);
   });

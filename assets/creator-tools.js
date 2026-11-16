@@ -30,7 +30,7 @@ const selectCreatorTab = (() => {
 
 function openCreatorTool(tabId) {
   if (currentMode !== 'tools') switchMode('tools');
-  const tab = document.getElementById(tabId);
+  const tab = document.getElementById(tabId) || document.getElementById('mapGraphicsTab');
   selectCreatorTab(tab);
   tab.focus({preventScroll:true});
   window.scrollTo({top:0});
@@ -381,7 +381,7 @@ async function applyCreatorImage(blob, description) {
   } catch {}
   for (const control of [caption,hashtags,clean]) control.addEventListener('input',saveCaption);
   get('labLoadCaption').addEventListener('click',loadDraftCaption);
-  get('openCaptionLab').addEventListener('click',() => {
+  get('openCaptionLab')?.addEventListener('click',() => {
     openCreatorTool('captionLabTab');
     if (!caption.value && !hashtags.value) loadDraftCaption();
   });

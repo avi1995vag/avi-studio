@@ -564,6 +564,14 @@ canvas.preview.selected { border-color: var(--accent); outline: 2px solid var(--
 }
 
 .map-state-tools { display: grid; gap: 9px; }
+.map-boundary-tools { display: grid; gap: 10px; padding: 13px; border: 1px solid color-mix(in srgb, var(--accent) 52%, var(--border)); border-left: 4px solid var(--accent); border-radius: var(--r); background: color-mix(in srgb, var(--bg2) 82%, var(--accent) 8%); }
+.map-boundary-tools .field { min-width: 0; }
+.map-boundary-actions .lab-actions { flex-wrap: wrap; }
+.map-boundary-actions button { flex: 1 1 128px; }
+.map-nudge-controls .lab-actions { gap: 6px; }
+.map-nudge-controls .lab-actions button { min-width: 42px; padding-inline: 11px; }
+.map-overlay-actions { align-self: end; }
+.map-overlay-actions button { width: 100%; }
 #mapGraphicsLab .lab-output { align-self: start; }
 #mapGraphicsLab .graphic-stage { padding: 0; border: 0; border-radius: 0; background: transparent; }
 #mapGraphicsLab .graphic-stage canvas { box-shadow: none; }
