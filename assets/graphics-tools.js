@@ -6,6 +6,9 @@
     cream:{bg:'#fff2de',card:'#f3d8c5',ink:'#321a2a',soft:'#5f3e4b',accent:'#af3b3f',secondary:'#223f84',line:'#ba9390'},
     green:{bg:'#142f2a',card:'#234640',ink:'#eff8e5',soft:'#c7dbbd',accent:'#e2fa91',secondary:'#f0ba9e',line:'#597568'},
   };
+  const designLooks = {
+    signal:['#201735','#34264b','#fff2ff','#deaaff','#ffc2a8'], coral:['#24161b','#3f242c','#fff7f4','#ff7667','#ffd166'], mint:['#102b29','#1e4943','#effff7','#6ee7c7','#8cb7ff'], saffron:['#281908','#4a2b0d','#fff7e7','#ffb02e','#ef5d43'], ink:['#101418','#20272e','#eff4f8','#a5d8ff','#7bdcb5'], ultra:['#101b43','#21347b','#f5f7ff','#7fa8ff','#f7a8d8'], rose:['#321522','#55233b','#fff0f5','#ff8cb9','#ffd166'], lime:['#17210e','#29391b','#f5ffe9','#c8ff54','#7cd6ff'], sky:['#122738','#213d53','#effaff','#75c9ff','#ffe080'], plum:['#2a1731','#482653','#fff2ff','#e2a7ff','#8be6d1'], sand:['#3b2b1d','#5b432d','#fff8ed','#f2c078','#81c8ff'], teal:['#0d2c32','#17454d','#edfdff','#61d9d4','#ffbd8a'], ember:['#2e1710','#51281d','#fff5ed','#ff8b5d','#f8d166'], slate:['#19222d','#2b394a','#f3f7fc','#9ec1ff','#81e3c1'], orchid:['#2a183c','#47275f','#fbf1ff','#d4a4ff','#ffb0c6'], ocean:['#102e4b','#1c4a6e','#edf9ff','#61d4ff','#a1f0d3'], clay:['#3b221c','#604034','#fff4ee','#e69066','#97c9cf'], moss:['#1c2c1c','#314934','#f2faeb','#a6d979','#f0c287'], midnight:['#0e1118','#1a2030','#f2f5ff','#93a8ff','#f0b4ff'], sun:['#332307','#594013','#fff8e6','#ffd35b','#ff9278'], berry:['#321428','#572344','#fff2fb','#ff86c2','#aa9cff'], aqua:['#0e3138','#1c515b','#effdff','#71e2ee','#ffd27c'], wine:['#31121b','#571f30','#fff2f4','#ee7588','#e9b66b'], paper:['#f4eee2','#e7d9c5','#2c2520','#c65e4b','#315d8e'], cobalt:['#101d4b','#203779','#f5f7ff','#6f9cff','#ffcf70'], fern:['#15281e','#294335','#f0fbf4','#8ed782','#f3c477'], neon:['#15151d','#282834','#fbfbff','#b0ff4a','#ff6fbd'], peach:['#3b211f','#5d3934','#fff4f0','#ffae8d','#8fc6ff'], graphite:['#17191d','#292d35','#f7f7f7','#c8cdd7','#78d7c1'], lavender:['#292238','#453a59','#fbf8ff','#baa7ff','#ffb8d2'], ruby:['#351217','#5d2029','#fff4f4','#fa6f7c','#f5cb70'], ice:['#17313b','#285160','#effcff','#82e1ff','#aec4ff'], ochre:['#39260d','#60441c','#fff8e9','#efb64f','#df7a52'], jade:['#112d25','#1f4a3e','#effff8','#70dfb1','#ffe07a'], noir:['#111111','#222222','#ffffff','#fafafa','#b7ff5b'],
+  };
   const fonts = '"Bricolage Grotesque","Noto Sans Kannada","Nirmala UI",sans-serif';
   let activeFont = fonts;
   const decimal = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/;
@@ -258,6 +261,8 @@
     europe:[-25,45,33,72], africa:[-26,58,-38,39], americas:[-169,-29,-58,76], eastAsia:[90,180,-48,55],
   };
   const territory = get('mapRegion');
+  const mapScope = get('mapScope');
+  const mapDesign = get('mapDesign');
   const statePick = get('mapStatePick');
   const stateFocus = get('mapStateFocus');
   const stateValues = get('mapStateValues');
@@ -265,6 +270,10 @@
   const isIndia = () => territory.value.startsWith('india');
   const isStates = () => territory.value === 'indiaStates';
   const isDistricts = () => territory.value === 'indiaDistricts';
+  const isPC = () => territory.value === 'indiaPC';
+  const isAC = () => territory.value === 'indiaAC';
+  const isBoundaryLayer = () => isDistricts() || isPC() || isAC();
+  const mapDataKey = () => isDistricts() ? 'districts' : isPC() ? 'pc' : isAC() ? 'ac' : isIndia() ? 'india' : 'world';
   const dataSets = {};
   let focusCode = '';
   let hitAreas = [];
@@ -291,6 +300,33 @@
       system:'"Nirmala UI","Noto Sans Kannada",sans-serif',
     };
     return get('mapFont').value === 'custom' ? (get('mapCustomFont').value.trim() || presets.anek) : presets[get('mapFont').value] || presets.anek;
+  }
+
+  function featureBounds(features) {
+    const values = [];
+    const walk = value => Array.isArray(value?.[0]) ? value.forEach(walk) : values.push(value);
+    features.forEach(feature => walk(feature.geometry?.coordinates));
+    const lons = values.map(point=>point?.[0]).filter(Number.isFinite), lats = values.map(point=>point?.[1]).filter(Number.isFinite);
+    return lons.length ? [Math.min(...lons),Math.max(...lons),Math.min(...lats),Math.max(...lats)] : [65,98,5,37];
+  }
+
+  function featureIdentity(properties={}) {
+    return properties.code || properties.dtcode || properties.pc_id || properties.PC_ID || properties.AC_NO || properties.district || properties.pc_name || properties.PC_NAME || properties.AC_NAME || properties.ADM0_A3;
+  }
+
+  function featureLabel(properties={}) {
+    return properties.district || properties.pc_name || properties.PC_NAME || properties.AC_NAME || properties.ADMIN || properties.NAME || featureIdentity(properties) || 'Area';
+  }
+
+  function featureState(properties={}) {
+    return properties.state || properties.state_name || properties.st_name || properties.ST_NAME || '';
+  }
+
+  function refreshMapScopes(data) {
+    const current = mapScope.value;
+    const states = [...new Set((data.features || []).map(feature=>featureState(feature.properties)).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    mapScope.replaceChildren(new Option('All India','all'),...states.map(name=>new Option(name,name)));
+    mapScope.value = [...mapScope.options].some(option=>option.value===current) ? current : 'all';
   }
 
   function projector(bounds,top,bottom,frame) {
@@ -395,26 +431,31 @@
   function renderMap() {
     activeFont = mapTypeface();
     mapCanvas.dataset.draggable = 'true';
-    const india = isIndia(), stateMode = isStates();
-    get('mapCountryOptions').hidden = india && !isDistricts();
+    const india = isIndia(), stateMode = isStates(), boundaryLayer = isBoundaryLayer();
+    get('mapCountryOptions').hidden = india && !boundaryLayer;
     get('mapStateOptions').hidden = !stateMode;
-    get('mapLayoutField').hidden = !(stateMode || isDistricts());
+    get('mapLayoutField').hidden = !(stateMode || boundaryLayer);
+    get('mapScopeRow').hidden = false;
+    mapScope.disabled = !boundaryLayer;
     get('mapIndiaCredits').hidden = !india;
     get('mapWorldCredits').hidden = india;
     stateFocus.setAttribute('aria-pressed',String(Boolean(focusCode)));
     stateFocus.textContent = focusCode ? 'Show all India' : 'Focus state';
     hitAreas = [];
     outlineHitPath = null;
-    const data = dataSets[isDistricts() ? 'districts' : india ? 'india' : 'world'];
+    const data = dataSets[mapDataKey()];
     if (!data) {
       enableMap(false);
-      if (open) void loadMap(isDistricts() ? 'districts' : india ? 'india' : 'world');
+      if (open) void loadMap(mapDataKey());
       return;
     }
 
-    const baseTheme = palettes[get('mapTheme').value];
+    const baseTheme = get('mapDesign').value === 'signal' ? palettes[get('mapTheme').value] : (() => {
+      const [bg,card,ink,accent,secondary] = designLooks[get('mapDesign').value] || designLooks.signal;
+      return {bg,card,ink,accent,secondary,soft:ink+'bb',line:accent+'88'};
+    })();
     const theme = get('mapUseCustomColors').checked ? {...baseTheme,ink:get('mapTextColor').value,accent:get('mapAccentColor').value,card:get('mapPanelColor').value} : baseTheme;
-    const layout = (stateMode || isDistricts()) ? get('mapLayout').value : 'atlas';
+    const layout = (stateMode || boundaryLayer) ? get('mapLayout').value : 'atlas';
     const height = Number(get('mapShape').value);
     const credit = [get('mapSource').value.trim(),stateMode ? 'India viewpoint · Natural Earth · © OpenStreetMap contributors (openstreetmap.org/copyright)'
       : india ? 'Made with Natural Earth · India viewpoint' : 'Made with Natural Earth'].filter(Boolean).join('  ·  ');
@@ -424,11 +465,12 @@
       titleX:mapPositions.title.x,titleY:mapPositions.title.y,deckX:mapPositions.deck.x,deckY:mapPositions.deck.y,titleSize,bodySize,
     });
     const focus = stateMode && focusCode ? data.states.find(state => state.code === focusCode) : null;
-    const view = isDistricts() ? data.bounds : india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : regions[territory.value];
+    const scopedFeatures = boundaryLayer && mapScope.value !== 'all' ? data.features.filter(feature=>featureState(feature.properties)===mapScope.value) : data.features;
+    const view = boundaryLayer ? featureBounds(scopedFeatures) : india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : regions[territory.value];
     const fills = new Map();
     const stateRows = [];
     let skipped = 0;
-    const input = stateMode ? stateValues.value : (india && !isDistricts()) ? '' : get('mapValues').value;
+    const input = stateMode ? stateValues.value : (india && !boundaryLayer) ? '' : get('mapValues').value;
     for (const line of input.split('\n').filter(value => value.trim())) {
       const [label,raw,note] = line.split('|');
       const id = data.names.get(mapKey(label));
@@ -505,7 +547,7 @@
       return mixColor(theme.card,theme.accent,high===low ? .9 : .28 + .72*((value-low)/(high-low)));
     }
 
-    if (india && !isDistricts()) {
+    if (india && !boundaryLayer) {
       const outline = polygonPath(data.outline,map.point);
       ctx.fillStyle = stateMode ? mixColor(theme.card,theme.ink,.18) : theme.accent;
       outlineHitPath = outline;
@@ -541,10 +583,10 @@
       if (!focus) ctx.stroke(outline);
     } else {
       ctx.lineWidth = 1.25;
-      for (const {geometry,properties} of data.features) {
+      for (const {geometry,properties} of scopedFeatures) {
         if (!geometry || !['Polygon','MultiPolygon'].includes(geometry.type)) continue;
         const path = polygonPath(geometry,map.point);
-        ctx.fillStyle = featureColor(properties.code || properties.ADM0_A3 || properties.district,0);
+        ctx.fillStyle = featureColor(featureIdentity(properties),0);
         ctx.strokeStyle = theme.bg;
         ctx.fill(path,'evenodd');
         ctx.stroke(path);
@@ -654,6 +696,21 @@
         const lons = points.map(point=>point?.[0]).filter(Number.isFinite), lats = points.map(point=>point?.[1]).filter(Number.isFinite);
         data.bounds = [Math.min(...lons),Math.max(...lons),Math.min(...lats),Math.max(...lats)];
         dataSets.districts = data;
+        refreshMapScopes(data);
+        refreshMapScopes(data);
+      } else if (key==='pc' || key==='ac') {
+        const response = await fetch(key==='pc' ? './assets/india-pc-2019-display.geojson' : './assets/india-ac-display.geojson');
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        if (!Array.isArray(data.features) || !data.features.length) throw new Error();
+        data.names = new Map();
+        for (const feature of data.features) {
+          const p = feature.properties || {}, id = String(featureIdentity(p));
+          for (const value of [featureLabel(p),id,p.pc_name,p.PC_NAME,p.AC_NAME]) if (value) data.names.set(mapKey(value),id);
+        }
+        data.bounds = featureBounds(data.features);
+        dataSets[key] = data;
+        refreshMapScopes(data);
       } else {
         const response = await fetch('./assets/vision/world.geojson');
         if (!response.ok) throw new Error();
@@ -665,13 +722,13 @@
         }
         dataSets.world = data;
       }
-      if (key===(isDistricts() ? 'districts' : isIndia() ? 'india' : 'world')) renderMap();
+      if (key===mapDataKey()) renderMap();
     } catch {
-      if (key===(isDistricts() ? 'districts' : isIndia() ? 'india' : 'world')) mapStatus.textContent = 'Map data could not load. Switch tabs and return to try again.';
+      if (key===mapDataKey()) mapStatus.textContent = 'Map data could not load. Switch tabs and return to try again.';
     } finally { inflight.delete(key); }
   }
 
-  const saveMap = editable(['mapRegion','mapTheme','mapLayout','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape','mapStateValues','mapLabels','mapFont','mapCustomFont','mapTitleSize','mapBodySize','mapScale','mapMarkerSize','mapUseCustomColors','mapTextColor','mapAccentColor','mapPanelColor'],'app_mapGraphic',renderMap);
+  const saveMap = editable(['mapRegion','mapScope','mapDesign','mapTheme','mapLayout','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape','mapStateValues','mapLabels','mapFont','mapCustomFont','mapTitleSize','mapBodySize','mapScale','mapMarkerSize','mapUseCustomColors','mapTextColor','mapAccentColor','mapPanelColor'],'app_mapGraphic',renderMap);
   const syncMapControls = () => {
     get('mapCustomColors').hidden = !get('mapUseCustomColors').checked;
     for (const [id,suffix] of [['mapTitleSize',''],['mapBodySize',''],['mapScale','%'],['mapMarkerSize','%']]) get(id+'Out').textContent = get(id).value+suffix;
@@ -732,6 +789,7 @@
   stateFocus.addEventListener('click',()=>{ focusCode = focusCode ? '' : statePick.value; renderMap(); });
   statePick.addEventListener('change',()=>{ if (focusCode) { focusCode = statePick.value; renderMap(); } });
   territory.addEventListener('change',()=>{ focusCode = ''; renderMap(); });
+  mapScope.addEventListener('change',renderMap);
   mapCanvas.addEventListener('click',event=>{
     if (suppressMapClick) { suppressMapClick = false; return; }
     if (!isStates() || !hitAreas.length) return;

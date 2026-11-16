@@ -564,6 +564,8 @@ canvas.preview.selected { border-color: var(--accent); outline: 2px solid var(--
 }
 
 .map-state-tools { display: grid; gap: 9px; }
+#mapGraphicsLab .lab-output { align-self: start; }
+@media (min-width: 761px) { #mapGraphicsLab .lab-output { position: sticky; top: 16px; } }
 #mapGraphicsLab:has(#mapStateOptions:not([hidden])) #mapCanvas { cursor: pointer; }
 .map-style-panel, .map-data-panel { padding: 11px; border: 1px solid var(--border); border-radius: var(--r); background: color-mix(in srgb, var(--bg2) 68%, transparent); }
 .map-style-panel summary, .map-data-panel summary { cursor: pointer; font-weight: 750; color: var(--accent); }
