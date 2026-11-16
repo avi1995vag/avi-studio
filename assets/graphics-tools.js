@@ -332,7 +332,14 @@
   }
 
   function featureIdentity(properties={}) {
-    const value = properties.code || properties.dtcode || properties.pc_id || properties.PC_ID || properties.AC_NO || properties.district || properties.pc_name || properties.PC_NAME || properties.AC_NAME || properties.ADM0_A3;
+    // Assembly number repeats in every State/UT, while PC_ID is its parent
+    // Lok Sabha seat and repeats across several Assembly segments. Combine
+    // State + Assembly number so selecting one Assembly boundary marks one.
+    if (properties.AC_NO !== undefined && properties.AC_NO !== null) {
+      const state = properties.ST_CODE || properties.st_code || properties.ST_NAME || properties.st_name || '';
+      return String(state) + '-AC-' + String(properties.AC_NO);
+    }
+    const value = properties.code || properties.dtcode || properties.pc_id || properties.PC_ID || properties.district || properties.pc_name || properties.PC_NAME || properties.AC_NAME || properties.ADM0_A3;
     return value === undefined || value === null ? '' : String(value);
   }
 
@@ -1029,7 +1036,9 @@
   statePick.addEventListener('change',()=>{ if (focusCode) { focusCode = statePick.value; renderMap(); } });
   territory.addEventListener('change',()=>{
     focusCode = '';
-    if (isBoundaryLayer() && get('mapValues').value.trim().toUpperCase() === 'IND') get('mapValues').value = '';
+    // Marks belong to a specific boundary layer. Never carry a PC or district
+    // selection into Assembly mode (or vice versa).
+    if (isBoundaryLayer()) get('mapValues').value = '';
     renderMap();
   });
   mapScope.addEventListener('change',renderMap);
