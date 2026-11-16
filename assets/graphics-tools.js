@@ -471,7 +471,9 @@
     activeFont = mapTypeface();
     mapCanvas.dataset.draggable = 'true';
     const india = isIndia(), stateMode = isStates(), boundaryLayer = isBoundaryLayer();
-    get('mapCountryOptions').hidden = india && !boundaryLayer;
+    // India boundary views are intentionally state-first. This avoids stale
+    // district/constituency names leaking between different map layers.
+    get('mapCountryOptions').hidden = india;
     get('mapStateOptions').hidden = !stateMode;
     get('mapLayoutField').hidden = !(stateMode || boundaryLayer);
     get('mapScopeRow').hidden = false;
@@ -517,7 +519,7 @@
     const stateRows = [];
     let skipped = 0;
     const savedValues = get('mapValues').value;
-    const input = stateMode || (india && !boundaryLayer) || (boundaryLayer && savedValues.trim().toUpperCase()==='IND') ? '' : savedValues;
+    const input = stateMode || india ? '' : savedValues;
     for (const line of input.split('\n').filter(value => value.trim())) {
       const [label,raw,note] = line.split('|');
       const id = data.names.get(mapKey(label));
@@ -641,7 +643,7 @@
     }
 
     const editorialMarkers = isDistricts() && data.editorialMarkers
-      ? [...fills.keys()].map(id=>data.editorialMarkers.get(String(id))).filter(marker=>marker && (scopeKey==='all' || marker.stateKey===scopeKey))
+      ? [...data.editorialMarkers.values()].filter(marker=>scopeKey==='all' || marker.stateKey===scopeKey)
       : [];
     for (const marker of editorialMarkers) {
       const [x,y] = map.point([marker.lon,marker.lat]);
@@ -763,6 +765,7 @@
         data.editorialMarkers = new Map([[vijayanagara.id,vijayanagara]]);
         data.names.set(mapKey('Vijayanagara'),vijayanagara.id);
         data.names.set(mapKey('Vijayanagara District'),vijayanagara.id);
+        data.names.set(mapKey('Vijayanagar'),vijayanagara.id);
         data.bounds = featureBounds(data.features);
         dataSets.districts = data;
         refreshMapScopes(data);
