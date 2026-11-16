@@ -264,7 +264,7 @@
   const mapKey = value => String(value || '').normalize('NFKC').trim().toLowerCase().replace(/\s*&\s*/g,' and ');
   const isIndia = () => territory.value.startsWith('india');
   const isStates = () => territory.value === 'indiaStates';
-  const isCustom = () => territory.value === 'customGeo';
+  const isDistricts = () => territory.value === 'indiaDistricts';
   const dataSets = {};
   let focusCode = '';
   let hitAreas = [];
@@ -396,25 +396,25 @@
     activeFont = mapTypeface();
     mapCanvas.dataset.draggable = 'true';
     const india = isIndia(), stateMode = isStates();
-    get('mapCountryOptions').hidden = india;
+    get('mapCountryOptions').hidden = india && !isDistricts();
     get('mapStateOptions').hidden = !stateMode;
-    get('mapLayoutField').hidden = !stateMode;
+    get('mapLayoutField').hidden = !(stateMode || isDistricts());
     get('mapIndiaCredits').hidden = !india;
     get('mapWorldCredits').hidden = india;
     stateFocus.setAttribute('aria-pressed',String(Boolean(focusCode)));
     stateFocus.textContent = focusCode ? 'Show all India' : 'Focus state';
     hitAreas = [];
     outlineHitPath = null;
-    const data = dataSets[india ? 'india' : isCustom() ? 'custom' : 'world'];
+    const data = dataSets[isDistricts() ? 'districts' : india ? 'india' : 'world'];
     if (!data) {
       enableMap(false);
-      if (open && !isCustom()) void loadMap(india ? 'india' : 'world');
+      if (open) void loadMap(isDistricts() ? 'districts' : india ? 'india' : 'world');
       return;
     }
 
     const baseTheme = palettes[get('mapTheme').value];
     const theme = get('mapUseCustomColors').checked ? {...baseTheme,ink:get('mapTextColor').value,accent:get('mapAccentColor').value,card:get('mapPanelColor').value} : baseTheme;
-    const layout = stateMode ? get('mapLayout').value : 'atlas';
+    const layout = (stateMode || isDistricts()) ? get('mapLayout').value : 'atlas';
     const height = Number(get('mapShape').value);
     const credit = [get('mapSource').value.trim(),stateMode ? 'India viewpoint · Natural Earth · © OpenStreetMap contributors (openstreetmap.org/copyright)'
       : india ? 'Made with Natural Earth · India viewpoint' : 'Made with Natural Earth'].filter(Boolean).join('  ·  ');
@@ -424,11 +424,11 @@
       titleX:mapPositions.title.x,titleY:mapPositions.title.y,deckX:mapPositions.deck.x,deckY:mapPositions.deck.y,titleSize,bodySize,
     });
     const focus = stateMode && focusCode ? data.states.find(state => state.code === focusCode) : null;
-    const view = india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : isCustom() ? data.bounds : regions[territory.value];
+    const view = isDistricts() ? data.bounds : india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : regions[territory.value];
     const fills = new Map();
     const stateRows = [];
     let skipped = 0;
-    const input = stateMode ? stateValues.value : india ? '' : get('mapValues').value;
+    const input = stateMode ? stateValues.value : (india && !isDistricts()) ? '' : get('mapValues').value;
     for (const line of input.split('\n').filter(value => value.trim())) {
       const [label,raw,note] = line.split('|');
       const id = data.names.get(mapKey(label));
@@ -463,7 +463,7 @@
       {key:'map',x:map.x-22,y:map.y-22,w:map.width+44,h:map.height+44},
     ];
     const labelBoxes = [];
-    block(ctx,map.x-13,map.y-13,map.width+26,map.height+26,18,theme.card);
+    block(ctx,map.x-13,map.y-13,map.width+26,map.height+26,18,theme.bg);
     ctx.save();
     ctx.beginPath();
     ctx.rect(map.x,map.y,map.width,map.height);
@@ -505,7 +505,7 @@
       return mixColor(theme.card,theme.accent,high===low ? .9 : .28 + .72*((value-low)/(high-low)));
     }
 
-    if (india) {
+    if (india && !isDistricts()) {
       const outline = polygonPath(data.outline,map.point);
       ctx.fillStyle = stateMode ? mixColor(theme.card,theme.ink,.18) : theme.accent;
       outlineHitPath = outline;
@@ -544,7 +544,7 @@
       for (const {geometry,properties} of data.features) {
         if (!geometry || !['Polygon','MultiPolygon'].includes(geometry.type)) continue;
         const path = polygonPath(geometry,map.point);
-        ctx.fillStyle = featureColor(properties.ADM0_A3,0);
+        ctx.fillStyle = featureColor(properties.code || properties.ADM0_A3 || properties.district,0);
         ctx.strokeStyle = theme.bg;
         ctx.fill(path,'evenodd');
         ctx.stroke(path);
@@ -638,6 +638,22 @@
         statePick.value = 'IN-KA';
         statePick.disabled = get('mapStateHighlight').disabled = stateFocus.disabled = false;
         dataSets.india = data;
+      } else if (key==='districts') {
+        const response = await fetch('./assets/map-data/india-districts-display.geojson');
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        if (!Array.isArray(data.features) || data.features.length < 700) throw new Error();
+        data.names = new Map();
+        const points = [];
+        const collect = value => Array.isArray(value?.[0]) ? value.forEach(collect) : points.push(value);
+        for (const feature of data.features) {
+          const p = feature.properties || {};
+          for (const value of [p.district,p.code]) if (value) data.names.set(mapKey(value),p.code || p.district);
+          collect(feature.geometry?.coordinates);
+        }
+        const lons = points.map(point=>point?.[0]).filter(Number.isFinite), lats = points.map(point=>point?.[1]).filter(Number.isFinite);
+        data.bounds = [Math.min(...lons),Math.max(...lons),Math.min(...lats),Math.max(...lats)];
+        dataSets.districts = data;
       } else {
         const response = await fetch('./assets/vision/world.geojson');
         if (!response.ok) throw new Error();
@@ -649,9 +665,9 @@
         }
         dataSets.world = data;
       }
-      if (key===(isIndia() ? 'india' : 'world')) renderMap();
+      if (key===(isDistricts() ? 'districts' : isIndia() ? 'india' : 'world')) renderMap();
     } catch {
-      if (key===(isIndia() ? 'india' : 'world')) mapStatus.textContent = 'Map data could not load. Switch tabs and return to try again.';
+      if (key===(isDistricts() ? 'districts' : isIndia() ? 'india' : 'world')) mapStatus.textContent = 'Map data could not load. Switch tabs and return to try again.';
     } finally { inflight.delete(key); }
   }
 
@@ -702,26 +718,6 @@
   mapCanvas.addEventListener('pointerup',endMapDrag);
   mapCanvas.addEventListener('pointercancel',endMapDrag);
 
-  get('mapDataPack').addEventListener('change',async event=>{
-    const file = event.target.files?.[0], status = get('mapDataPackStatus');
-    if (!file) return;
-    try {
-      const source = JSON.parse(await file.text());
-      const features = source.type === 'FeatureCollection' ? source.features : [];
-      const polygons = features.filter(feature=>['Polygon','MultiPolygon'].includes(feature?.geometry?.type));
-      const coordinates = [];
-      const visit = value => Array.isArray(value?.[0]) ? value.forEach(visit) : coordinates.push(value);
-      polygons.forEach(feature=>visit(feature.geometry.coordinates));
-      const lons = coordinates.map(point=>point?.[0]).filter(Number.isFinite), lats = coordinates.map(point=>point?.[1]).filter(Number.isFinite);
-      if (!polygons.length || !lons.length || !lats.length) throw new Error('No polygon geometry');
-      dataSets.custom = {features:polygons,bounds:[Math.min(...lons),Math.max(...lons),Math.min(...lats),Math.max(...lats)],names:new Map()};
-      for (const feature of polygons) for (const value of Object.values(feature.properties || {})) if (typeof value==='string') dataSets.custom.names.set(mapKey(value),String(value));
-      const option = [...territory.options].find(item=>item.value==='customGeo'); option.disabled = false;
-      territory.value = 'customGeo';
-      status.textContent = polygons.length + ' polygon areas loaded from ' + file.name + '. Verify its source date before publication.';
-      renderMap();
-    } catch { status.textContent = 'Could not read that GeoJSON data pack. Use a FeatureCollection containing Polygon or MultiPolygon areas.'; }
-  });
   function toggleState(code) {
     const data = dataSets.india;
     const state = data?.states.find(item=>item.code===code);
