@@ -7,6 +7,7 @@
     green:{bg:'#142f2a',card:'#234640',ink:'#eff8e5',soft:'#c7dbbd',accent:'#e2fa91',secondary:'#f0ba9e',line:'#597568'},
   };
   const fonts = '"Bricolage Grotesque","Noto Sans Kannada","Nirmala UI",sans-serif';
+  let activeFont = fonts;
   const decimal = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/;
   const formatNumber = new Intl.NumberFormat(undefined,{maximumFractionDigits:8});
   const number = value => formatNumber.format(value);
@@ -14,7 +15,7 @@
   const skippedRows = count => count + (count===1 ? ' row skipped.' : ' rows skipped.');
 
   function font(ctx,size,weight=700) {
-    ctx.font = weight + ' ' + size + 'px ' + fonts;
+    ctx.font = weight + ' ' + size + 'px ' + activeFont;
   }
 
   function text(ctx,value,x,y,maxWidth) {
@@ -40,7 +41,7 @@
     ctx.fill();
   }
 
-  function begin(canvas,height,theme,title,subtitle,source,kind) {
+  function begin(canvas,height,theme,title,subtitle,source,kind,options={}) {
     canvas.height = height;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = theme.bg;
@@ -51,15 +52,19 @@
     ctx.roundRect(28,28,1024,height-56,24);
     ctx.stroke();
     ctx.fillStyle = theme.accent;
-    ctx.fillRect(65,61,42,8);
+    const titleX = Number(options.titleX || 0), titleY = Number(options.titleY || 0);
+    const deckX = Number(options.deckX || titleX), deckY = Number(options.deckY || titleY);
+    ctx.fillRect(65+titleX,61+titleY,42,8);
     font(ctx,24,700);
-    text(ctx,kind,123,75,820);
+    text(ctx,kind,123+titleX,75+titleY,820);
     ctx.fillStyle = theme.ink;
-    font(ctx,74,800);
-    let y = lines(ctx,title,64,165,952,79,2);
+    const titleSize = Number(options.titleSize || 74);
+    const bodySize = Number(options.bodySize || 32);
+    font(ctx,titleSize,800);
+    let y = lines(ctx,title,64+titleX,165+titleY,952,Math.round(titleSize*1.07),2);
     ctx.fillStyle = theme.soft;
-    font(ctx,32,550);
-    if (subtitle.trim()) y = lines(ctx,subtitle,67,y-10,940,38,2) + 8;
+    font(ctx,bodySize,550);
+    if (subtitle.trim()) y = lines(ctx,subtitle,67+deckX,y-10+deckY,940,Math.round(bodySize*1.18),2) + 8;
     ctx.fillStyle = theme.line;
     ctx.fillRect(64,height-105,952,2);
     ctx.fillStyle = theme.soft;
@@ -74,11 +79,12 @@
       const stored = JSON.parse(lsGet(key));
       if (stored) for (const field of fields) {
         const value = stored[field.id];
-        if (typeof value === 'string' && (field.tagName !== 'SELECT' || [...field.options].some(option => option.value === value))) field.value = value;
+        if (field.type === 'checkbox' && typeof value === 'boolean') field.checked = value;
+        else if (typeof value === 'string' && (field.tagName !== 'SELECT' || [...field.options].some(option => option.value === value))) field.value = value;
       }
     } catch {}
     const save = () => {
-      lsSet(key,JSON.stringify(Object.fromEntries(fields.map(field => [field.id,field.value]))));
+      lsSet(key,JSON.stringify(Object.fromEntries(fields.map(field => [field.id,field.type === 'checkbox' ? field.checked : field.value]))));
       render();
     };
     for (const field of fields) field.addEventListener('input',save);
@@ -206,6 +212,7 @@
   }
 
   function renderInfo() {
+    activeFont = fonts;
     const selected = get('infoTemplate').value;
     const config = templates[selected];
     const limit = selected === 'comparison' ? 2 : 6;
@@ -257,11 +264,34 @@
   const mapKey = value => String(value || '').normalize('NFKC').trim().toLowerCase().replace(/\s*&\s*/g,' and ');
   const isIndia = () => territory.value.startsWith('india');
   const isStates = () => territory.value === 'indiaStates';
+  const isCustom = () => territory.value === 'customGeo';
   const dataSets = {};
   let focusCode = '';
   let hitAreas = [];
   let outlineHitPath;
   let open = false;
+  let dragAreas = [];
+  let dragState = null;
+  let suppressMapClick = false;
+  let mapPositions = {title:{x:0,y:0},deck:{x:0,y:0},map:{x:0,y:0},pins:{x:0,y:0},rail:{x:0,y:0}};
+
+  function safePositions(value) {
+    const next = {title:{x:0,y:0},deck:{x:0,y:0},map:{x:0,y:0},pins:{x:0,y:0},rail:{x:0,y:0}};
+    for (const key of Object.keys(next)) if (value?.[key] && Number.isFinite(value[key].x) && Number.isFinite(value[key].y)) {
+      next[key] = {x:Math.max(-300,Math.min(300,value[key].x)),y:Math.max(-300,Math.min(300,value[key].y))};
+    }
+    return next;
+  }
+
+  function mapTypeface() {
+    const presets = {
+      anek:'"Anek Kannada","Noto Sans Kannada","Nirmala UI",sans-serif',
+      noto:'"Noto Sans Kannada","Nirmala UI",sans-serif',
+      bricolage:fonts,
+      system:'"Nirmala UI","Noto Sans Kannada",sans-serif',
+    };
+    return get('mapFont').value === 'custom' ? (get('mapCustomFont').value.trim() || presets.anek) : presets[get('mapFont').value] || presets.anek;
+  }
 
   function projector(bounds,top,bottom,frame) {
     const [west,east,south,north] = bounds;
@@ -296,23 +326,25 @@
     return path;
   }
 
-  function drawCalloutRail(ctx,rows,theme,top,bottom,map,layout) {
+  function drawCalloutRail(ctx,rows,theme,top,bottom,map,layout,offset={x:0,y:0}) {
     const selected = rows.slice(0,4);
     if (!selected.length) return;
-    const x = 64, w = 334;
+    const rightSide = layout === 'briefing';
+    const x = (rightSide ? 682 : 64) + offset.x, w = 334;
     const available = bottom-top-20;
     const h = Math.max(98,Math.min(138,(available-(selected.length-1)*16)/selected.length));
     selected.forEach((row,index) => {
-      const y = top+10+index*(h+16);
+      const y = top+10+index*(h+16)+offset.y;
       const accent = ['#ef6b73','#f4bd50','#5ed1c5','#8674f7'][index];
       const [anchorX,anchorY] = map.point(row.state.anchor);
       ctx.strokeStyle = accent;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(anchorX,anchorY);
-      ctx.lineTo(map.x-18,anchorY);
-      ctx.lineTo(map.x-18,y+h/2);
-      ctx.lineTo(x+w,y+h/2);
+      const elbow = rightSide ? map.x+map.width+18 : map.x-18;
+      ctx.lineTo(elbow,anchorY);
+      ctx.lineTo(elbow,y+h/2);
+      ctx.lineTo(rightSide ? x : x+w,y+h/2);
       ctx.stroke();
       ctx.beginPath();
       ctx.arc(anchorX,anchorY,17,0,Math.PI*2);
@@ -346,7 +378,7 @@
       lines(ctx,row.note || 'Highlighted state',x+18,y+h-24,w-36,23,2);
     });
     if (layout==='dashboard') {
-      const y = bottom-118;
+      const y = bottom-118+offset.y;
       block(ctx,x,y,w,108,18,theme.bg);
       ctx.fillStyle = theme.accent;
       font(ctx,18,800);
@@ -361,6 +393,8 @@
   }
 
   function renderMap() {
+    activeFont = mapTypeface();
+    mapCanvas.dataset.draggable = 'true';
     const india = isIndia(), stateMode = isStates();
     get('mapCountryOptions').hidden = india;
     get('mapStateOptions').hidden = !stateMode;
@@ -371,21 +405,26 @@
     stateFocus.textContent = focusCode ? 'Show all India' : 'Focus state';
     hitAreas = [];
     outlineHitPath = null;
-    const data = dataSets[india ? 'india' : 'world'];
+    const data = dataSets[india ? 'india' : isCustom() ? 'custom' : 'world'];
     if (!data) {
       enableMap(false);
-      if (open) void loadMap(india ? 'india' : 'world');
+      if (open && !isCustom()) void loadMap(india ? 'india' : 'world');
       return;
     }
 
-    const theme = palettes[get('mapTheme').value];
+    const baseTheme = palettes[get('mapTheme').value];
+    const theme = get('mapUseCustomColors').checked ? {...baseTheme,ink:get('mapTextColor').value,accent:get('mapAccentColor').value,card:get('mapPanelColor').value} : baseTheme;
     const layout = stateMode ? get('mapLayout').value : 'atlas';
     const height = Number(get('mapShape').value);
     const credit = [get('mapSource').value.trim(),stateMode ? 'India viewpoint · Natural Earth · © OpenStreetMap contributors (openstreetmap.org/copyright)'
       : india ? 'Made with Natural Earth · India viewpoint' : 'Made with Natural Earth'].filter(Boolean).join('  ·  ');
-    const {ctx,top,bottom} = begin(mapCanvas,height,theme,get('mapTitle').value || 'Untitled map',get('mapDeck').value,credit,'MAP GRAPHIC');
+    const titleSize = Number(get('mapTitleSize').value);
+    const bodySize = Number(get('mapBodySize').value);
+    const {ctx,top,bottom} = begin(mapCanvas,height,theme,get('mapTitle').value || 'Untitled map',get('mapDeck').value,credit,'MAP GRAPHIC',{
+      titleX:mapPositions.title.x,titleY:mapPositions.title.y,deckX:mapPositions.deck.x,deckY:mapPositions.deck.y,titleSize,bodySize,
+    });
     const focus = stateMode && focusCode ? data.states.find(state => state.code === focusCode) : null;
-    const view = india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : regions[territory.value];
+    const view = india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : isCustom() ? data.bounds : regions[territory.value];
     const fills = new Map();
     const stateRows = [];
     let skipped = 0;
@@ -408,10 +447,21 @@
     const low = values.length ? Math.min(...values) : 0;
     const high = values.length ? Math.max(...values) : 1;
     const categorical = ['#a43e50','#416a8b','#507850','#a75332','#6b4d8a','#277d79'];
-    const railLayout = stateMode && !focus && layout!=='atlas';
+    const railLayout = stateMode && !focus && layout!=='atlas' && layout!=='spotlight';
     const legendSpace = values.length ? 77 : 8;
     const railWidth = railLayout ? 520 : 0;
-    const map = projector(view,top,bottom-legendSpace,railLayout ? {x:railWidth,y:top,width:500,height:bottom-top-legendSpace} : undefined);
+    const rightRail = layout === 'briefing';
+    const mapScale = Number(get('mapScale').value)/100;
+    const defaultFrame = railLayout ? {x:rightRail ? 64 : railWidth,y:top,width:500,height:bottom-top-legendSpace} : {x:90,y:top,width:900,height:bottom-top-legendSpace};
+    const scaledFrame = {width:defaultFrame.width*mapScale,height:(defaultFrame.height)*mapScale};
+    scaledFrame.x = defaultFrame.x+(defaultFrame.width-scaledFrame.width)/2+mapPositions.map.x;
+    scaledFrame.y = defaultFrame.y+(defaultFrame.height-scaledFrame.height)/2+mapPositions.map.y;
+    const map = projector(view,top,bottom-legendSpace,scaledFrame);
+    dragAreas = [
+      {key:'title',x:42+mapPositions.title.x,y:38+mapPositions.title.y,w:996,h:170},
+      {key:'deck',x:42+mapPositions.deck.x,y:140+mapPositions.deck.y,w:996,h:115},
+      {key:'map',x:map.x-22,y:map.y-22,w:map.width+44,h:map.height+44},
+    ];
     const labelBoxes = [];
     block(ctx,map.x-13,map.y-13,map.width+26,map.height+26,18,theme.card);
     ctx.save();
@@ -510,21 +560,27 @@
         continue;
       }
       if (lon<view[0] || lon>view[1] || lat<view[2] || lat>view[3]) continue;
-      const [x,y] = map.point([lon,lat]);
-      if (focus && !ctx.isPointInPath(hitAreas[0].path,x,y,'evenodd')) continue;
+      const [baseX,baseY] = map.point([lon,lat]);
+      const x = baseX+mapPositions.pins.x, y = baseY+mapPositions.pins.y;
+      if (focus && !ctx.isPointInPath(hitAreas[0].path,baseX,baseY,'evenodd')) continue;
       pinCount++;
       ctx.beginPath();
-      ctx.arc(x,y,10,0,Math.PI*2);
+      const marker = 10*Number(get('mapMarkerSize').value)/100;
+      ctx.arc(x,y,marker,0,Math.PI*2);
       ctx.fillStyle = theme.secondary;
       ctx.fill();
       ctx.strokeStyle = theme.bg;
       ctx.lineWidth = 3;
       ctx.stroke();
-      labelAt(label,x+30,y+22,theme.ink);
+      labelAt(label,x+marker+20,y+marker+12,theme.ink);
+      dragAreas.push({key:'pins',x:x-marker-14,y:y-marker-14,w:marker*2+28,h:marker*2+28});
     }
     ctx.restore();
 
-    if (railLayout) drawCalloutRail(ctx,stateRows,theme,top,bottom-legendSpace,map,layout);
+    if (railLayout) {
+      drawCalloutRail(ctx,stateRows,theme,top,bottom-legendSpace,map,layout,mapPositions.rail);
+      dragAreas.push({key:'rail',x:(layout==='briefing' ? 660 : 44)+mapPositions.rail.x,y:top+mapPositions.rail.y,w:376,h:bottom-top-legendSpace});
+    }
 
     if (values.length) {
       const x = 95, y = bottom-44, width = 320;
@@ -542,7 +598,7 @@
         ctx.textAlign = 'left';
       }
     }
-    mapStatus.textContent = skipped ? skippedRows(skipped) + ' Check names, coordinates, and formats.' : '';
+    mapStatus.textContent = (skipped ? skippedRows(skipped) + ' Check names, coordinates, and formats. ' : '') + 'Drag headline, map, pins, or fact cards to arrange this composition.';
     const subject = stateMode ? (focus ? focus.name : 'India, 36 states and union territories') : india ? 'India national outline' : 'Regional map';
     mapCanvas.setAttribute('aria-label',subject + '. ' + fills.size + ' highlights and ' + pinCount + ' visible pins.');
     enableMap(true);
@@ -599,7 +655,73 @@
     } finally { inflight.delete(key); }
   }
 
-  const saveMap = editable(['mapRegion','mapTheme','mapLayout','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape','mapStateValues','mapLabels'],'app_mapGraphic',renderMap);
+  const saveMap = editable(['mapRegion','mapTheme','mapLayout','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape','mapStateValues','mapLabels','mapFont','mapCustomFont','mapTitleSize','mapBodySize','mapScale','mapMarkerSize','mapUseCustomColors','mapTextColor','mapAccentColor','mapPanelColor'],'app_mapGraphic',renderMap);
+  const syncMapControls = () => {
+    get('mapCustomColors').hidden = !get('mapUseCustomColors').checked;
+    for (const [id,suffix] of [['mapTitleSize',''],['mapBodySize',''],['mapScale','%'],['mapMarkerSize','%']]) get(id+'Out').textContent = get(id).value+suffix;
+  };
+  try { mapPositions = safePositions(JSON.parse(lsGet('app_mapPositions') || 'null')); } catch {}
+  for (const id of ['mapTitleSize','mapBodySize','mapScale','mapMarkerSize','mapUseCustomColors']) get(id).addEventListener('input',syncMapControls);
+  get('mapUseCustomColors').addEventListener('change',syncMapControls);
+  get('mapResetPositions').addEventListener('click',()=>{ mapPositions = safePositions(); lsSet('app_mapPositions',JSON.stringify(mapPositions)); renderMap(); });
+  syncMapControls();
+
+  function canvasPoint(event) {
+    const rect = mapCanvas.getBoundingClientRect();
+    return {x:(event.clientX-rect.left)*mapCanvas.width/rect.width,y:(event.clientY-rect.top)*mapCanvas.height/rect.height};
+  }
+  mapCanvas.addEventListener('pointerdown',event=>{
+    const point = canvasPoint(event);
+    const area = [...dragAreas].reverse().find(item=>point.x>=item.x && point.x<=item.x+item.w && point.y>=item.y && point.y<=item.y+item.h);
+    if (!area) return;
+    dragState = {key:area.key,start:point,position:{...mapPositions[area.key]},moving:false};
+    mapCanvas.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+  mapCanvas.addEventListener('pointermove',event=>{
+    if (!dragState) return;
+    const point = canvasPoint(event);
+    if (!dragState.moving && Math.hypot(point.x-dragState.start.x,point.y-dragState.start.y)<4) return;
+    dragState.moving = true;
+    mapCanvas.dataset.dragging = 'true';
+    mapPositions[dragState.key] = {x:Math.round(dragState.position.x+point.x-dragState.start.x),y:Math.round(dragState.position.y+point.y-dragState.start.y)};
+    renderMap();
+  });
+  function endMapDrag(event) {
+    if (!dragState) return;
+    if (dragState.moving) {
+      mapPositions = safePositions(mapPositions);
+      lsSet('app_mapPositions',JSON.stringify(mapPositions));
+      suppressMapClick = true;
+    }
+    dragState = null;
+    delete mapCanvas.dataset.dragging;
+    if (mapCanvas.hasPointerCapture(event.pointerId)) mapCanvas.releasePointerCapture(event.pointerId);
+    renderMap();
+  }
+  mapCanvas.addEventListener('pointerup',endMapDrag);
+  mapCanvas.addEventListener('pointercancel',endMapDrag);
+
+  get('mapDataPack').addEventListener('change',async event=>{
+    const file = event.target.files?.[0], status = get('mapDataPackStatus');
+    if (!file) return;
+    try {
+      const source = JSON.parse(await file.text());
+      const features = source.type === 'FeatureCollection' ? source.features : [];
+      const polygons = features.filter(feature=>['Polygon','MultiPolygon'].includes(feature?.geometry?.type));
+      const coordinates = [];
+      const visit = value => Array.isArray(value?.[0]) ? value.forEach(visit) : coordinates.push(value);
+      polygons.forEach(feature=>visit(feature.geometry.coordinates));
+      const lons = coordinates.map(point=>point?.[0]).filter(Number.isFinite), lats = coordinates.map(point=>point?.[1]).filter(Number.isFinite);
+      if (!polygons.length || !lons.length || !lats.length) throw new Error('No polygon geometry');
+      dataSets.custom = {features:polygons,bounds:[Math.min(...lons),Math.max(...lons),Math.min(...lats),Math.max(...lats)],names:new Map()};
+      for (const feature of polygons) for (const value of Object.values(feature.properties || {})) if (typeof value==='string') dataSets.custom.names.set(mapKey(value),String(value));
+      const option = [...territory.options].find(item=>item.value==='customGeo'); option.disabled = false;
+      territory.value = 'customGeo';
+      status.textContent = polygons.length + ' polygon areas loaded from ' + file.name + '. Verify its source date before publication.';
+      renderMap();
+    } catch { status.textContent = 'Could not read that GeoJSON data pack. Use a FeatureCollection containing Polygon or MultiPolygon areas.'; }
+  });
   function toggleState(code) {
     const data = dataSets.india;
     const state = data?.states.find(item=>item.code===code);
@@ -615,6 +737,7 @@
   statePick.addEventListener('change',()=>{ if (focusCode) { focusCode = statePick.value; renderMap(); } });
   territory.addEventListener('change',()=>{ focusCode = ''; renderMap(); });
   mapCanvas.addEventListener('click',event=>{
+    if (suppressMapClick) { suppressMapClick = false; return; }
     if (!isStates() || !hitAreas.length) return;
     const rect = mapCanvas.getBoundingClientRect();
     const x = (event.clientX-rect.left)*mapCanvas.width/rect.width;

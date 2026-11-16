@@ -565,6 +565,18 @@ canvas.preview.selected { border-color: var(--accent); outline: 2px solid var(--
 
 .map-state-tools { display: grid; gap: 9px; }
 #mapGraphicsLab:has(#mapStateOptions:not([hidden])) #mapCanvas { cursor: pointer; }
+.map-style-panel, .map-data-panel { padding: 11px; border: 1px solid var(--border); border-radius: var(--r); background: color-mix(in srgb, var(--bg2) 68%, transparent); }
+.map-style-panel summary, .map-data-panel summary { cursor: pointer; font-weight: 750; color: var(--accent); }
+.map-style-panel[open], .map-data-panel[open] { display: grid; gap: 11px; }
+.map-range-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px 12px; }
+.map-range-grid label { display: grid; grid-template-columns: 1fr auto; gap: 5px 8px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.map-range-grid input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+.map-range-grid output { color: var(--muted); font-variant-numeric: tabular-nums; }
+.map-colour-switch { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+#mapCustomColors input[type="color"] { min-height: 40px; width: 100%; padding: 3px; }
+#mapCanvas[data-dragging], #mapCanvas[data-draggable] { touch-action: none; cursor: grab; }
+#mapCanvas[data-dragging] { cursor: grabbing; }
+@media (max-width: 410px) { .map-range-grid { grid-template-columns: 1fr; } }
 .cutout-advanced { padding: 10px; border: 1px solid var(--border); border-radius: var(--r); }
 .cutout-advanced summary { cursor: pointer; color: var(--accent); font-weight: 700; }
 .cutout-advanced[open] { display: grid; gap: 9px; }
