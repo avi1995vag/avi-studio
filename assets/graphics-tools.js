@@ -344,6 +344,8 @@
   }
 
   function featureLabel(properties={}) {
+    if (properties.AC_NO !== undefined && properties.AC_NO !== null) return properties.AC_NAME || ('Assembly ' + properties.AC_NO);
+    if (properties.pc_id !== undefined && properties.pc_id !== null) return properties.pc_name || ('Lok Sabha ' + properties.pc_id);
     return properties.district || properties.pc_name || properties.PC_NAME || properties.AC_NAME || properties.ADMIN || properties.NAME || featureIdentity(properties) || 'Area';
   }
 
@@ -903,6 +905,14 @@
         if (!response.ok) throw new Error();
         const data = await response.json();
         if (!Array.isArray(data.features) || !data.features.length) throw new Error();
+        if (key==='ac') {
+          // The supplied reference file contains a few placeholder polygons
+          // with AC_NO 0 and no constituency name. They are not real seats.
+          data.features = data.features.filter(feature=>{
+            const p = feature.properties || {};
+            return Number(p.AC_NO) > 0 && Boolean(String(p.AC_NAME || '').trim());
+          });
+        }
         data.names = new Map();
         for (const feature of data.features) {
           const p = feature.properties || {}, id = String(featureIdentity(p));
