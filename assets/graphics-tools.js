@@ -304,8 +304,13 @@
 
   function featureBounds(features) {
     const values = [];
-    const walk = value => Array.isArray(value?.[0]) ? value.forEach(walk) : values.push(value);
-    features.forEach(feature => walk(feature.geometry?.coordinates));
+    const stack = features.map(feature=>feature.geometry?.coordinates).filter(Boolean);
+    while (stack.length) {
+      const value = stack.pop();
+      if (!Array.isArray(value)) continue;
+      if (Number.isFinite(value[0]) && Number.isFinite(value[1])) values.push(value);
+      else for (const item of value) stack.push(item);
+    }
     const lons = values.map(point=>point?.[0]).filter(Number.isFinite), lats = values.map(point=>point?.[1]).filter(Number.isFinite);
     return lons.length ? [Math.min(...lons),Math.max(...lons),Math.min(...lats),Math.max(...lats)] : [65,98,5,37];
   }
