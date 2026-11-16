@@ -723,7 +723,8 @@
         dataSets.world = data;
       }
       if (key===mapDataKey()) renderMap();
-    } catch {
+    } catch (error) {
+      console.error('Map layer error',key,error);
       if (key===mapDataKey()) mapStatus.textContent = 'Map data could not load. Switch tabs and return to try again.';
     } finally { inflight.delete(key); }
   }
