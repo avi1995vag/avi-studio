@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&family=Inter:wght@400;500;600;700&family=Anek+Kannada:wght@400;600;800&family=Hubballi&family=Fira+Code:wght@400;600&family=Bricolage+Grotesque:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/studio.css?v=map-simplify-1">
+<link rel="stylesheet" href="./assets/studio.css?v=map-composer-1">
 </head>
 <body>
 
@@ -628,15 +628,13 @@
 
   <div id="toolsPanel" class="panel">
     <div class="creator-tabs" role="tablist" aria-label="Creator tools">
-      <button type="button" id="imageLabTab" role="tab" aria-selected="true" aria-controls="imageLab">Image Lab</button>
-      <button type="button" id="captionLabTab" role="tab" aria-selected="false" aria-controls="captionLab" tabindex="-1">Caption Lab</button>
       <button type="button" id="infographicTab" role="tab" aria-selected="false" aria-controls="infographicLab" tabindex="-1">Infographics</button>
-      <button type="button" id="mapGraphicsTab" role="tab" aria-selected="false" aria-controls="mapGraphicsLab" tabindex="-1">Map graphics</button>
+      <button type="button" id="mapGraphicsTab" role="tab" aria-selected="true" aria-controls="mapGraphicsLab">Map graphics</button>
       <button type="button" id="backgroundTab" role="tab" aria-selected="false" aria-controls="backgroundLab" tabindex="-1">Remove background</button>
       <button type="button" id="hdTab" role="tab" aria-selected="false" aria-controls="hdLab" tabindex="-1">Make HD</button>
     </div>
 
-    <div id="imageLab" role="tabpanel" tabindex="0" aria-labelledby="imageLabTab">
+    <div id="imageLab" role="tabpanel" tabindex="0" aria-labelledby="imageLabTab" hidden>
       <div class="lab-grid">
         <section class="gen-area lab-controls" aria-labelledby="imageLabControls">
           <h2 id="imageLabControls">Prepare an image</h2>
@@ -732,7 +730,7 @@ Review | 15</textarea><p class="helper" id="infoHint">One label and value per li
       </div>
     </div>
 
-    <div id="mapGraphicsLab" role="tabpanel" tabindex="0" aria-labelledby="mapGraphicsTab" hidden>
+    <div id="mapGraphicsLab" role="tabpanel" tabindex="0" aria-labelledby="mapGraphicsTab">
       <div class="lab-grid">
         <section class="gen-area lab-controls" aria-labelledby="mapHeading">
           <h2 id="mapHeading">Map studio</h2>
@@ -741,7 +739,11 @@ Review | 15</textarea><p class="helper" id="infoHint">One label and value per li
             <div class="field"><label for="mapRegion">Geography</label><select id="mapRegion"><option value="world">World</option><option value="southAsia">South Asia</option><option value="indiaOutline">India · National outline</option><option value="indiaStates">India · States and UTs</option><option value="indiaDistricts">India · Districts</option><option value="indiaPC">India · Lok Sabha constituencies</option><option value="indiaAC">India · Assembly constituencies</option><option value="europe">Europe</option><option value="africa">Africa</option><option value="americas">Americas</option><option value="eastAsia">East Asia &amp; Oceania</option></select></div>
           </div>
           <div class="lab-fields map-scope-row" id="mapScopeRow" hidden><div class="field"><label for="mapScope" id="mapScopeLabel">Statewise focus</label><select id="mapScope"><option value="all">All India</option></select><p class="helper" id="mapScopeHint">Show one state at a time for a clearer boundary map.</p></div><div class="field"><label for="mapDesign">Design look · 35</label><select id="mapDesign"><option value="signal">01 Signal violet</option><option value="coral">02 Coral press</option><option value="mint">03 Mint field</option><option value="saffron">04 Saffron atlas</option><option value="ink">05 Ink contour</option><option value="ultra">06 Ultramarine</option><option value="rose">07 Rose bulletin</option><option value="lime">08 Lime grid</option><option value="sky">09 Sky ledger</option><option value="plum">10 Plum dossier</option><option value="sand">11 Sand archive</option><option value="teal">12 Teal report</option><option value="ember">13 Ember signal</option><option value="slate">14 Slate data</option><option value="orchid">15 Orchid field</option><option value="ocean">16 Ocean wire</option><option value="clay">17 Clay newspaper</option><option value="moss">18 Moss briefing</option><option value="midnight">19 Midnight mono</option><option value="sun">20 Sunline</option><option value="berry">21 Berry index</option><option value="aqua">22 Aqua scope</option><option value="wine">23 Wine edition</option><option value="paper">24 Paper chart</option><option value="cobalt">25 Cobalt radar</option><option value="fern">26 Fern dossier</option><option value="neon">27 Neon pulse</option><option value="peach">28 Peach journal</option><option value="graphite">29 Graphite trace</option><option value="lavender">30 Lavender notes</option><option value="ruby">31 Ruby alert</option><option value="ice">32 Ice data</option><option value="ochre">33 Ochre atlas</option><option value="jade">34 Jade world</option><option value="noir">35 Noir contrast</option></select></div></div>
-          <div class="field" id="mapLayoutField"><label for="mapLayout">Story composition</label><select id="mapLayout"><option value="atlas">Atlas · clean overview</option><option value="callouts">Callouts · explain four places</option><option value="dashboard">Dashboard · values first</option><option value="pinboard">Pinboard · places and markers</option><option value="briefing">Briefing split · map and facts</option><option value="spotlight">Spotlight · one strong story</option></select><p class="helper">Choose one of six information structures, then choose from 35 visual looks. Drag the map, headline, pins, or fact cards directly in the preview.</p></div>
+          <div class="map-boundary-tools" id="mapBoundaryTools" hidden>
+            <div class="field"><label for="mapFeaturePick">Mark a boundary</label><select id="mapFeaturePick" disabled><option>Choose a map and state first…</option></select><p class="helper" id="mapFeatureHint">Pick a district or constituency. It will be coloured and labelled on the map.</p></div>
+            <div class="lab-fields"><div class="field"><label for="mapMarkColor">Marker colour</label><select id="mapMarkColor"><option value="saffron">Saffron · #F47A21</option><option value="blue">Blue · #2675D8</option><option value="green">Green · #20A56B</option><option value="red">Red · #DD4451</option><option value="violet">Violet · #8467D7</option><option value="grey">Grey · #84909B</option></select></div><div class="field map-boundary-actions"><label>Actions</label><div class="lab-actions"><button type="button" id="mapFeatureMark" disabled>Colour &amp; label</button><button type="button" id="mapFeaturePin" disabled>Add pin</button><button type="button" id="mapFeatureClear" disabled>Clear marks</button></div></div></div>
+          </div>
+          <div class="field" id="mapLayoutField"><label for="mapLayout">Story composition</label><select id="mapLayout"><option value="atlas">Atlas · clean overview</option><option value="callouts">Callouts · explain marked places</option><option value="dashboard">Dashboard · values first</option><option value="pinboard">Pinboard · places and markers</option><option value="briefing">Briefing split · map and facts</option><option value="spotlight">Spotlight · one strong story</option><option value="election">Election board · party colour legend</option><option value="seats">Seat count · big number story</option></select><p class="helper">Choose a story structure, then a visual look. Composition responds to your selected map marks—not random layouts.</p></div>
           <div class="field"><label for="mapTitle">Title</label><input id="mapTitle" maxlength="90" value="India at a glance"></div>
           <div class="field"><label for="mapDeck">Subtitle</label><input id="mapDeck" maxlength="140" value="State highlights and a location pin"></div>
           <details class="map-style-panel"><summary>Fine tune type, colour, size &amp; positioning</summary>
@@ -763,7 +765,8 @@ Review | 15</textarea><p class="helper" id="infoHint">One label and value per li
               <div class="field"><label for="mapPanelColor">Panel</label><input id="mapPanelColor" type="color" value="#34264b"></div>
             </div>
             <div class="lab-actions"><button type="button" id="mapResetPositions">Reset layout position</button></div>
-            <p class="helper">Drag the headline, map, marker group, and fact cards in the preview. Dragging is saved with this map on this browser.</p>
+            <div class="lab-fields map-nudge-controls"><div class="field"><label for="mapNudgeTarget">Move element</label><select id="mapNudgeTarget"><option value="title">Headline</option><option value="deck">Subtitle</option><option value="map">Map</option><option value="pins">Pins</option><option value="rail">Story cards</option><option value="image">Photo / logo</option></select></div><div class="field"><label>Nudge selected element</label><div class="lab-actions"><button type="button" data-map-nudge="left" aria-label="Move selected element left">←</button><button type="button" data-map-nudge="up" aria-label="Move selected element up">↑</button><button type="button" data-map-nudge="down" aria-label="Move selected element down">↓</button><button type="button" data-map-nudge="right" aria-label="Move selected element right">→</button></div></div></div>
+            <p class="helper">Drag the headline, subtitle, map, pins, story cards, or uploaded photo directly on the preview. The Move controls provide a keyboard-friendly alternative.</p>
           </details>
           <div class="field" id="mapCountryOptions" hidden><label for="mapValues">Areas to highlight or shade</label><textarea id="mapValues" rows="4" maxlength="2200" aria-describedby="mapValueHint">IND</textarea><p id="mapValueHint" class="helper">One country, district, or code per line. Add a vertical bar and a number to shade by value, e.g. Bengaluru Urban | 42.</p></div>
           <div class="map-state-tools" id="mapStateOptions">
@@ -775,7 +778,11 @@ Jammu and Kashmir | 24 | Northern story focus
 Ladakh | 18 | High-altitude context</textarea><p id="mapStateHint" class="helper">Click a state on the preview or select it above. Use State | value | callout. The value and callout are optional.</p></div>
             <div class="field"><label for="mapLabels">Map labels</label><select id="mapLabels"><option value="highlights">Highlighted states</option><option value="codes">State codes</option><option value="off">Off</option></select></div>
           </div>
-          <div class="field"><label for="mapPins">Location pins</label><textarea id="mapPins" rows="3" maxlength="1200" aria-describedby="mapPinHint">ಬೆಂಗಳೂರು | 12.9716 | 77.5946</textarea><p id="mapPinHint" class="helper">One label, latitude, and longitude per line, separated by vertical bars.</p></div>
+          <div class="field"><label for="mapPins">Location pins</label><textarea id="mapPins" rows="3" maxlength="1200" aria-describedby="mapPinHint">Koppal
+Raichur
+Ballari
+Gangavati</textarea><p id="mapPinHint" class="helper">Type a supported place name such as Koppal, Raichur, Ballari, Gangavati, Bengaluru, Mysuru, or use Label | latitude | longitude.</p></div>
+          <div class="lab-fields"><div class="field"><label for="mapOverlayFile">Photo or logo overlay</label><input id="mapOverlayFile" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"><p class="helper">Upload a photo or logo, then drag it on the canvas.</p></div><div class="field map-overlay-actions"><label>Overlay action</label><button type="button" id="mapOverlayClear" disabled>Remove overlay</button></div></div>
           <div class="lab-fields">
             <div class="field"><label for="mapSource">Source or credit</label><input id="mapSource" maxlength="120" placeholder="Add a data source"></div>
             <div class="field"><label for="mapShape">Canvas</label><select id="mapShape"><option value="1350">Portrait</option><option value="1080">Square</option><option value="1920">Story</option></select></div>
@@ -1076,7 +1083,6 @@ Ladakh | 18 | High-altitude context</textarea><p id="mapStateHint" class="helper
   <div class="delivery-actions">
     <button class="deploy-btn-zip btn-p" onclick="downloadCurrentDesign()">Download artwork</button>
     <button onclick="copyCaption()">Copy caption</button>
-    <button type="button" id="openCaptionLab">Check caption</button>
   </div>
   <details class="settings-block publish-settings">
     <summary>Publish manually</summary>
@@ -1146,9 +1152,9 @@ Ladakh | 18 | High-altitude context</textarea><p id="mapStateHint" class="helper
 <script src="./assets/studio.js?v=graphic-tools"></script>
 <script src="./assets/image-generator.js"></script>
 <script src="./assets/social-publishing.js?v=carousel-visuals"></script>
-<script src="./assets/creator-tools.js?v=2"></script>
+<script src="./assets/creator-tools.js?v=3"></script>
 <script src="./assets/india-map-inline.js?v=1"></script>
-<script src="./assets/graphics-tools.js?v=11"></script>
+<script src="./assets/graphics-tools.js?v=12"></script>
 <script src="./assets/cutout-brush.js?v=1"></script>
 <script src="./assets/photo-studio.js?v=2"></script>
 <script src="./assets/workspace.js?v=graphic-tools"></script>
