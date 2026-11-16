@@ -740,16 +740,17 @@ Review | 15</textarea><p class="helper" id="infoHint">One label and value per li
             <div class="field"><label for="mapRegion">View</label><select id="mapRegion"><option value="indiaStates">India · States and UTs</option><option value="indiaOutline">India · National outline</option><option value="southAsia">South Asia</option><option value="world">World</option><option value="europe">Europe</option><option value="africa">Africa</option><option value="americas">Americas</option><option value="eastAsia">East Asia &amp; Oceania</option></select></div>
             <div class="field"><label for="mapTheme">Palette</label><select id="mapTheme"><option value="cream">Paper &amp; coral</option><option value="violet">Night violet</option><option value="green">Forest &amp; lime</option></select></div>
           </div>
+          <div class="field" id="mapLayoutField"><label for="mapLayout">India composition</label><select id="mapLayout"><option value="atlas">State atlas</option><option value="callouts">Editorial callouts</option><option value="dashboard">Data dashboard</option></select><p class="helper">Choose a composition for India state stories. Callouts and dashboard use the optional third column from your state data.</p></div>
           <div class="field"><label for="mapTitle">Title</label><input id="mapTitle" maxlength="90" value="India at a glance"></div>
           <div class="field"><label for="mapDeck">Subtitle</label><input id="mapDeck" maxlength="140" value="State highlights and a location pin"></div>
           <div class="field" id="mapCountryOptions" hidden><label for="mapValues">Countries to highlight or shade</label><textarea id="mapValues" rows="4" maxlength="2200" aria-describedby="mapValueHint">IND</textarea><p id="mapValueHint" class="helper">One country name or three-letter code per line. Add a vertical bar and a number to shade by value, e.g. IND | 42.</p></div>
           <div class="map-state-tools" id="mapStateOptions">
             <div class="field"><label for="mapStatePick">State or union territory</label><select id="mapStatePick" disabled><option>Loading states…</option></select></div>
             <div class="lab-actions"><button type="button" id="mapStateHighlight" disabled>Toggle highlight</button><button type="button" id="mapStateFocus" aria-pressed="false" disabled>Focus state</button></div>
-            <div class="field"><label for="mapStateValues">Highlights and values</label><textarea id="mapStateValues" rows="3" maxlength="2200" aria-describedby="mapStateHint">Karnataka
-Maharashtra
-Jammu and Kashmir
-Ladakh</textarea><p id="mapStateHint" class="helper">Click a state on the preview or select it above. To shade by value, use a line like Karnataka | 42.</p></div>
+            <div class="field"><label for="mapStateValues">Highlights, values, and callouts</label><textarea id="mapStateValues" rows="4" maxlength="2200" aria-describedby="mapStateHint">Karnataka | 42 | Bengaluru is the editorial hub
+Maharashtra | 37 | Mumbai and Pune lead the update
+Jammu and Kashmir | 24 | Northern story focus
+Ladakh | 18 | High-altitude context</textarea><p id="mapStateHint" class="helper">Click a state on the preview or select it above. Use State | value | callout. The value and callout are optional.</p></div>
             <div class="field"><label for="mapLabels">Map labels</label><select id="mapLabels"><option value="highlights">Highlighted states</option><option value="codes">State codes</option><option value="off">Off</option></select></div>
           </div>
           <div class="field"><label for="mapPins">Location pins</label><textarea id="mapPins" rows="3" maxlength="1200" aria-describedby="mapPinHint">ಬೆಂಗಳೂರು | 12.9716 | 77.5946</textarea><p id="mapPinHint" class="helper">One label, latitude, and longitude per line, separated by vertical bars.</p></div>
@@ -788,7 +789,7 @@ Ladakh</textarea><p id="mapStateHint" class="helper">Click a state on the previe
               <div class="field"><label for="cutoutSoft">Edge softness</label><input id="cutoutSoft" type="range" min="1" max="45" value="12"></div>
             </div>
             <label class="lab-check" id="cutoutCleanupOption"><input type="checkbox" id="cutoutCleanup" checked> Clean up small stray patches</label>
-            <p class="helper">The first use of each automatic method loads its model.</p>
+            <p class="helper">The first use of each automatic method loads its model. <a href="https://huggingface.co/briaai/RMBG-2.0" target="_blank" rel="noopener noreferrer">RMBG‑2.0</a> is permitted for your non-commercial use after BRIA approval, but its browser ONNX files are 234 MB to 1.02 GB and gated. They cannot be bundled safely into this GitHub Pages build. Automatic subject and Portrait &amp; hair remain the fast, on-device choices.</p>
           </details>
         </section>
         <section class="gen-area lab-output" aria-label="Cutout preview">
@@ -1124,6 +1125,7 @@ Ladakh</textarea><p id="mapStateHint" class="helper">Click a state on the previe
 <script src="./assets/image-generator.js"></script>
 <script src="./assets/social-publishing.js?v=carousel-visuals"></script>
 <script src="./assets/creator-tools.js?v=2"></script>
+<script src="./assets/india-map-inline.js?v=1"></script>
 <script src="./assets/graphics-tools.js?v=2"></script>
 <script src="./assets/cutout-brush.js?v=1"></script>
 <script src="./assets/photo-studio.js?v=2"></script>
