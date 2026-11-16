@@ -49,11 +49,13 @@
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = theme.bg;
     ctx.fillRect(0,0,1080,height);
-    ctx.strokeStyle = theme.line;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(28,28,1024,height-56,24);
-    ctx.stroke();
+    if (!options.noFrame) {
+      ctx.strokeStyle = theme.line;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(28,28,1024,height-56,24);
+      ctx.stroke();
+    }
     ctx.fillStyle = theme.accent;
     const titleX = Number(options.titleX || 0), titleY = Number(options.titleY || 0);
     const deckX = Number(options.deckX || titleX), deckY = Number(options.deckY || titleY);
@@ -319,7 +321,8 @@
   }
 
   function featureIdentity(properties={}) {
-    return properties.code || properties.dtcode || properties.pc_id || properties.PC_ID || properties.AC_NO || properties.district || properties.pc_name || properties.PC_NAME || properties.AC_NAME || properties.ADM0_A3;
+    const value = properties.code || properties.dtcode || properties.pc_id || properties.PC_ID || properties.AC_NO || properties.district || properties.pc_name || properties.PC_NAME || properties.AC_NAME || properties.ADM0_A3;
+    return value === undefined || value === null ? '' : String(value);
   }
 
   function featureLabel(properties={}) {
@@ -330,10 +333,38 @@
     return properties.state || properties.state_name || properties.st_name || properties.ST_NAME || '';
   }
 
+  function stateDisplayName(value) {
+    const raw = String(value || '').trim().replace(/\s+/g,' ');
+    if (!raw) return '';
+    const overrides = {
+      'andaman and nicobar islands':'Andaman & Nicobar Islands',
+      'dadra and nagar haveli and daman and diu':'Dadra & Nagar Haveli and Daman & Diu',
+      'jammu and kashmir':'Jammu & Kashmir',
+      'nct of delhi':'Delhi',
+    };
+    const key = mapKey(raw);
+    if (overrides[key]) return overrides[key];
+    return raw.toLocaleLowerCase('en-IN').replace(/(^|[\s-])[a-z]/g,letter=>letter.toLocaleUpperCase('en-IN'));
+  }
+
+  function syncScopeCopy(boundaryLayer) {
+    const type = isDistricts() ? 'district' : isPC() ? 'Lok Sabha constituency' : isAC() ? 'Assembly constituency' : 'map';
+    get('mapScopeLabel').textContent = boundaryLayer ? 'State / UT focus' : 'State / UT focus';
+    get('mapScopeHint').textContent = boundaryLayer
+      ? 'Show ' + type + ' boundaries for one state at a time.'
+      : 'Choose a boundary map first to focus on a state.';
+  }
+
   function refreshMapScopes(data) {
-    const current = mapScope.value;
-    const states = [...new Set((data.features || []).map(feature=>featureState(feature.properties)).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-    mapScope.replaceChildren(new Option('All India','all'),...states.map(name=>new Option(name,name)));
+    const current = mapScope.value === 'all' ? 'all' : mapKey(mapScope.value);
+    const states = new Map();
+    for (const feature of data.features || []) {
+      const raw = featureState(feature.properties);
+      const key = mapKey(raw);
+      if (key && !states.has(key)) states.set(key,stateDisplayName(raw));
+    }
+    const options = [...states.entries()].sort((a,b)=>a[1].localeCompare(b[1],'en-IN')).map(([key,name])=>new Option(name,key));
+    mapScope.replaceChildren(new Option('All India','all'),...options);
     mapScope.value = [...mapScope.options].some(option=>option.value===current) ? current : 'all';
   }
 
@@ -445,6 +476,7 @@
     get('mapLayoutField').hidden = !(stateMode || boundaryLayer);
     get('mapScopeRow').hidden = false;
     mapScope.disabled = !boundaryLayer;
+    syncScopeCopy(boundaryLayer);
     get('mapIndiaCredits').hidden = !india;
     get('mapWorldCredits').hidden = india;
     stateFocus.setAttribute('aria-pressed',String(Boolean(focusCode)));
@@ -470,10 +502,16 @@
     const titleSize = Number(get('mapTitleSize').value);
     const bodySize = Number(get('mapBodySize').value);
     const {ctx,top,bottom} = begin(mapCanvas,height,theme,get('mapTitle').value || 'Untitled map',get('mapDeck').value,credit,'MAP GRAPHIC',{
-      titleX:mapPositions.title.x,titleY:mapPositions.title.y,deckX:mapPositions.deck.x,deckY:mapPositions.deck.y,titleSize,bodySize,
+      titleX:mapPositions.title.x,titleY:mapPositions.title.y,deckX:mapPositions.deck.x,deckY:mapPositions.deck.y,titleSize,bodySize,noFrame:true,
     });
     const focus = stateMode && focusCode ? data.states.find(state => state.code === focusCode) : null;
-    const scopedFeatures = boundaryLayer && mapScope.value !== 'all' ? data.features.filter(feature=>featureState(feature.properties)===mapScope.value) : data.features;
+    const scopeKey = boundaryLayer ? mapKey(mapScope.value) : 'all';
+    const scopedFeatures = boundaryLayer && scopeKey !== 'all'
+      ? data.features.filter(feature=>mapKey(featureState(feature.properties))===scopeKey)
+      : data.features;
+    const scopeName = boundaryLayer && scopeKey !== 'all'
+      ? (mapScope.options[mapScope.selectedIndex]?.textContent || 'the selected state')
+      : 'All India';
     const view = boundaryLayer ? featureBounds(scopedFeatures) : india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : regions[territory.value];
     const fills = new Map();
     const stateRows = [];
@@ -601,6 +639,23 @@
       }
     }
 
+    const editorialMarkers = isDistricts() && data.editorialMarkers
+      ? [...fills.keys()].map(id=>data.editorialMarkers.get(String(id))).filter(marker=>marker && (scopeKey==='all' || marker.stateKey===scopeKey))
+      : [];
+    for (const marker of editorialMarkers) {
+      const [x,y] = map.point([marker.lon,marker.lat]);
+      const radius = 11*Number(get('mapMarkerSize').value)/100;
+      ctx.beginPath();
+      ctx.arc(x,y,radius,0,Math.PI*2);
+      ctx.fillStyle = theme.accent;
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = theme.bg;
+      ctx.stroke();
+      labelAt(marker.label,x+radius+18,y+radius+10,theme.ink);
+      dragAreas.push({key:'pins',x:x-radius-14,y:y-radius-14,w:radius*2+28,h:radius*2+28});
+    }
+
     let pinCount = 0;
     for (const line of get('mapPins').value.split('\n').filter(value => value.trim())) {
       const [label,latText,lonText] = line.split('|').map(value => value.trim());
@@ -648,8 +703,10 @@
         ctx.textAlign = 'left';
       }
     }
-    mapStatus.textContent = (skipped ? skippedRows(skipped) + ' Check names, coordinates, and formats. ' : '') + 'Drag headline, map, pins, or fact cards to arrange this composition.';
-    const subject = stateMode ? (focus ? focus.name : 'India, 36 states and union territories') : india ? 'India national outline' : 'Regional map';
+    const scopedMessage = boundaryLayer ? 'Showing ' + scopedFeatures.length.toLocaleString('en-IN') + ' ' + (isDistricts() ? 'district' : isPC() ? 'Lok Sabha constituency' : 'Assembly constituency') + (scopeKey==='all' ? ' boundaries across India.' : ' boundaries in ' + scopeName + '.') + ' ' : '';
+    const markerMessage = editorialMarkers.length ? 'Vijayanagara is marked at its district headquarters; the supplied boundary layer predates its 2021 creation, so no boundary has been invented. ' : '';
+    mapStatus.textContent = (skipped ? skippedRows(skipped) + ' Check names, coordinates, and formats. ' : '') + scopedMessage + markerMessage + 'Drag headline, map, pins, or fact cards to arrange this composition.';
+    const subject = stateMode ? (focus ? focus.name : 'India, 36 states and union territories') : boundaryLayer ? scopeName + ' boundary map' : india ? 'India national outline' : 'Regional map';
     mapCanvas.setAttribute('aria-label',subject + '. ' + fills.size + ' highlights and ' + pinCount + ' visible pins.');
     enableMap(true);
   }
@@ -694,17 +751,19 @@
         const data = await response.json();
         if (!Array.isArray(data.features) || data.features.length < 700) throw new Error();
         data.names = new Map();
-        const points = [];
-        const collect = value => Array.isArray(value?.[0]) ? value.forEach(collect) : points.push(value);
         for (const feature of data.features) {
           const p = feature.properties || {};
           for (const value of [p.district,p.code]) if (value) data.names.set(mapKey(value),p.code || p.district);
-          collect(feature.geometry?.coordinates);
         }
-        const lons = points.map(point=>point?.[0]).filter(Number.isFinite), lats = points.map(point=>point?.[1]).filter(Number.isFinite);
-        data.bounds = [Math.min(...lons),Math.max(...lons),Math.min(...lats),Math.max(...lats)];
+        // The supplied Survey of India display layer predates the 2021
+        // Vijayanagara split. Keep the update visible and searchable without
+        // inventing a district boundary that the source does not contain.
+        const vijayanagara = {id:'editorial-vijayanagara',label:'Vijayanagara · Karnataka',stateKey:'karnataka',lon:76.391,lat:15.267};
+        data.editorialMarkers = new Map([[vijayanagara.id,vijayanagara]]);
+        data.names.set(mapKey('Vijayanagara'),vijayanagara.id);
+        data.names.set(mapKey('Vijayanagara District'),vijayanagara.id);
+        data.bounds = featureBounds(data.features);
         dataSets.districts = data;
-        refreshMapScopes(data);
         refreshMapScopes(data);
       } else if (key==='pc' || key==='ac') {
         const response = await fetch(key==='pc' ? './assets/india-pc-2019-display.geojson' : './assets/india-ac-display.geojson');
@@ -797,7 +856,11 @@
   get('mapStateHighlight').addEventListener('click',()=>toggleState(statePick.value));
   stateFocus.addEventListener('click',()=>{ focusCode = focusCode ? '' : statePick.value; renderMap(); });
   statePick.addEventListener('change',()=>{ if (focusCode) { focusCode = statePick.value; renderMap(); } });
-  territory.addEventListener('change',()=>{ focusCode = ''; renderMap(); });
+  territory.addEventListener('change',()=>{
+    focusCode = '';
+    if (isBoundaryLayer() && get('mapValues').value.trim().toUpperCase() === 'IND') get('mapValues').value = '';
+    renderMap();
+  });
   mapScope.addEventListener('change',renderMap);
   mapCanvas.addEventListener('click',event=>{
     if (suppressMapClick) { suppressMapClick = false; return; }
