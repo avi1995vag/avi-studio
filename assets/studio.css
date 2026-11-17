@@ -67,6 +67,9 @@ button, summary { cursor: pointer; }
 button:disabled { opacity: .45; cursor: not-allowed; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 [hidden] { display: none !important; }
+.tabs .suite-link { text-decoration: none; color: var(--text2); }
+.tabs .suite-link:hover { background: var(--bg3); color: var(--accent4); }
+.tabs .suite-link svg { color: var(--accent4); }
 .skip-link { position: fixed; z-index: 20; left: 12px; top: 12px; transform: translateY(-150%); background: var(--bg2); padding: 10px; }
 .skip-link:focus { transform: translateY(0); }
 #protocolWarning { display: none; padding: 10px 20px; background: var(--warning-bg); color: var(--warning-text); }

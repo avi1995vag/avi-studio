@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#171022">
-  <meta name="description" content="Design posters, carousels, and news graphics in English and Kannada. Edit, download, or publish with AvI Studio.">
-  <title>AvI Studio | Give the story a shape</title>
+  <meta name="theme-color" content="#f7f4ec">
+  <meta name="description" content="A creative desk for posters, carousels, infographics, motion and maps. Create in English and Kannada with AvIStudio.">
+  <title>AvIStudio — Make more than a post.</title>
   <script>
     const fragment = new URLSearchParams(location.hash.slice(1));
     if (fragment.has('buffer_connection') || fragment.has('buffer_error') || ['#posterStage', '#posterTools', '#workspace'].includes(location.hash)) {
@@ -14,243 +14,128 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anek+Kannada:wght@600;800&family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/landing.css?v=6">
-  <script src="./assets/landing.js?v=5" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Kannada:wght@400;600;800&family=Bricolage+Grotesque:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/landing.css?v=7">
+  <script src="./assets/landing.js?v=6" defer></script>
 </head>
 <body>
-  <a class="skip" href="#main">Skip to content</a>
-  <div class="hero-shell" data-format="poster">
-    <header class="landing-header">
-      <div class="page-width header-inner">
-        <a class="landing-logo" href="./" aria-label="AvI Studio home"><span class="landing-mark" aria-hidden="true">A</span> AvI Studio</a>
-        <nav aria-label="Main navigation"><a href="#preview">Try a design</a><a href="#tools">Creator tools</a><a href="#formats">Workspaces</a></nav>
-        <a class="button header-action" href="./studio.html">Open Studio <span aria-hidden="true">↗</span></a>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 19 19 5M5 5h14v14"/></symbol>
+    <symbol id="i-poster" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 10h5m-5 7 3-4 2 2 3-3"/></symbol>
+    <symbol id="i-carousel" viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M2 7v10M22 7v10M10 9h4m-4 3h4m-4 3h2"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16M8 15v-4m5 4V6m5 9V9"/></symbol>
+    <symbol id="i-motion" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m10 8 6 4-6 4zM7 2v4m10-4v4M7 18v4m10-4v4"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c5 5 5 13 0 18-5-5-5-13 0-18Z"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Zm6-3v15m6-12v15"/></symbol>
+    <symbol id="i-cutout" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="m8 8 13 13M8 16 21 3M14 12l-2-2"/></symbol>
+    <symbol id="i-hd" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M6 9v6m4-6v6m-4-3h4m4-3v6h2a3 3 0 0 0 0-6h-2Z"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4L12 3ZM20 2v4m-2-2h4"/></symbol>
+    <symbol id="i-news" viewBox="0 0 24 24"><path d="M4 4h14v16H5a2 2 0 0 1-2-2V4m15 4h3v10a2 2 0 0 1-2 2M7 8h7M7 12h3m3 0h2m-8 4h8"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="m14 2-9 12h6l-1 8 9-12h-6l1-8Z"/></symbol>
+    <symbol id="i-import" viewBox="0 0 24 24"><path d="M14 3h6v18H4V3h4m4-1v12m-4-4 4 4 4-4M8 18h8"/></symbol>
+    <symbol id="i-publish" viewBox="0 0 24 24"><path d="m3 11 18-8-7 18-3-7-8-3Zm8 3L21 3"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></symbol>
+    <symbol id="i-star" viewBox="0 0 100 100"><path d="m50 0 9 32L85 15 68 41l32 9-32 9 17 26-26-17-9 32-9-32-26 17 17-26L0 50l32-9L15 15l26 17Z"/></symbol>
+  </svg>
+
+  <header class="landing-header">
+    <div class="page-width header-inner">
+      <a class="brand" href="./" aria-label="AvIStudio home"><span class="brand-mark" aria-hidden="true">A</span><span>AvI<span class="brand-light">Studio</span></span></a>
+      <nav aria-label="Main navigation"><a href="#new-studios">What's new <span class="nav-dot" aria-hidden="true"></span></a><a href="#tools">The tools</a><a href="#workflow">How it works</a></nav>
+      <a class="button button-small button-dark" href="./studio.html">Open Studio <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero page-width" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="tiny-star" aria-hidden="true">✳</span> YOUR NEXT STORY STARTS HERE</p>
+        <h1 id="hero-title">Make more<br>than a <span class="headline-post">post<svg aria-hidden="true" viewBox="0 0 260 18"><path d="M4 12c69-12 162-10 251-5M28 16c76-6 139-5 208-4"/></svg></span>.</h1>
+        <p class="hero-description">Design the poster. Animate the data. Put a place on the map. Bring your next story to life, all from one creative desk.</p>
+        <div class="hero-actions"><a class="button button-dark" href="./studio.html">Start creating <svg aria-hidden="true"><use href="#i-arrow"/></svg></a><a class="button button-outline" href="#tools">Find your tool <span aria-hidden="true">↓</span></a></div>
+        <div class="hero-footnote"><span class="language-mark" aria-hidden="true">Aa <span lang="kn">ಅ</span></span><p>Big ideas. Any language.<br><strong>Made for English &amp; Kannada.</strong></p></div>
       </div>
-    </header>
-    <main id="main">
-      <section class="hero page-width" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <h1 id="hero-title">Give the<br> story <em>a&nbsp;shape.</em></h1>
-          <p>Turn a headline, article, or idea into a poster or carousel. Create in English or Kannada, then download or publish.</p>
-          <a class="button primary" id="workspace-link" href="./studio.html?view=poster"><span id="workspace-label">Open Poster Studio</span><span aria-hidden="true">↗</span></a>
-          <div class="format-controls" role="group" aria-label="Choose a sample format">
-            <button type="button" data-format="poster" aria-pressed="true">Poster</button>
-            <button type="button" data-format="carousel" aria-pressed="false">Carousel</button>
-            <button type="button" data-format="news" aria-pressed="false">News</button>
-          </div>
+
+      <div class="creative-desk" id="creative-desk" data-mode="motion" data-animation="running">
+        <div class="desk-orbit" aria-hidden="true"></div>
+        <div class="desk-note" aria-hidden="true"><svg><use href="#i-star"/></svg><span>Ideas deserve<br>a little more.</span></div>
+        <article class="desk-poster" aria-labelledby="preview-title">
+          <img id="preview-image" src="./assets/landing-dancer.webp" alt="A dancer sends a red scarf through the evening air" width="760" height="950" fetchpriority="high">
+          <div class="poster-topline"><span id="preview-category">A STORY IN MOTION</span><span>AVI / 001</span></div>
+          <div class="poster-copy"><h2 id="preview-title">Make<br>it move.</h2><p id="preview-caption">A little movement. A whole new story.</p></div>
+          <span class="poster-play" aria-hidden="true">▶</span>
+        </article>
+        <div class="data-sticker" aria-hidden="true"><div><span>GOOD IDEAS, GROWING.</span><strong>+87<span>%</span><svg><use href="#i-arrow"/></svg></strong></div><div class="mini-bars"><i style="--bar:32%;--delay:0s"></i><i style="--bar:46%;--delay:.13s"></i><i style="--bar:39%;--delay:.26s"></i><i style="--bar:67%;--delay:.39s"></i><i style="--bar:83%;--delay:.52s"></i><i style="--bar:100%;--delay:.65s"></i></div><div class="sticker-axis"><span>THE IDEA</span><span>THE IMPACT ↗</span></div></div>
+        <span class="desk-doodle" aria-hidden="true">✽</span>
+        <div class="desk-controls"><div class="preview-modes" role="group" aria-label="Explore a creative tool"><button type="button" data-mode="motion" aria-pressed="true">Motion</button><button type="button" data-mode="data" aria-pressed="false">Data</button><button type="button" data-mode="maps" aria-pressed="false">Maps</button></div><button type="button" id="animation-toggle" class="animation-toggle" aria-pressed="false" aria-label="Pause decorative bar animation"><span aria-hidden="true">Ⅱ</span></button></div>
+        <a class="desk-tool-link" id="preview-link" href="./assets/apps/motion-studio/"><span id="preview-link-label">Explore Motion Studio</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <p class="sr-only" id="preview-status" role="status"></p>
+      </div>
+    </section>
+
+    <div class="creative-strip" aria-label="Create with AvIStudio"><div class="page-width"><span>POSTERS</span><i aria-hidden="true">✳</i><span>INFOGRAPHICS</span><i aria-hidden="true">✳</i><span>MOTION</span><i aria-hidden="true">✳</i><span>MAPS</span><i aria-hidden="true">✳</i><span lang="kn">ನಿಮ್ಮ ಕಥೆ.</span><i aria-hidden="true">✳</i><span>YOUR WAY.</span></div></div>
+
+    <section class="new-studios page-width section-space" id="new-studios" aria-labelledby="new-title">
+      <div class="section-heading"><div><p class="eyebrow">FRESH ON THE DESK</p><h2 id="new-title">More ways to<br>make your mark.</h2></div><p>Meet your three new studios.<br>A bigger canvas for the stories<br>you've been waiting to tell.</p></div>
+      <div class="studio-grid">
+        <a class="studio-card studio-infographic" href="./assets/apps/infographic-studio/">
+          <div class="studio-card-top"><span class="pill">DATA, WITH PERSONALITY</span><span class="round-arrow"><svg aria-hidden="true"><use href="#i-arrow"/></svg></span></div>
+          <div class="studio-art infographic-art" aria-hidden="true"><div class="chart-paper"><span>THE BIG PICTURE</span><strong>Small numbers.<br>Big stories.</strong><div class="chart-composition"><div class="chart-donut"><b>87<small>%</small></b></div><div class="chart-lines"><i></i><i></i><i></i><i></i></div></div><span class="chart-paper-footer">MAKE THE DATA MEAN SOMETHING.</span></div><span class="art-spark">✳</span></div>
+          <div class="studio-card-copy"><span class="studio-index">01 / THE EXPLAINER</span><h3>Infographic Studio</h3><p>Make the complicated click. Turn data, steps and ideas into something worth sharing.</p><div class="feature-tags"><span>23 chart types</span><span>19 templates</span><span>QR codes</span><span>Layers + image export</span></div><span class="studio-launch">Make your infographic <span aria-hidden="true">↗</span></span></div>
+        </a>
+        <a class="studio-card studio-motion" href="./assets/apps/motion-studio/">
+          <div class="studio-card-top"><span class="pill">GIVE YOUR STORY A PULSE</span><span class="round-arrow"><svg aria-hidden="true"><use href="#i-arrow"/></svg></span></div>
+          <div class="studio-art motion-art" aria-hidden="true"><div class="motion-paper"><img src="./assets/landing-dancer.webp" alt="" width="760" height="950" loading="lazy"><strong>MAKE<br>IT MOVE.</strong><span>↗ HIT PLAY ON YOUR NEXT IDEA</span></div><div class="motion-timeline"><span>▶</span><i></i><i></i><i></i><span>00:08</span></div><span class="motion-sticker">114<br><small>LAYOUTS</small></span></div>
+          <div class="studio-card-copy"><span class="studio-index">02 / THE SCENE STEALER</span><h3>Motion Studio</h3><p>Take your ideas off the page. Compose a scene, add movement and make it a video.</p><div class="feature-tags"><span>114 layouts</span><span>Animated data</span><span>Timeline</span><span>Video export</span></div><span class="studio-launch">Set your story in motion <span aria-hidden="true">↗</span></span></div>
+        </a>
+        <a class="studio-card studio-india" href="./assets/apps/india-motion/">
+          <div class="studio-card-top"><span class="pill">EVERY PLACE HAS A STORY</span><span class="round-arrow"><svg aria-hidden="true"><use href="#i-arrow"/></svg></span></div>
+          <div class="studio-art india-art" aria-hidden="true"><div class="map-paper"><img src="./assets/landing-map.webp" alt="" width="360" height="450" loading="lazy"></div><span class="map-coordinate">12.97° N<br>77.59° E</span><svg class="map-route" viewBox="0 0 200 100"><path d="M8 80C65-20 111 130 185 10"/><circle cx="8" cy="80" r="5"/><circle cx="185" cy="10" r="5"/></svg><span class="map-pin">●</span></div>
+          <div class="studio-card-copy"><span class="studio-index">03 / THE WORLD BUILDER</span><h3>India Motion</h3><p>Put your story on the map. Trace a route, move the camera and explore a new perspective.</p><div class="feature-tags"><span>India + world maps</span><span>Routes &amp; labels</span><span>Camera motion</span><span>Video export</span></div><span class="studio-launch">Go somewhere with it <span aria-hidden="true">↗</span></span></div>
+        </a>
+      </div>
+    </section>
+
+    <section class="tool-section section-space" id="tools" aria-labelledby="tools-title">
+      <div class="page-width">
+        <div class="section-heading"><div><p class="eyebrow">THE WHOLE TOOLBOX</p><h2 id="tools-title">One desk.<br>So many possibilities.</h2></div><p>From the first spark to the final post.<br>Pick a tool and get into your flow.</p></div>
+        <div class="directory-toolbar"><div class="tool-filters" role="group" aria-label="Filter tools by category"><button type="button" data-filter="all" aria-pressed="true">All tools <span>15</span></button><button type="button" data-filter="design" aria-pressed="false">Design</button><button type="button" data-filter="motion" aria-pressed="false">Motion &amp; maps</button><button type="button" data-filter="image" aria-pressed="false">Image tools</button><button type="button" data-filter="news" aria-pressed="false">News &amp; publishing</button></div><label class="tool-search"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="sr-only">Search tools</span><input id="tool-search" type="search" placeholder="Find your next tool…" autocomplete="off" aria-controls="tool-directory"></label></div>
+        <p class="directory-count" id="tool-count" role="status" aria-live="polite">15 tools on your creative desk</p>
+        <div class="tool-directory" id="tool-directory">
+          <a class="tool-card" data-category="design" href="./studio.html?view=poster"><span class="tool-icon icon-peach"><svg aria-hidden="true"><use href="#i-poster"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Poster Studio</h3><p>One striking visual. Layouts, photos and type, exactly your way.</p><span class="tool-kind">DESIGN</span></a>
+          <a class="tool-card" data-category="design" href="./studio.html?view=carousel"><span class="tool-icon icon-lilac"><svg aria-hidden="true"><use href="#i-carousel"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Carousel Studio</h3><p>Give your story room to unfold, one swipe at a time.</p><span class="tool-kind">DESIGN</span></a>
+          <a class="tool-card" data-category="design" href="./assets/apps/infographic-studio/"><span class="tool-icon icon-peach"><svg aria-hidden="true"><use href="#i-chart"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Infographic Studio <span class="new-tag">NEW</span></h3><p>Charts, QR codes, layers and templates for your next big explainer.</p><span class="tool-kind">DESIGN</span></a>
+          <a class="tool-card" data-category="motion" href="./assets/apps/motion-studio/"><span class="tool-icon icon-coral"><svg aria-hidden="true"><use href="#i-motion"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Motion Studio <span class="new-tag">NEW</span></h3><p>Turn a static idea into an animated scene. Export it as video.</p><span class="tool-kind">MOTION &amp; MAPS</span></a>
+          <a class="tool-card" data-category="motion" href="./assets/apps/india-motion/"><span class="tool-icon icon-mint"><svg aria-hidden="true"><use href="#i-globe"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>India Motion <span class="new-tag">NEW</span></h3><p>India and world maps with animated routes and camera moves.</p><span class="tool-kind">MOTION &amp; MAPS</span></a>
+          <a class="tool-card" data-category="motion" href="./studio.html?panel=map"><span class="tool-icon icon-mint"><svg aria-hidden="true"><use href="#i-map"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Map Graphics</h3><p>Shade regions, drop pins and make a place part of the picture.</p><span class="tool-kind">MOTION &amp; MAPS</span></a>
+          <a class="tool-card" data-category="design" href="./studio.html?panel=infographic"><span class="tool-icon icon-lime"><svg aria-hidden="true"><use href="#i-chart"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Quick Infographics</h3><p>A quick chart, timeline or comparison, straight into your design.</p><span class="tool-kind">DESIGN</span></a>
+          <a class="tool-card" data-category="image" href="./studio.html?panel=background"><span class="tool-icon icon-lilac"><svg aria-hidden="true"><use href="#i-cutout"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Remove Background</h3><p>Let the subject stand out. Create a clean, transparent cutout.</p><span class="tool-kind">IMAGE TOOLS</span></a>
+          <a class="tool-card" data-category="image" href="./studio.html?panel=hd"><span class="tool-icon icon-peach"><svg aria-hidden="true"><use href="#i-hd"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Make HD</h3><p>Go bigger. Resize and sharpen an image before its next outing.</p><span class="tool-kind">IMAGE TOOLS</span></a>
+          <a class="tool-card" data-category="image" href="./studio.html?view=imageGenerator"><span class="tool-icon icon-lime"><svg aria-hidden="true"><use href="#i-spark"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>AI Images</h3><p>Describe the picture in your head and create a fresh starting point.</p><span class="tool-kind">IMAGE TOOLS</span></a>
+          <a class="tool-card" data-category="news" href="./studio.html?view=news"><span class="tool-icon icon-mint"><svg aria-hidden="true"><use href="#i-news"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>News Desk</h3><p>Find the story in English and Kannada feeds. Make it yours.</p><span class="tool-kind">NEWS &amp; PUBLISHING</span></a>
+          <a class="tool-card" data-category="news" href="./studio.html?view=breaking"><span class="tool-icon icon-coral"><svg aria-hidden="true"><use href="#i-bolt"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Breaking Stories</h3><p>Bring context to a developing story with timelines and explainers.</p><span class="tool-kind">NEWS &amp; PUBLISHING</span></a>
+          <a class="tool-card" data-category="news" href="./studio.html?panel=article"><span class="tool-icon icon-peach"><svg aria-hidden="true"><use href="#i-import"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Article Import</h3><p>Start with a link. Bring the headline, story and photo to your desk.</p><span class="tool-kind">NEWS &amp; PUBLISHING</span></a>
+          <a class="tool-card" data-category="news" href="./studio.html?panel=publish"><span class="tool-icon icon-lilac"><svg aria-hidden="true"><use href="#i-publish"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Direct Publishing</h3><p>Get the finished story out to your connected social channels.</p><span class="tool-kind">NEWS &amp; PUBLISHING</span></a>
+          <a class="tool-card" data-category="news" href="./studio.html?view=scheduler"><span class="tool-icon icon-lime"><svg aria-hidden="true"><use href="#i-clock"/></svg></span><svg class="tool-arrow" aria-hidden="true"><use href="#i-arrow"/></svg><h3>Automation</h3><p>Plan the next edition and keep your publishing rhythm going.</p><span class="tool-kind">NEWS &amp; PUBLISHING</span></a>
         </div>
+        <div class="no-tools" id="no-tools" hidden><svg aria-hidden="true"><use href="#i-search"/></svg><h3>A different search might spark something.</h3><p>Try “poster”, “map” or “image”, or explore the full desk.</p><button type="button" id="clear-search" class="button button-dark">Show all tools <span aria-hidden="true">↗</span></button></div>
+      </div>
+    </section>
 
-        <section class="exhibit" id="preview" aria-labelledby="preview-heading">
-          <div class="exhibit-heading">
-            <h2 id="preview-heading">Photo to design</h2>
-            <p>Drag to compare</p>
-          </div>
+    <section class="workflow page-width section-space" id="workflow" aria-labelledby="workflow-title">
+      <div class="section-heading"><div><p class="eyebrow">LESS FRICTION. MORE MAKING.</p><h2 id="workflow-title">From “what if”<br>to out in the world.</h2></div><span class="workflow-doodle" aria-hidden="true">↝</span></div>
+      <div class="workflow-grid">
+        <article><span class="step-number">01</span><div class="step-sketch source-sketch" aria-hidden="true"><span>YOUR IDEA</span><svg><use href="#i-spark"/></svg></div><h3>Bring the spark.</h3><p>An idea, an article, a photo or a few numbers. Start with what you have.</p><a href="./studio.html?panel=article">Bring in a story <span aria-hidden="true">↗</span></a></article>
+        <article><span class="step-number">02</span><div class="step-sketch shape-sketch" aria-hidden="true"><i></i><i></i><i></i></div><h3>Give it your shape.</h3><p>Find a layout. Make it move. Set the type in English or Kannada. Follow the idea.</p><a href="./studio.html?view=poster">Make something yours <span aria-hidden="true">↗</span></a></article>
+        <article><span class="step-number">03</span><div class="step-sketch share-sketch" aria-hidden="true"><svg><use href="#i-publish"/></svg><span>READY TO GO.</span></div><h3>Send it out there.</h3><p>Download your design or video. Publish to your connected channels. On to the next story.</p><a href="./studio.html?panel=publish">Meet your audience <span aria-hidden="true">↗</span></a></article>
+      </div>
+    </section>
 
-          <div class="exhibit-stage" data-layout="cover" data-frame="0">
-            <div class="stage-rail" aria-hidden="true"></div>
-            <div class="artwork-deck">
-              <div class="deck-side deck-left" aria-hidden="true"></div>
-              <div class="deck-side deck-right" aria-hidden="true"></div>
-              <article class="preview-art" aria-labelledby="art-title">
-                <div class="design">
-                  <img id="art-photo" src="./assets/landing-dancer.webp" alt="Dancer in motion with a red scarf on a rooftop at dusk" width="760" height="950" fetchpriority="high">
-                  <div class="art-top"><span id="art-category">Bengaluru / Arts</span><span id="art-series">AvI Studio</span></div>
-                  <div class="art-copy"><h3 id="art-title">Afterglow.</h3><p id="art-description">A city in motion after dark.</p></div>
-                </div>
-                <div class="source" aria-hidden="true"><img id="source-photo" src="./assets/landing-dancer.webp" alt="" width="760" height="950"></div>
-                <div class="compare-rule" aria-hidden="true"><span>‹ ›</span></div>
-              </article>
-            </div>
-            <div class="frame-controls" hidden aria-label="Carousel frames">
-              <button type="button" id="previous-frame" aria-label="Previous frame">←</button>
-              <output id="frame-count">1 / 3</output>
-              <button type="button" id="next-frame" aria-label="Next frame">→</button>
-            </div>
-          </div>
+    <section class="closing-section" aria-labelledby="closing-title"><div class="page-width closing-inner"><div><p class="eyebrow">THE DESK IS YOURS.</p><h2 id="closing-title">Good ideas<br>look good on you.</h2><a class="button button-dark" href="./studio.html">Let's make something <svg aria-hidden="true"><use href="#i-arrow"/></svg></a></div><div class="closing-art" aria-hidden="true"><svg><use href="#i-star"/></svg><span>Go on.<br>Make your<br>mark.</span><i>✳</i></div></div></section>
+  </main>
 
-          <div class="compare-controls">
-            <label for="compare">Original</label>
-            <input id="compare" type="range" min="0" max="100" value="87" aria-label="Compare original photo and finished design">
-            <span>Design</span>
-          </div>
-          <div class="exhibit-options">
-            <label>Layout <select id="preview-layout"><option value="cover">Cover</option><option value="editorial">Editorial</option><option value="split">Split</option></select></label>
-            <label>Language <select id="preview-language"><option value="en">English</option><option value="kn" lang="kn">ಕನ್ನಡ</option></select></label>
-          </div>
-          <p class="sr-only" id="preview-status" role="status"></p>
-        </section>
-      </section>
-
-      <section class="landing-tools" id="tools" aria-labelledby="tools-title">
-        <div class="page-width">
-          <div class="section-heading">
-            <h2 id="tools-title">Ready for <em>every format.</em></h2>
-            <p>Crop the artwork, find its colors, and check the caption before you publish.</p>
-          </div>
-          <div class="landing-tool-grid">
-            <article class="landing-tool-card resize-card">
-              <div class="tool-card-copy">
-                <h3>Image Lab</h3>
-                <p>Crop, resize, and convert images. Export five sizes in one ZIP or copy colors from the source photo.</p>
-                <a class="button tool-open" href="./studio.html?view=tools">Open Image Lab <span aria-hidden="true">↗</span></a>
-              </div>
-              <div class="resize-sample" data-preview-size="portrait">
-                <div class="resize-window">
-                  <img src="./assets/landing-staircase.webp" alt="Coral spiral staircase beside a round blue window" width="960" height="640" loading="lazy">
-                </div>
-                <div class="resize-options" role="group" aria-label="Sample crop">
-                  <button type="button" data-sample-size="portrait" aria-label="Portrait, 4 by 5" aria-pressed="true">4:5</button>
-                  <button type="button" data-sample-size="square" aria-label="Square, 1 by 1" aria-pressed="false">1:1</button>
-                  <button type="button" data-sample-size="story" aria-label="Story, 9 by 16" aria-pressed="false">9:16</button>
-                </div>
-                <p class="sr-only" id="crop-sample-status" role="status"></p>
-              </div>
-            </article>
-            <article class="landing-tool-card caption-card">
-              <div class="tool-card-copy">
-                <h3>Caption Lab</h3>
-                <p>Clean up spacing and hashtags, check platform lengths, then send the caption to your draft.</p>
-                <a class="button tool-open" href="./studio.html?view=tools&amp;panel=caption">Open Caption Lab <span aria-hidden="true">↗</span></a>
-              </div>
-              <div class="caption-sample" aria-hidden="true">
-                <div class="caption-paper"><strong>After the rain.</strong><p lang="kn">ಮಳೆಯ ನಂತರ ನಗರ ಮತ್ತೆ ಚಲಿಸತೊಡಗಿತು.</p><span>#Bengaluru</span></div>
-                <div class="caption-stickers"><span>Instagram</span><span>Threads</span><span>X</span></div>
-              </div>
-            </article>
-          </div>
-          <div class="graphics-gallery">
-            <a class="graphics-card" href="./studio.html?view=tools&amp;panel=infographic">
-              <div class="graphics-art graphics-infographic" aria-hidden="true"><img src="./assets/landing-infographic.webp" alt="" width="360" height="450" loading="lazy"></div>
-              <div class="graphics-caption"><div><h3>Infographic Creator</h3><p>Turn your data into charts, timelines, and comparisons.</p></div><span aria-hidden="true">↗</span></div>
-            </a>
-            <a class="graphics-card" href="./studio.html?view=tools&amp;panel=map">
-              <div class="graphics-art graphics-map" aria-hidden="true"><img src="./assets/landing-map.webp?v=india" alt="" width="360" height="450" loading="lazy"></div>
-              <div class="graphics-caption"><div><h3>Map Graphics</h3><p>Create India outline and state maps, shade regions by value, and add location pins.</p></div><span aria-hidden="true">↗</span></div>
-            </a>
-            <a class="graphics-card" href="./studio.html?view=tools&amp;panel=background">
-              <div class="graphics-art graphics-cutout" aria-hidden="true"><img src="./assets/landing-runner.webp" alt="" width="720" height="900" loading="lazy"><img src="./assets/landing-cutout.webp?v=touchup" alt="" width="360" height="450" loading="lazy"></div>
-              <div class="graphics-caption"><div><h3>Remove Background</h3><p>Isolate a subject or remove a solid color. Export a transparent PNG.</p></div><span aria-hidden="true">↗</span></div>
-            </a>
-            <a class="graphics-card" href="./studio.html?view=tools&amp;panel=hd">
-              <div class="graphics-art graphics-hd" aria-hidden="true"><img src="./assets/landing-staircase.webp" alt="" width="960" height="640" loading="lazy"><strong>2× · 3× · 4×</strong></div>
-              <div class="graphics-caption"><div><h3>Make HD</h3><p>Resize up and sharpen detail before you download or use the image.</p></div><span aria-hidden="true">↗</span></div>
-            </a>
-          </div>
-        </div>
-      </section>
-      <section class="formats" id="formats" aria-labelledby="formats-title">
-        <div class="page-width">
-          <div class="section-heading">
-            <h2 id="formats-title">Find your <em>workspace.</em></h2>
-            <p>Choose the canvas, newsroom, or tool you need for your next story.</p>
-          </div>
-          <div class="format-gallery">
-            <a class="gallery-card gallery-poster" href="./studio.html?view=poster">
-              <div class="gallery-art" aria-hidden="true"><figure><img src="./assets/landing-dancer.webp" alt="" width="760" height="950" loading="lazy"><strong>Afterglow.</strong></figure></div>
-              <div class="gallery-caption"><div><h3>Single Poster</h3><p>Build a standalone visual with a searchable layout gallery and a large canvas.</p></div><span aria-hidden="true">↗</span></div>
-            </a>
-            <a class="gallery-card gallery-carousel" href="./studio.html?view=carousel">
-              <div class="gallery-art" aria-hidden="true"><div><strong>Find your<br>stride.</strong></div><figure><img src="./assets/landing-runner.webp" alt="" width="720" height="900" loading="lazy"></figure><div><strong>The city<br>is yours.</strong></div></div>
-              <div class="gallery-caption"><div><h3>Carousel</h3><p>Fit layouts to the story. Edit and reorder frames on the canvas or grid.</p></div><span aria-hidden="true">↗</span></div>
-            </a>
-            <a class="gallery-card gallery-image" href="./studio.html?view=imageGenerator">
-              <div class="gallery-art" aria-hidden="true"><img src="./assets/landing-heron.webp" alt="" width="900" height="600" loading="lazy"><span>Sample illustration</span></div>
-              <div class="gallery-caption"><div><h3>AI Images</h3><p>Generate with the free community queue, then download the image or use it in a poster.</p></div><span aria-hidden="true">↗</span></div>
-            </a>
-            <a class="gallery-card gallery-news" href="./studio.html?view=news">
-              <div class="gallery-art" aria-hidden="true"><figure><strong lang="kn">ಮಳೆಯ ನಂತರ</strong><img src="./assets/landing-market.webp" alt="" width="880" height="1100" loading="lazy"></figure></div>
-              <div class="gallery-caption"><div><h3>News Desk</h3><p>Browse English and Kannada feeds and turn headlines into a news roundup.</p></div><span aria-hidden="true">↗</span></div>
-            </a>
-            <a class="gallery-card gallery-breaking" href="./studio.html?view=breaking">
-              <div class="gallery-art" aria-hidden="true"><div class="breaking-sheet"><span>Breaking story</span><strong>What<br>changed?</strong><div><b>Timeline</b><b>Impact</b><b>Reactions</b></div></div></div>
-              <div class="gallery-caption"><div><h3>Breaking Stories</h3><p>Research a developing topic with Gemini and build a timeline, explainer, or reaction roundup.</p></div><span aria-hidden="true">↗</span></div>
-            </a>
-            <a class="gallery-card gallery-automation" href="./studio.html?view=scheduler">
-              <div class="gallery-art" aria-hidden="true"><div class="edition-sheet"><strong>Scheduled editions</strong><p><time>08:17</time> India brief</p><p lang="kn"><time>13:23</time> ಕರ್ನಾಟಕ ಸುದ್ದಿ</p><p><time>19:37</time> World brief</p></div></div>
-              <div class="gallery-caption"><div><h3>Automation</h3><p>Plan ideas in your browser, run scheduled drafts, or publish editions once configured.</p></div><span aria-hidden="true">↗</span></div>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section class="feature-section" id="workflow" aria-labelledby="workflow-title">
-        <div class="page-width">
-          <div class="section-heading">
-            <h2 id="workflow-title">From source <em>to post.</em></h2>
-            <p>Follow a sample story through the tools you’ll use to make it and share it.</p>
-          </div>
-          <div class="workflow-tabs" role="tablist" aria-label="Story workflow">
-            <button type="button" role="tab" id="tab-source" aria-controls="workflow-source" aria-selected="true">Source</button>
-            <button type="button" role="tab" id="tab-design" aria-controls="workflow-design" aria-selected="false" tabindex="-1">Design</button>
-            <button type="button" role="tab" id="tab-delivery" aria-controls="workflow-delivery" aria-selected="false" tabindex="-1">Publish &amp; export</button>
-          </div>
-
-          <div class="workflow-panel" id="workflow-source" role="tabpanel" tabindex="0" aria-labelledby="tab-source">
-            <div class="workflow-copy">
-              <h3>Bring the article into the studio.</h3>
-              <ul>
-                <li><strong>Import a link</strong> and pull in the headline, text, and lead photo from supported articles. You can also paste an excerpt or import without AI.</li>
-                <li><strong>Find another image</strong> with Commons or connected Google Images and Pexels search, or supply your own upload or image URL.</li>
-              </ul>
-              <div class="workflow-actions">
-                <a class="button feature-action" href="./studio.html?view=poster&amp;panel=article">Open article import <span aria-hidden="true">↗</span></a>
-                <a class="feature-link" href="./studio.html?panel=integrations">Search and saved keys <span aria-hidden="true">↗</span></a>
-              </div>
-            </div>
-            <div class="workflow-art source-art" aria-hidden="true">
-              <div class="source-sheet">
-                <img src="./assets/landing-market.webp" alt="" width="880" height="1100" loading="lazy">
-                <div><span>Sample article</span><strong>Back in motion.</strong><p>A morning at the market after the rain.</p></div>
-              </div>
-              <div class="source-chips"><span>Headline</span><span>Article text</span><span>Lead photo</span></div>
-            </div>
-          </div>
-
-          <div class="workflow-panel" id="workflow-design" role="tabpanel" tabindex="0" aria-labelledby="tab-design" hidden>
-            <div class="workflow-copy">
-              <h3>Make the layout your own.</h3>
-              <ul>
-                <li><strong>Shape the composition</strong> with searchable poster layouts, story-aware carousel layouts, colors, type sizes, and image placement.</li>
-                <li><strong>Work in English or Kannada</strong> or set a poster in both. Adjust brand defaults and keep editable drafts on this device or export them for later.</li>
-              </ul>
-              <div class="workflow-actions">
-                <a class="button feature-action" href="./studio.html?view=poster">Open layout gallery <span aria-hidden="true">↗</span></a>
-                <a class="feature-link" href="./studio.html?panel=brand">Brand settings <span aria-hidden="true">↗</span></a>
-              </div>
-            </div>
-            <div class="workflow-art design-art" aria-hidden="true">
-              <div class="design-sheet"><img src="./assets/landing-dancer.webp" alt="" width="760" height="950" loading="lazy"><strong>Afterglow.</strong></div>
-              <div class="design-sheet"><strong lang="kn">ಮುಸ್ಸಂಜೆ</strong><img src="./assets/landing-dancer.webp" alt="" width="760" height="950" loading="lazy"></div>
-              <div class="design-colors"><i></i><i></i><i></i><i></i></div>
-            </div>
-          </div>
-
-          <div class="workflow-panel" id="workflow-delivery" role="tabpanel" tabindex="0" aria-labelledby="tab-delivery" hidden>
-            <div class="workflow-copy">
-              <h3>Send it where it needs to go.</h3>
-              <ul>
-                <li><strong>Download artwork</strong> as a portrait, square, or story-sized JPEG or PNG. Save carousel frames and the caption together as a ZIP.</li>
-                <li><strong>Publish through Buffer</strong> to connected channels such as Facebook Pages, Instagram Business, X, LinkedIn, Threads, Bluesky, or Mastodon. Edit the caption and check the result in the studio.</li>
-              </ul>
-              <div class="workflow-actions">
-                <a class="button feature-action" href="./studio.html?panel=publish">Open direct publishing <span aria-hidden="true">↗</span></a>
-                <a class="feature-link" href="./studio.html?view=scheduler">Open automation <span aria-hidden="true">↗</span></a>
-              </div>
-            </div>
-            <div class="workflow-art delivery-art" aria-hidden="true">
-              <div class="delivery-sheet"><img src="./assets/landing-runner.webp" alt="" width="720" height="900" loading="lazy"><strong>Find your<br>stride.</strong></div>
-              <div class="delivery-formats"><span>JPEG</span><span>PNG</span><span>ZIP</span></div>
-              <div class="delivery-channel"><strong>Direct publishing</strong><span>Connect with Buffer <b>↗</b></span></div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-    <footer class="landing-footer"><div class="page-width">
-      <a class="landing-logo" href="./"><span class="landing-mark" aria-hidden="true">A</span> AvI Studio</a>
-      <nav aria-label="Footer navigation"><a href="#tools">Creator tools</a><a href="#workflow">How it works</a><a href="./assets/publishing-privacy.html">Publishing privacy</a><a href="./studio.html">Open Studio ↗</a></nav>
-    </div></footer>
-  </div>
+  <footer class="landing-footer"><div class="page-width footer-top"><a class="brand" href="./" aria-label="AvIStudio home"><span class="brand-mark" aria-hidden="true">A</span><span>AvI<span class="brand-light">Studio</span></span></a><p>A creative desk. An open mind.<br>A story only you can tell.</p><nav aria-label="Footer navigation"><a href="#new-studios">New studios</a><a href="#tools">All tools</a><a href="./studio.html">Open Studio ↗</a></nav></div><div class="page-width footer-bottom"><span>MADE FOR STORIES THAT DESERVE MORE.</span><span>English <i aria-hidden="true">✳</i> <span lang="kn">ಕನ್ನಡ</span></span></div></footer>
 </body>
 </html>

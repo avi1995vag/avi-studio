@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "apps": [
+    {
+      "id": "infographic-studio",
+      "sourceSha256": "515d78e060f02c4bcf680ad142fcf89a6393a000d34ca4dbc9c760be6d23a284",
+      "scripts": [
+        "dada89aa64e6fda87e7277ed6be0c7405ebea7c2e125dbc323b84878bc0359ca",
+        "d8f64a0f7d379ae0efc22804a15fbed1e6b478f4fbf92649c21def972be6af26"
+      ],
+      "originalElementIds": 36
+    },
+    {
+      "id": "motion-studio",
+      "sourceSha256": "7e01c2217dcd6d7251ffc3912bb740d64eb74d74eb8ffc8fd092ad6c762a6172",
+      "scripts": [
+        "a9d28d521ababeaab95c482c4d582ff273b2c42566472fa69b74a3246a136e33",
+        "e98854aaa48c4bd8a6d47f37ba222675754bcc08c748bdc9608fe3b214ac2302"
+      ],
+      "originalElementIds": 61
+    },
+    {
+      "id": "india-motion",
+      "sourceSha256": "7db8a04aeaba7937148aefa9191ec924ed076c1c3ea2b6c5666ba4548843619d",
+      "scripts": [
+        "68406d9051c2db5d4ece0d4da8c66055ebd9ed69ad3257d2f9224f9f2c6aa2ef",
+        "c613f1b17dff16da1ea9bd3350b26337f5fb530edb5388a0ad2fedb408da808e"
+      ],
+      "originalElementIds": 106
+    }
+  ]
+}

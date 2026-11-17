@@ -1,0 +1,198 @@
+/* AvIStudio presentation layer. Map rendering and application logic are unchanged. */
+:root {
+  color-scheme: dark;
+  --bg: #17191d;
+  --panel: #22252c;
+  --card: #292d35;
+  --edge: #343842;
+  --text: #f5f2ed;
+  --dim: #a6aab3;
+  --accent: #dcfa75;
+  --mint: #dcfa75;
+  --blue: #b6c9f7;
+  --gold: #facb8b;
+  --red: #f79c9b;
+  --purple: #c5b8ed;
+}
+
+html, body { background: var(--bg); color: var(--text); font-family: 'Instrument Sans', 'Anek Kannada', sans-serif; }
+body { font-size: 13px; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font-family: inherit; }
+button { border-color: var(--edge); border-radius: 8px; background: #2c3039; color: var(--text); font-weight: 600; box-shadow: none; min-height: 34px; transition: background 160ms ease, border-color 160ms ease, color 160ms ease; }
+button:hover { background: #383d48; border-color: #5b626f; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #1c2213; box-shadow: none; font-weight: 700; }
+button.primary:hover { background: #e7ff9c; border-color: #e7ff9c; filter: none; transform: none; }
+button.danger { background: #5a3035; border-color: #875157; color: #ffd3d6; box-shadow: none; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+input, select, textarea { background: #1b1e24; border-color: #3c414c; color: var(--text); border-radius: 7px; min-height: 36px; padding: 8px 10px; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px #dcfa7515; }
+input[type=color] { background: #1b1e24; }
+input[type=range], input[type=checkbox] { accent-color: var(--accent); }
+input[type=range] { min-height: 22px; }
+input[type=checkbox] { min-height: auto; }
+textarea { line-height: 1.6; }
+label { color: #c5c7ce; font-size: 11px; font-weight: 600; line-height: 1.5; }
+.small, .panelSub { color: #a6aab3; line-height: 1.55; }
+.warning { color: var(--gold); }
+.ok { color: var(--accent); }
+
+.aviShell { height: 62px; padding: 0 24px; display: flex; align-items: center; gap: 32px; background: #17191d; border-bottom: 1px solid var(--edge); }
+.aviBrand { display: inline-flex; align-items: center; flex: 0 0 auto; gap: 10px; font: 700 21px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.7px; }
+.aviBrandMark { display: grid; place-items: center; height: 31px; width: 37px; background: var(--gold); border-radius: 9px; color: #17191d; font-size: 17px; letter-spacing: -1.7px; }
+.aviBrandMark > span { display: none; }
+.aviBrandDot { color: var(--gold); }
+.aviToolLinks { display: flex; align-self: stretch; align-items: stretch; gap: 26px; }
+.aviToolLinks a { display: flex; align-items: center; position: relative; color: #a8abb4; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.aviToolLinks a:hover { color: var(--text); }
+.aviToolLinks a.isCurrent { color: var(--gold); }
+.aviToolLinks a.isCurrent::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--gold); }
+.aviBack { margin-left: auto; display: flex; align-items: center; gap: 7px; color: #b8bbc2; font-size: 11px; white-space: nowrap; }
+.aviBack span { color: var(--gold); font-size: 18px; }
+
+.app { height: calc(100dvh - 62px); grid-template-columns: 78px 348px minmax(0, 1fr); grid-template-rows: 70px minmax(0, 1fr); background: var(--bg); }
+.globalHeader { min-height: 70px; padding: 0 22px; background: #1d2026; border-color: var(--edge); gap: 16px; }
+.headerLeft { gap: 28px; min-width: 0; }
+.headerActions { gap: 8px; }
+.logo { gap: 10px; flex: 0 0 auto; }
+.logoSymbol { background: #facb8b17; border: 1px solid #facb8b36; border-radius: 10px; color: var(--gold); box-shadow: none; width: 36px; height: 36px; font-size: 26px; }
+.logoText strong { font: 700 20px 'Bricolage Grotesque', sans-serif; letter-spacing: -0.5px; color: var(--text); }
+.logoText span { color: #a7aab3; font-size: 8px; letter-spacing: 1.4px; margin-top: 5px; }
+.scopeSwitchBar { background: #17191d; border-color: var(--edge); border-radius: 9px; padding: 3px; gap: 2px; }
+.scopeBtn { min-height: 32px; padding: 7px 17px; border-radius: 6px; color: #b5b8c1; font-size: 11px; font-weight: 600; }
+.scopeBtn:hover { background: #2b2f38; color: var(--text); }
+.scopeBtn.active { background: #facb8b; color: #282015; border-color: #facb8b; box-shadow: none; }
+.soiBadge { background: #dcfa750b; border-color: #dcfa7536; color: #c2d28e; font-size: 8px; letter-spacing: 0.5px; padding: 6px 8px; }
+.headerBtn { padding: 9px 14px; white-space: nowrap; }
+
+.toolRail { padding: 16px 7px; gap: 7px; background: #1d2026; border-color: var(--edge); }
+.toolButton { width: 63px; min-height: 62px; border-radius: 9px; color: #999eaa; font-size: 9px; font-weight: 600; gap: 7px; }
+.toolButton:hover { color: #f5f2ed; background: #2b2f38 !important; }
+.toolButton.active { background: #facb8b15 !important; color: var(--gold) !important; border-color: #facb8b38 !important; }
+.toolIcon { font-size: 20px !important; filter: saturate(0.55); }
+.side { background: var(--panel); border-color: var(--edge); scrollbar-gutter: stable; }
+.editorPanel { padding: 0 18px 26px; }
+.panelHeading { padding: 21px 0 17px; margin-bottom: 17px; border-color: #393e48; }
+.panelHeading .eyebrow { color: var(--gold); font-size: 8px; letter-spacing: 1.7px; font-weight: 700; }
+.panelHeading h2 { font: 600 23px/1.1 'Bricolage Grotesque', 'Anek Kannada', sans-serif; letter-spacing: -0.65px; color: var(--text); margin: 9px 0 8px; text-wrap: balance; }
+.panelSub { font-size: 10px; }
+.cardBox { border-color: #3a3f49; background: #292d35; border-radius: 10px; padding: 12px; margin: 12px 0; }
+.cardBox h4 { color: #e2dfd6; font-size: 9px; line-height: 1.5; font-weight: 600; letter-spacing: 0.8px; margin-bottom: 10px; }
+.chipRow { gap: 6px; }
+.chipBtn { padding: 6px 8px; font-size: 9px; line-height: 1.4; border-color: #444a55; background: #22262e; color: #d0d3d9; min-height: 31px; }
+.chipBtn:hover { background: #383e49; border-color: #737b89; }
+.toggle { color: #cdd0d6; font-size: 10.5px; line-height: 1.55; padding: 4px 0; gap: 8px; }
+.hlCard, .stopCard { background: #272c34; border-color: #414754; border-radius: 9px; padding: 11px; }
+.hlTitle { font-size: 12px; color: var(--text); }
+.hlBadge { background: #facb8b15; border-color: #facb8b40; color: var(--gold); border-radius: 4px; }
+.hlMediaRow { border-color: #3b414b; }
+.hlThumb, .stopThumb { background: #1b1e24; border-color: #404653; color: #a4aab7; }
+.hlControls button, .hlControls label.btnUpload { background: #303642; border-color: #4c5461; color: #dce0e7; min-height: 27px; font-size: 9px; }
+.hlControls button:hover, .hlControls label.btnUpload:hover { background: #414a59; border-color: #717e91; }
+.stopHeader { color: var(--gold); }
+.modes { gap: 6px; }
+.modes button { background: #1d2129; border-color: #434955; color: #bfc4ce; min-height: 35px; font-size: 10px; }
+.modes button.active { background: #dcfa7517; border-color: #dcfa7555; color: var(--accent); }
+.status { background: #1d2026; border-color: var(--edge); color: #a7b38b; font-size: 10px; line-height: 1.6; padding: 12px 16px; }
+
+.studio { background: #17191d; overflow-x: hidden; }
+.topbar { background: transparent; border-color: var(--edge); min-height: 68px; padding: 13px 24px; gap: 10px 16px; }
+.topbar > div:first-child { min-width: 0; flex-wrap: wrap; gap: 5px 12px !important; }
+#canvasModeTitle { color: #d7d9df; font-size: 10px; font-weight: 600; letter-spacing: 0.35px; line-height: 1.6; }
+#cameraPhaseReadout { color: #b4bc9d !important; font-size: 9px; }
+.topActions { gap: 7px; }
+.topActions button { font-size: 10px; min-height: 31px; padding: 6px 11px; }
+.topActions .flag { background: #facb8b0c; border-color: #facb8b30; color: #b5ab9b; font-size: 8px; padding: 7px; }
+.main { width: 100%; max-width: 1580px; padding: 24px; gap: 18px; justify-content: center; align-items: stretch; min-height: 0; }
+.stage { width: min(100%, calc((100dvh - 320px) * 16 / 9)); align-self: center; flex: 0 0 auto; border: 1px solid #464c58; border-radius: 8px; background: #101216; box-shadow: 0 15px 40px #0005; }
+.stage.vertical { width: min(100%, 340px, calc((100dvh - 320px) * 9 / 16)); }
+.stage.square { width: min(100%, 620px, calc(100dvh - 320px)); }
+.stageSurface { background: #101216; }
+.transport { width: 100%; align-self: center; border-color: var(--edge); background: #22252c; border-radius: 9px; padding: 10px 12px; gap: 8px; }
+.transport button { font-size: 10px; padding: 7px 11px; }
+.transport .time { color: #a9aeb8; font-size: 10px; min-width: 88px; }
+.transport input[type=range] { min-width: 40px; }
+.exportBtns { gap: 9px; }
+.exportBtns button { font-size: 10px; }
+.exportBtns button.mp4Btn { font-size: 11px; min-height: 48px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: #4a505c; border-radius: 10px; }
+::-webkit-scrollbar-track { background: #20232a; }
+
+@media (min-width: 1700px) {
+  .app { grid-template-columns: 82px 380px minmax(0, 1fr); }
+  .editorPanel { padding-left: 23px; padding-right: 23px; }
+  .main { padding: 36px 48px; }
+  .stage { width: min(100%, calc((100dvh - 344px) * 16 / 9)); }
+  .stage.vertical { width: min(100%, 340px, calc((100dvh - 344px) * 9 / 16)); }
+  .stage.square { width: min(100%, 620px, calc(100dvh - 344px)); }
+}
+@media (max-width: 1280px) {
+  .app { grid-template-columns: 72px 320px minmax(0, 1fr); }
+  .aviShell { padding: 0 20px; gap: 26px; }
+  .aviToolLinks { gap: 20px; }
+  .globalHeader { padding: 0 16px; }
+  .headerLeft { gap: 20px; }
+  .scopeBtn { padding: 7px 12px; }
+  .soiBadge { display: none; }
+  .logoText strong { font-size: 19px; }
+  .toolButton { width: 58px; }
+  .editorPanel { padding-left: 14px; padding-right: 14px; }
+  .topbar { padding: 13px 18px; }
+  .main { padding: 20px; }
+  .topActions .flag { display: none; }
+}
+@media (max-width: 1000px) {
+  .app { grid-template-columns: 66px 300px minmax(0, 1fr); grid-template-rows: 104px minmax(0, 1fr); }
+  .globalHeader { align-items: flex-start; position: relative; padding-top: 12px; }
+  .headerLeft { display: contents; }
+  .scopeSwitchBar { position: absolute; left: 16px; bottom: 9px; }
+  .headerActions { margin-left: auto; }
+  .headerBtn { min-height: 34px; padding: 8px 11px; font-size: 11px; }
+  .logoSymbol { width: 30px; height: 30px; font-size: 24px; }
+  .logoText span { display: none; }
+  .toolRail { padding-left: 4px; padding-right: 4px; }
+  .main { padding: 16px; gap: 14px; }
+  .stage { width: min(100%, calc((100dvh - 352px) * 16 / 9)); }
+  .stage.vertical { width: min(100%, 340px, calc((100dvh - 352px) * 9 / 16)); }
+  .stage.square { width: min(100%, 620px, calc(100dvh - 352px)); }
+  .transport { flex-wrap: wrap; }
+  .transport input[type=range] { flex-basis: 44%; }
+  .topActions { flex-wrap: wrap; }
+  .topActions button { font-size: 9px; padding: 6px 8px; }
+}
+@media (max-width: 760px) {
+  html, body { height: auto; min-height: 100%; overflow: auto; }
+  .aviShell { height: auto; min-height: 64px; padding: 12px 16px 0; flex-wrap: wrap; gap: 12px 20px; }
+  .aviBrand { font-size: 20px; }
+  .aviBack { font-size: 10px; }
+  .aviToolLinks { order: 3; width: 100%; gap: 22px; overflow-x: auto; min-height: 39px; }
+  .aviToolLinks a { font-size: 11px; }
+  .app { height: auto; min-height: calc(100dvh - 112px); grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: 108px auto minmax(380px, auto); }
+  .globalHeader { grid-column: 1 / -1; grid-row: 1; }
+  .scopeSwitchBar { left: 13px; right: 13px; gap: 3px; }
+  .scopeBtn { flex: 1; justify-content: center; padding: 7px 8px; font-size: 10px; }
+  .headerActions { gap: 6px; }
+  .headerBtn { font-size: 10px; padding: 7px 9px; }
+  .logoText strong { font-size: 19px; }
+  .logoSymbol { display: none; }
+  .toolRail { grid-column: 1; grid-row: 3; height: 100%; padding-top: 13px; }
+  .toolButton { width: 55px; min-height: 60px; font-size: 8px; }
+  .side { grid-column: 2; grid-row: 3; height: auto; max-height: 650px; min-height: 380px; border-top: 1px solid var(--edge); }
+  .editorPanel { padding: 0 14px 20px; }
+  .studio { grid-column: 1 / -1; grid-row: 2; height: auto; overflow: visible; }
+  .topbar { min-height: 58px; padding: 12px 14px; gap: 10px; }
+  #canvasModeTitle { font-size: 9px; }
+  #cameraPhaseReadout { font-size: 8px; }
+  .main { padding: 14px; gap: 12px; }
+  .stage { width: 100%; }
+  .stage.vertical { width: min(100%, 280px); }
+  .stage.square { width: min(100%, 440px); }
+  .transport { padding: 9px; gap: 7px; }
+  .transport button { min-height: 32px; padding: 7px 10px; }
+  .transport .time { min-width: 86px; margin-left: auto; }
+  .transport input[type=range] { min-width: 65px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
