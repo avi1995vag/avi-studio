@@ -14,17 +14,17 @@
   }
   function motion() {
     ctx.clearRect(0,0,900,580);
-    ctx.fillStyle = study === 'kinetic' ? '#ff644e' : study === 'orbit' ? '#272041' : '#d9fc65';
+    ctx.fillStyle = study === 'kinetic' ? '#194e48' : study === 'orbit' ? '#dd593b' : '#f1e5c9';
     ctx.fillRect(0,0,900,580);
     if (study === 'kinetic') {
       ctx.save();ctx.translate(450,290);ctx.rotate(Math.sin(time*.65)*.035);ctx.translate(-450,-290);
-      for(let i=4;i>0;i--) { ctx.globalAlpha=.1;words('LET IT',55+i*12,245+i*10,178,'#111214');words('MOVE.',55+i*12,438+i*10,190,'#111214'); }
-      ctx.globalAlpha=1;words('LET IT',55,245,178,'#111214');words('MOVE.',55,438,190,'#111214');ctx.restore();
-      ctx.strokeStyle='#111214';ctx.lineWidth=4;ctx.beginPath();ctx.arc(790,115,44+Math.sin(time)*8,0,Math.PI*2);ctx.stroke();
+      for(let i=4;i>0;i--) { ctx.globalAlpha=.1;words('LET IT',55+i*12,245+i*10,178,'#faf4df');words('MOVE.',55+i*12,438+i*10,190,'#faf4df'); }
+      ctx.globalAlpha=1;words('LET IT',55,245,178,'#faf4df');words('MOVE.',55,438,190,'#faf4df');ctx.restore();
+      ctx.strokeStyle='#e7c16d';ctx.lineWidth=4;ctx.beginPath();ctx.arc(790,115,44+Math.sin(time)*8,0,Math.PI*2);ctx.stroke();
     } else if(study === 'orbit') {
-      ctx.save();ctx.translate(450,300);ctx.strokeStyle='#b6a2f766';ctx.lineWidth=2;
+      ctx.save();ctx.translate(450,300);ctx.strokeStyle='#fff0cf66';ctx.lineWidth=2;
       for(let i=0;i<4;i++){ctx.beginPath();ctx.ellipse(0,0,170+i*48,75+i*28,-.4,0,Math.PI*2);ctx.stroke();}
-      ctx.fillStyle='#d9fc65';ctx.beginPath();ctx.arc(Math.cos(time)*275,Math.sin(time)*135,24,0,Math.PI*2);ctx.fill();ctx.restore();
+      ctx.fillStyle='#eac479';ctx.beginPath();ctx.arc(Math.cos(time)*275,Math.sin(time)*135,24,0,Math.PI*2);ctx.fill();ctx.restore();
       words('MAKE',225,280,118,'#f4f3eb');words('WAVES.',198,403,118,'#f4f3eb');
     } else {
       words('FIND THE SIGNAL.',48,125,70,'#111214');
