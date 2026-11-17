@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f5f5f2">
+  <meta name="theme-color" content="#111214">
   <meta name="description" content="A creative desk for posters, carousels, infographics, motion and maps. Create in English and Kannada with AvIStudio.">
   <title>AvI Studio — A playground for your ideas.</title>
   <script>
@@ -17,8 +17,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Anek+Kannada:wght@400;600;800&family=Bricolage+Grotesque:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./assets/landing.css?v=7">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/landing-exhibition.css?v=1">
-  <script src="./assets/landing-gallery.js?v=3" defer></script>
+  <link rel="stylesheet" href="./assets/landing-gallery.css?v=2">
+  <link rel="stylesheet" href="./assets/landing-motion.css?v=1">
+  <script src="./assets/landing-gallery.js?v=4" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -46,15 +47,15 @@
     <div class="page-width header-inner">
       <a class="brand" href="./" aria-label="AvIStudio home"><span class="brand-mark" aria-hidden="true">A</span><span>AvI<span class="brand-light">Studio</span></span></a>
       <nav aria-label="Main navigation"><a href="#new-studios">What's new <span class="nav-dot" aria-hidden="true"></span></a><a href="#tools">The tools</a><a href="#workflow">How it works</a></nav>
-      <a class="button button-small button-dark" href="./studio.html">Open Studio <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <div class="header-actions"><button type="button" id="page-motion" aria-label="Pause page motion" aria-pressed="false"><span aria-hidden="true">Ⅱ</span><span class="motion-label">Motion on</span></button><a class="button button-small button-dark" href="./studio.html">Open Studio <svg aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
     </div>
   </header>
 
   <main id="main">
     <section class="gallery-hero page-width" aria-labelledby="hero-title">
-      <div class="hero-edition"><p>THE OPEN CANVAS / AVI STUDIO</p><span>DESIGNED TO BE DIFFERENT ↗</span></div>
-      <div class="hero-statement"><h1 id="hero-title">Go beyond<br>the <span>ordinary.</span></h1><svg class="hero-asterisk" aria-hidden="true"><use href="#i-star"/></svg></div>
-      <div class="hero-intro"><p>For the stories that deserve a second look.<br>Design, animate and publish your next big idea — all from one creative workspace.</p><div><a class="button gallery-cta" href="./studio.html">Open your canvas <svg aria-hidden="true"><use href="#i-arrow"/></svg></a><a class="gallery-text-link" href="#tools">Explore the collection <span aria-hidden="true">↓</span></a></div><span class="hero-language">ENGLISH / <b lang="kn">ಕನ್ನಡ</b><small>ONE WORKSPACE. YOUR POINT OF VIEW.</small></span></div>
+      <div class="hero-edition"><p><span class="signal-dot" aria-hidden="true"></span> AVI / IDEAS IN MOTION</p><span>DESIGN · DATA · MOTION</span></div>
+      <div class="hero-statement"><h1 id="hero-title">MAKE SOME<br><span>WAVES.</span></h1><svg class="hero-asterisk" aria-hidden="true"><use href="#i-star"/></svg></div>
+      <div class="hero-intro"><p>A headline. A number. A place.<br>Turn your next idea into something worth stopping for.</p><div><a class="button gallery-cta" href="./studio.html">Enter the studio <svg aria-hidden="true"><use href="#i-arrow"/></svg></a><a class="gallery-text-link" href="#tools">Explore all 15 tools <span aria-hidden="true">↓</span></a></div><span class="hero-language">ENGLISH + <b lang="kn">ಕನ್ನಡ</b><br><small>YOUR STORY. YOUR LANGUAGE.</small></span></div>
       <div class="showcase-desk" id="showcase-desk" data-playing="true">
         <article class="showcase-panel showcase-info">
           <header><span><i aria-hidden="true"></i> INFOGRAPHIC STUDIO</span><span>01</span></header>
@@ -77,7 +78,7 @@
       </div>
       <div class="gallery-baseline"><span>POSTERS. DATA. MOTION. MAPS. <i aria-hidden="true">✳</i> ALL YOURS TO EXPLORE.</span><a href="#new-studios">TAKE A LOOK AROUND <span aria-hidden="true">↘</span></a></div>
     </section>
-    <div class="creative-strip gallery-strip" aria-label="Create without limits"><div class="page-width"><span>Less blank canvas.</span><svg aria-hidden="true"><use href="#i-star"/></svg><span>More “I made that.”</span><svg aria-hidden="true"><use href="#i-star"/></svg><span lang="kn">ನಿಮ್ಮ ಕಲ್ಪನೆ. ನಿಮ್ಮ ವಿನ್ಯಾಸ.</span></div></div>
+    <div class="creative-strip gallery-strip" aria-label="Think it. Shape it. Make it move. Put it out there."><div class="marquee-track"><div class="marquee-group"><span>THINK IT.</span><i>✳</i><span>SHAPE IT.</span><i>✳</i><span>MAKE IT MOVE.</span><i>✳</i><span>PUT IT OUT THERE.</span><i>✳</i></div><div class="marquee-group" aria-hidden="true"><span>THINK IT.</span><i>✳</i><span>SHAPE IT.</span><i>✳</i><span>MAKE IT MOVE.</span><i>✳</i><span>PUT IT OUT THERE.</span><i>✳</i></div></div></div>
 
     <section class="new-studios page-width section-space" id="new-studios" aria-labelledby="new-title">
         <div class="section-heading"><div><p class="eyebrow">01 / THE COLLECTION</p><h2 id="new-title">Different tools.<br><em>Same restless imagination.</em></h2></div><p>Start with a number, a place, a moment.<br>See where it takes you.</p></div>
