@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f4ec">
+  <meta name="theme-color" content="#111214">
   <meta name="description" content="A creative desk for posters, carousels, infographics, motion and maps. Create in English and Kannada with AvIStudio.">
-  <title>AvIStudio — Make more than a post.</title>
+  <title>AvI Studio — Make it unmissable.</title>
   <script>
     const fragment = new URLSearchParams(location.hash.slice(1));
     if (fragment.has('buffer_connection') || fragment.has('buffer_error') || ['#posterStage', '#posterTools', '#workspace'].includes(location.hash)) {
@@ -16,7 +16,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anek+Kannada:wght@400;600;800&family=Bricolage+Grotesque:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./assets/landing.css?v=7">
-  <script src="./assets/landing.js?v=6" defer></script>
+  <link rel="stylesheet" href="./assets/landing-gallery.css?v=1">
+  <script src="./assets/landing-gallery.js?v=1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -49,33 +50,33 @@
   </header>
 
   <main id="main">
-    <section class="hero page-width" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <p class="eyebrow"><span class="tiny-star" aria-hidden="true">✳</span> YOUR NEXT STORY STARTS HERE</p>
-        <h1 id="hero-title">Make more<br>than a <span class="headline-post">post<svg aria-hidden="true" viewBox="0 0 260 18"><path d="M4 12c69-12 162-10 251-5M28 16c76-6 139-5 208-4"/></svg></span>.</h1>
-        <p class="hero-description">Design the poster. Animate the data. Put a place on the map. Bring your next story to life, all from one creative desk.</p>
-        <div class="hero-actions"><a class="button button-dark" href="./studio.html">Start creating <svg aria-hidden="true"><use href="#i-arrow"/></svg></a><a class="button button-outline" href="#tools">Find your tool <span aria-hidden="true">↓</span></a></div>
-        <div class="hero-footnote"><span class="language-mark" aria-hidden="true">Aa <span lang="kn">ಅ</span></span><p>Big ideas. Any language.<br><strong>Made for English &amp; Kannada.</strong></p></div>
-      </div>
-
-      <div class="creative-desk" id="creative-desk" data-mode="motion" data-animation="running">
-        <div class="desk-orbit" aria-hidden="true"></div>
-        <div class="desk-note" aria-hidden="true"><svg><use href="#i-star"/></svg><span>Ideas deserve<br>a little more.</span></div>
-        <article class="desk-poster" aria-labelledby="preview-title">
-          <img id="preview-image" src="./assets/landing-dancer.webp" alt="A dancer sends a red scarf through the evening air" width="760" height="950" fetchpriority="high">
-          <div class="poster-topline"><span id="preview-category">A STORY IN MOTION</span><span>AVI / 001</span></div>
-          <div class="poster-copy"><h2 id="preview-title">Make<br>it move.</h2><p id="preview-caption">A little movement. A whole new story.</p></div>
-          <span class="poster-play" aria-hidden="true">▶</span>
+    <section class="gallery-hero page-width" aria-labelledby="hero-title">
+      <div class="hero-edition"><p><span class="signal-dot" aria-hidden="true"></span> AVI / THE CREATIVE PLAYGROUND</p><span>DESIGN · DATA · MOTION</span></div>
+      <div class="hero-statement"><h1 id="hero-title">MAKE IT<br><span>UNMISSABLE.</span></h1><svg class="hero-asterisk" aria-hidden="true"><use href="#i-star"/></svg></div>
+      <div class="hero-intro"><p>A headline. A number. A place.<br>Whatever the spark, make a story that stops the scroll.</p><div><a class="button gallery-cta" href="./studio.html">Enter the studio <svg aria-hidden="true"><use href="#i-arrow"/></svg></a><a class="gallery-text-link" href="#tools">Explore all 15 tools <span aria-hidden="true">↓</span></a></div><span class="hero-language">ENGLISH + <b lang="kn">ಕನ್ನಡ</b><br><small>YOUR STORY. YOUR LANGUAGE.</small></span></div>
+      <div class="showcase-desk" id="showcase-desk" data-playing="true">
+        <article class="showcase-panel showcase-info">
+          <header><span><i aria-hidden="true"></i> INFOGRAPHIC STUDIO</span><span>01</span></header>
+          <div class="info-study" aria-label="Illustrative data design: research 42, design 78, publish 64">
+            <span class="study-kicker">VISUAL STUDY / SAMPLE DATA</span><h2>THE BIG<br>PICTURE<span>.</span></h2>
+            <div class="study-bottom"><div class="study-donut"><span>74<small>%</small></span></div><div class="study-bars"><div><span>Research</span><i style="--value:42%"></i></div><div><span>Design</span><i style="--value:78%"></i></div><div><span>Publish</span><i style="--value:64%"></i></div></div></div>
+          </div><a href="./assets/apps/infographic-studio/">Find the story in your data <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
         </article>
-        <div class="data-sticker" aria-hidden="true"><div><span>GOOD IDEAS, GROWING.</span><strong>+87<span>%</span><svg><use href="#i-arrow"/></svg></strong></div><div class="mini-bars"><i style="--bar:32%;--delay:0s"></i><i style="--bar:46%;--delay:.13s"></i><i style="--bar:39%;--delay:.26s"></i><i style="--bar:67%;--delay:.39s"></i><i style="--bar:83%;--delay:.52s"></i><i style="--bar:100%;--delay:.65s"></i></div><div class="sticker-axis"><span>THE IDEA</span><span>THE IMPACT ↗</span></div></div>
-        <span class="desk-doodle" aria-hidden="true">✽</span>
-        <div class="desk-controls"><div class="preview-modes" role="group" aria-label="Explore a creative tool"><button type="button" data-mode="motion" aria-pressed="true">Motion</button><button type="button" data-mode="data" aria-pressed="false">Data</button><button type="button" data-mode="maps" aria-pressed="false">Maps</button></div><button type="button" id="animation-toggle" class="animation-toggle" aria-pressed="false" aria-label="Pause decorative bar animation"><span aria-hidden="true">Ⅱ</span></button></div>
-        <a class="desk-tool-link" id="preview-link" href="./assets/apps/motion-studio/"><span id="preview-link-label">Explore Motion Studio</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-        <p class="sr-only" id="preview-status" role="status"></p>
+        <article class="showcase-panel showcase-motion">
+          <header><span><i aria-hidden="true"></i> MOTION STUDIO</span><span>02</span></header>
+          <div class="motion-study"><canvas id="hero-motion" width="900" height="580" role="img" aria-label="Animated kinetic typography study"></canvas><span class="preview-badge">INTERACTIVE PREVIEW</span></div>
+          <div class="motion-study-controls"><div role="group" aria-label="Choose a motion preview"><button type="button" data-study="kinetic" aria-pressed="true">Kinetic</button><button type="button" data-study="orbit" aria-pressed="false">Orbit</button><button type="button" data-study="bars" aria-pressed="false">Data</button></div><button type="button" id="gallery-play" aria-label="Pause gallery animation" aria-pressed="false">Ⅱ</button></div>
+          <a href="./assets/apps/motion-studio/">114 layouts. Infinite starting points. <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </article>
+        <article class="showcase-panel showcase-map">
+          <header><span><i aria-hidden="true"></i> INDIA MOTION</span><span>03</span></header>
+          <div class="map-study"><canvas id="hero-map" width="600" height="580" role="img" aria-label="India map preview with an illustrative route between Delhi and Bengaluru"></canvas><img id="hero-map-fallback" src="./assets/landing-map.webp" width="360" height="450" alt="India map design" hidden><div class="map-study-caption"><strong>EVERY PLACE.<br>A NEW PERSPECTIVE.</strong><span>DELHI → BENGALURU</span></div></div>
+          <a href="./assets/apps/india-motion/">Put your story on the map <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </article>
       </div>
+      <div class="gallery-baseline"><span><i aria-hidden="true">●</i> THREE STUDIOS. ONE CREATIVE MIND.</span><span>SCROLL TO EXPLORE <span aria-hidden="true">↘</span></span></div>
     </section>
-
-    <div class="creative-strip" aria-label="Create with AvIStudio"><div class="page-width"><span>POSTERS</span><i aria-hidden="true">✳</i><span>INFOGRAPHICS</span><i aria-hidden="true">✳</i><span>MOTION</span><i aria-hidden="true">✳</i><span>MAPS</span><i aria-hidden="true">✳</i><span lang="kn">ನಿಮ್ಮ ಕಥೆ.</span><i aria-hidden="true">✳</i><span>YOUR WAY.</span></div></div>
+    <div class="creative-strip gallery-strip" aria-label="Create without limits"><div class="page-width"><span>THINK IT.</span><svg aria-hidden="true"><use href="#i-star"/></svg><span>SHAPE IT.</span><svg aria-hidden="true"><use href="#i-star"/></svg><span>MAKE IT MOVE.</span><svg aria-hidden="true"><use href="#i-star"/></svg><span>PUT IT OUT THERE.</span></div></div>
 
     <section class="new-studios page-width section-space" id="new-studios" aria-labelledby="new-title">
       <div class="section-heading"><div><p class="eyebrow">FRESH ON THE DESK</p><h2 id="new-title">More ways to<br>make your mark.</h2></div><p>Meet your three new studios.<br>A bigger canvas for the stories<br>you've been waiting to tell.</p></div>
