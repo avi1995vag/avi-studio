@@ -412,7 +412,10 @@
   let focusCode = '';
   let hitAreas = [];
   let outlineHitPath;
-  let open = false;
+  // Map graphics is the default visible tool in a fresh studio session.
+  // Start loading immediately in that case; otherwise the first map would
+  // stay blank until the user changed a control.
+  let open = !get('mapGraphicsLab').hidden;
   let dragAreas = [];
   let dragState = null;
   let suppressMapClick = false;
