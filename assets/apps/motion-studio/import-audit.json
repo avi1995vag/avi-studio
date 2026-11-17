@@ -1,0 +1,611 @@
+{
+  "originalFile": "Motion_Studio_ULTRA_V7_Creative_114_Layouts (1).html",
+  "originalSha256": "7e01c2217dcd6d7251ffc3912bb740d64eb74d74eb8ffc8fd092ad6c762a6172",
+  "scriptsPreserved": true,
+  "scriptSha256": [
+    "a9d28d521ababeaab95c482c4d582ff273b2c42566472fa69b74a3246a136e33",
+    "e98854aaa48c4bd8a6d47f37ba222675754bcc08c748bdc9608fe3b214ac2302"
+  ],
+  "layoutCount": 114,
+  "categories": [
+    "INTRO",
+    "DECISIONS",
+    "FINANCE",
+    "CHARTS",
+    "EVIDENCE",
+    "EXPERIMENTS",
+    "MAPS",
+    "PAPER FX",
+    "TIMELINES",
+    "EXPLAINERS",
+    "CINEMA",
+    "EXPLAINER",
+    "DATA LAB",
+    "KINETIC"
+  ],
+  "layouts": [
+    {
+      "id": "hook",
+      "name": "Kinetic Headline",
+      "category": "INTRO"
+    },
+    {
+      "id": "choice",
+      "name": "Split Decision",
+      "category": "DECISIONS"
+    },
+    {
+      "id": "money",
+      "name": "Money Face-Off",
+      "category": "FINANCE"
+    },
+    {
+      "id": "timeline",
+      "name": "Wealth Timeline",
+      "category": "CHARTS"
+    },
+    {
+      "id": "receipt",
+      "name": "Fine-Print Scanner",
+      "category": "EVIDENCE"
+    },
+    {
+      "id": "timer",
+      "name": "Decision Countdown",
+      "category": "DECISIONS"
+    },
+    {
+      "id": "verdict",
+      "name": "Winner Reveal",
+      "category": "DECISIONS"
+    },
+    {
+      "id": "ai",
+      "name": "AI vs Human Race",
+      "category": "EXPERIMENTS"
+    },
+    {
+      "id": "cost",
+      "name": "Hidden Cost Stack",
+      "category": "FINANCE"
+    },
+    {
+      "id": "world_route",
+      "name": "Global Move Map",
+      "category": "MAPS"
+    },
+    {
+      "id": "india_route",
+      "name": "India Journey Map",
+      "category": "MAPS"
+    },
+    {
+      "id": "geo_salary",
+      "name": "Global Salary Bubbles",
+      "category": "MAPS"
+    },
+    {
+      "id": "map_flow",
+      "name": "Money Flow Arcs",
+      "category": "MAPS"
+    },
+    {
+      "id": "map_spotlight",
+      "name": "Country Spotlight",
+      "category": "MAPS"
+    },
+    {
+      "id": "stat",
+      "name": "Giant Number Reveal",
+      "category": "INTRO"
+    },
+    {
+      "id": "waterfall",
+      "name": "Financial Waterfall",
+      "category": "FINANCE"
+    },
+    {
+      "id": "donut",
+      "name": "Budget Donut",
+      "category": "CHARTS"
+    },
+    {
+      "id": "ranking",
+      "name": "Location Leaderboard",
+      "category": "CHARTS"
+    },
+    {
+      "id": "before",
+      "name": "Before / After",
+      "category": "DECISIONS"
+    },
+    {
+      "id": "tree",
+      "name": "Decision Tree",
+      "category": "DECISIONS"
+    },
+    {
+      "id": "quote",
+      "name": "Documentary Quote",
+      "category": "EVIDENCE"
+    },
+    {
+      "id": "risk",
+      "name": "Risk Matrix",
+      "category": "CHARTS"
+    },
+    {
+      "id": "pricing",
+      "name": "Subscription Trap",
+      "category": "FINANCE"
+    },
+    {
+      "id": "compare4",
+      "name": "Four-Way Battle",
+      "category": "DECISIONS"
+    },
+    {
+      "id": "milestones",
+      "name": "Life Milestones",
+      "category": "CHARTS"
+    },
+    {
+      "id": "bar",
+      "name": "Growth Bar Race",
+      "category": "CHARTS"
+    },
+    {
+      "id": "hook_clean",
+      "name": "Clean Hero Opener",
+      "category": "INTRO"
+    },
+    {
+      "id": "headline_stack",
+      "name": "Stacked Headline",
+      "category": "INTRO"
+    },
+    {
+      "id": "flash_quote",
+      "name": "Flash Quote",
+      "category": "INTRO"
+    },
+    {
+      "id": "quote_panel",
+      "name": "Editorial Quote Panel",
+      "category": "INTRO"
+    },
+    {
+      "id": "ticker_wall",
+      "name": "Ticker Wall",
+      "category": "INTRO"
+    },
+    {
+      "id": "compare_3",
+      "name": "Triple Decision",
+      "category": "DECISIONS"
+    },
+    {
+      "id": "compare_swipe",
+      "name": "Diagonal Face-Off",
+      "category": "DECISIONS"
+    },
+    {
+      "id": "matrix",
+      "name": "Decision Matrix",
+      "category": "DECISIONS"
+    },
+    {
+      "id": "salary_stack",
+      "name": "Stacked Number Cards",
+      "category": "FINANCE"
+    },
+    {
+      "id": "salary_steps",
+      "name": "Stepped Growth",
+      "category": "FINANCE"
+    },
+    {
+      "id": "metric_grid",
+      "name": "Metric Grid",
+      "category": "FINANCE"
+    },
+    {
+      "id": "stat_tiles",
+      "name": "Stat Tiles",
+      "category": "CHARTS"
+    },
+    {
+      "id": "ladder",
+      "name": "Outcome Ladder",
+      "category": "CHARTS"
+    },
+    {
+      "id": "podium",
+      "name": "Podium Ranking",
+      "category": "CHARTS"
+    },
+    {
+      "id": "ring_trio",
+      "name": "Ring Metrics",
+      "category": "CHARTS"
+    },
+    {
+      "id": "radar",
+      "name": "Radar Comparison",
+      "category": "CHARTS"
+    },
+    {
+      "id": "checklist",
+      "name": "Checklist Reveal",
+      "category": "EVIDENCE"
+    },
+    {
+      "id": "dossier",
+      "name": "Dossier Board",
+      "category": "EVIDENCE"
+    },
+    {
+      "id": "process_flow",
+      "name": "Process Flow",
+      "category": "EXPERIMENTS"
+    },
+    {
+      "id": "matchup",
+      "name": "Versus Matchup",
+      "category": "EXPERIMENTS"
+    },
+    {
+      "id": "india_route_pro",
+      "name": "India Route Pro",
+      "category": "MAPS"
+    },
+    {
+      "id": "world_route_hub",
+      "name": "World Hub Routes",
+      "category": "MAPS"
+    },
+    {
+      "id": "map_spotlight_plus",
+      "name": "Country Spotlight Plus",
+      "category": "MAPS"
+    },
+    {
+      "id": "city_cards_map",
+      "name": "City Bubble Map",
+      "category": "MAPS"
+    },
+    {
+      "id": "paper_cut",
+      "name": "Paper Cutter Reveal",
+      "category": "PAPER FX"
+    },
+    {
+      "id": "paper_tear",
+      "name": "Torn Paper Comparison",
+      "category": "PAPER FX"
+    },
+    {
+      "id": "paper_layers",
+      "name": "Paper Stack Explainer",
+      "category": "PAPER FX"
+    },
+    {
+      "id": "folder_pull",
+      "name": "File Folder Reveal",
+      "category": "PAPER FX"
+    },
+    {
+      "id": "newspaper",
+      "name": "Newspaper Clipping",
+      "category": "PAPER FX"
+    },
+    {
+      "id": "stamp",
+      "name": "Red Stamp Verdict",
+      "category": "PAPER FX"
+    },
+    {
+      "id": "timeline_ribbon",
+      "name": "Timeline Ribbon",
+      "category": "TIMELINES"
+    },
+    {
+      "id": "timeline_film",
+      "name": "Filmstrip Timeline",
+      "category": "TIMELINES"
+    },
+    {
+      "id": "timeline_vertical",
+      "name": "Vertical Timeline Cards",
+      "category": "TIMELINES"
+    },
+    {
+      "id": "timeline_compare",
+      "name": "Dual Track Timeline",
+      "category": "TIMELINES"
+    },
+    {
+      "id": "timeline_clock",
+      "name": "Clockwork Timeline",
+      "category": "TIMELINES"
+    },
+    {
+      "id": "cause_effect",
+      "name": "Cause and Effect",
+      "category": "EXPLAINERS"
+    },
+    {
+      "id": "cinema_number",
+      "name": "Monumental Number",
+      "category": "CINEMA"
+    },
+    {
+      "id": "cinema_prism",
+      "name": "Prism Decision",
+      "category": "CINEMA"
+    },
+    {
+      "id": "cinema_portal",
+      "name": "Outcome Portal",
+      "category": "CINEMA"
+    },
+    {
+      "id": "cinema_shock",
+      "name": "Impact Burst",
+      "category": "CINEMA"
+    },
+    {
+      "id": "craft_origami",
+      "name": "Origami Evidence",
+      "category": "PAPER FX"
+    },
+    {
+      "id": "craft_shred",
+      "name": "Paper Shredder",
+      "category": "PAPER FX"
+    },
+    {
+      "id": "craft_pinboard",
+      "name": "Evidence Pinboard",
+      "category": "PAPER FX"
+    },
+    {
+      "id": "craft_notebook",
+      "name": "Notebook Underline",
+      "category": "PAPER FX"
+    },
+    {
+      "id": "time_roadmap",
+      "name": "Cinematic Roadmap",
+      "category": "TIMELINES"
+    },
+    {
+      "id": "time_rail",
+      "name": "Rail Timeline",
+      "category": "TIMELINES"
+    },
+    {
+      "id": "time_eras",
+      "name": "Era Windows",
+      "category": "TIMELINES"
+    },
+    {
+      "id": "time_fork",
+      "name": "Forked Future",
+      "category": "TIMELINES"
+    },
+    {
+      "id": "explain_cutaway",
+      "name": "Exploded System",
+      "category": "EXPLAINER"
+    },
+    {
+      "id": "explain_domino",
+      "name": "Cause and Effect",
+      "category": "EXPLAINER"
+    },
+    {
+      "id": "explain_pipeline",
+      "name": "Flow Through Pipes",
+      "category": "EXPLAINER"
+    },
+    {
+      "id": "explain_lens",
+      "name": "Magnify the Detail",
+      "category": "EXPLAINER"
+    },
+    {
+      "id": "money_coins",
+      "name": "Monumental Coin Stack",
+      "category": "FINANCE"
+    },
+    {
+      "id": "money_iceberg",
+      "name": "Cost Iceberg",
+      "category": "FINANCE"
+    },
+    {
+      "id": "money_funnel",
+      "name": "Profit Funnel",
+      "category": "FINANCE"
+    },
+    {
+      "id": "money_growth",
+      "name": "Compound Growth Tree",
+      "category": "FINANCE"
+    },
+    {
+      "id": "data_gauge",
+      "name": "Oversized Gauge",
+      "category": "DATA LAB"
+    },
+    {
+      "id": "data_instruments",
+      "name": "Instrument Cluster",
+      "category": "DATA LAB"
+    },
+    {
+      "id": "data_rings",
+      "name": "Concentric Data Rings",
+      "category": "DATA LAB"
+    },
+    {
+      "id": "data_horizon",
+      "name": "Horizon Bar Race",
+      "category": "DATA LAB"
+    },
+    {
+      "id": "geo_beam",
+      "name": "Global Beam",
+      "category": "MAPS"
+    },
+    {
+      "id": "geo_radar",
+      "name": "City Radar Network",
+      "category": "MAPS"
+    },
+    {
+      "id": "geo_teleport",
+      "name": "Teleport Route",
+      "category": "MAPS"
+    },
+    {
+      "id": "geo_story",
+      "name": "Route Storyboard",
+      "category": "MAPS"
+    },
+    {
+      "id": "neon_ribbon",
+      "name": "Neon Ribbon",
+      "category": "KINETIC"
+    },
+    {
+      "id": "pulse_typography",
+      "name": "Pulse Typography",
+      "category": "KINETIC"
+    },
+    {
+      "id": "glass_orbit",
+      "name": "Glass Orbit",
+      "category": "KINETIC"
+    },
+    {
+      "id": "particle_burst",
+      "name": "Particle Burst",
+      "category": "KINETIC"
+    },
+    {
+      "id": "liquid_wave",
+      "name": "Liquid Wave",
+      "category": "KINETIC"
+    },
+    {
+      "id": "tunnel_zoom",
+      "name": "Tunnel Zoom",
+      "category": "KINETIC"
+    },
+    {
+      "id": "split_reveal",
+      "name": "Split Reveal",
+      "category": "KINETIC"
+    },
+    {
+      "id": "spotlight_stage",
+      "name": "Spotlight Stage",
+      "category": "KINETIC"
+    },
+    {
+      "id": "equalizer",
+      "name": "Soundwave Bars",
+      "category": "KINETIC"
+    },
+    {
+      "id": "radial_count",
+      "name": "Radial Counter",
+      "category": "KINETIC"
+    },
+    {
+      "id": "floating_cards",
+      "name": "Floating Cards",
+      "category": "KINETIC"
+    },
+    {
+      "id": "ticker_motion",
+      "name": "News Ticker",
+      "category": "KINETIC"
+    },
+    {
+      "id": "sparkline",
+      "name": "Growth Spark",
+      "category": "KINETIC"
+    },
+    {
+      "id": "shimmer_grid",
+      "name": "Shimmer Grid",
+      "category": "KINETIC"
+    },
+    {
+      "id": "orbiting_labels",
+      "name": "Orbiting Labels",
+      "category": "KINETIC"
+    },
+    {
+      "id": "cinema_wipe",
+      "name": "Cinematic Wipe",
+      "category": "KINETIC"
+    },
+    {
+      "id": "starlight",
+      "name": "Starfield",
+      "category": "KINETIC"
+    },
+    {
+      "id": "morphing_blob",
+      "name": "Morphing Blob",
+      "category": "KINETIC"
+    },
+    {
+      "id": "number_flip",
+      "name": "Number Flip",
+      "category": "KINETIC"
+    },
+    {
+      "id": "prism_light",
+      "name": "Prism Light",
+      "category": "KINETIC"
+    },
+    {
+      "id": "confetti",
+      "name": "Celebration",
+      "category": "KINETIC"
+    },
+    {
+      "id": "countdown_arc",
+      "name": "Countdown Arc",
+      "category": "KINETIC"
+    },
+    {
+      "id": "data_columns",
+      "name": "Data Columns",
+      "category": "KINETIC"
+    },
+    {
+      "id": "neon_frame",
+      "name": "Neon Frame",
+      "category": "KINETIC"
+    }
+  ],
+  "externalDependencies": {
+    "fonts": [
+      "fonts.googleapis.com",
+      "fonts.gstatic.com"
+    ],
+    "mp4Muxer": "https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/+esm",
+    "note": "MP4 uses browser WebCodecs over HTTPS or localhost. WebM uses MediaRecorder. Fonts and the MP4 muxer require an internet connection."
+  },
+  "uiChanges": [
+    "AvIStudio navigation",
+    "External app.css presentation overrides",
+    "Document title"
+  ]
+}
