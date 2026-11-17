@@ -14,17 +14,20 @@
   }
   function motion() {
     ctx.clearRect(0,0,900,580);
-    ctx.fillStyle = study === 'kinetic' ? '#194e48' : study === 'orbit' ? '#dd593b' : '#f1e5c9';
+    ctx.fillStyle = study === 'kinetic' ? '#254cff' : study === 'orbit' ? '#191e25' : '#f0f3e8';
     ctx.fillRect(0,0,900,580);
     if (study === 'kinetic') {
-      ctx.save();ctx.translate(450,290);ctx.rotate(Math.sin(time*.65)*.035);ctx.translate(-450,-290);
-      for(let i=4;i>0;i--) { ctx.globalAlpha=.1;words('LET IT',55+i*12,245+i*10,178,'#faf4df');words('MOVE.',55+i*12,438+i*10,190,'#faf4df'); }
-      ctx.globalAlpha=1;words('LET IT',55,245,178,'#faf4df');words('MOVE.',55,438,190,'#faf4df');ctx.restore();
-      ctx.strokeStyle='#e7c16d';ctx.lineWidth=4;ctx.beginPath();ctx.arc(790,115,44+Math.sin(time)*8,0,Math.PI*2);ctx.stroke();
+      ctx.save();ctx.translate(615,275);ctx.rotate(-.55+Math.sin(time*.4)*.15);
+      for(let i=80;i>=0;i--){const p=i/80;ctx.strokeStyle=`hsl(${77+p*15} 95% ${40+p*45}%)`;ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,(1-p)*45,100+p*130,75+p*82,0,0,Math.PI*2);ctx.stroke();}
+      ctx.restore();
+      ctx.fillStyle='#ffffff30';for(let x=30;x<900;x+=30)for(let y=30;y<580;y+=30){ctx.beginPath();ctx.arc(x,y,.8,0,Math.PI*2);ctx.fill();}
+      const shade=ctx.createLinearGradient(0,0,650,0);shade.addColorStop(0,'#254cff');shade.addColorStop(.62,'#254cffee');shade.addColorStop(1,'#254cff00');ctx.fillStyle=shade;ctx.fillRect(0,150,650,310);
+      words('MAKE',42,305,110,'#f5f6ed');words('A MARK.',42,425,110,'#f5f6ed');
+      words('FORM / COLOUR / POSSIBILITY',45,535,15,'#e3e8ff');
     } else if(study === 'orbit') {
-      ctx.save();ctx.translate(450,300);ctx.strokeStyle='#fff0cf66';ctx.lineWidth=2;
+      ctx.save();ctx.translate(450,300);ctx.strokeStyle='#254cff';ctx.lineWidth=2;
       for(let i=0;i<4;i++){ctx.beginPath();ctx.ellipse(0,0,170+i*48,75+i*28,-.4,0,Math.PI*2);ctx.stroke();}
-      ctx.fillStyle='#eac479';ctx.beginPath();ctx.arc(Math.cos(time)*275,Math.sin(time)*135,24,0,Math.PI*2);ctx.fill();ctx.restore();
+      ctx.fillStyle='#c6ff83';ctx.beginPath();ctx.arc(Math.cos(time)*275,Math.sin(time)*135,24,0,Math.PI*2);ctx.fill();ctx.restore();
       words('MAKE',225,280,118,'#f4f3eb');words('WAVES.',198,403,118,'#f4f3eb');
     } else {
       words('FIND THE SIGNAL.',48,125,70,'#111214');
