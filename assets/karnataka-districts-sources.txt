@@ -1,0 +1,19 @@
+Karnataka district display boundaries
+Source: user-supplied District (2).zip, containing District.shp/.shx/.dbf/.prj/.cpg.
+Archive SHA-256: 2ae489370098e3bbb10b1c71b360a353090f87487f456e300b123c21d9aa24a1
+The archive does not identify its publisher, license, or boundary effective date.
+31 districts, including Vijayanagara (LGD 738); names are retained as supplied,
+including Bengaluru South, Bengaluru (Urban), Bengaluru (Rural), Kolara and Kalaburgi.
+Fields: district = KGISDist_1; code = LGD_Distri (string); kgis_code = KGISDistri;
+bhu_code = BhuCodeDis; state = Karnataka. No other source is used for boundaries.
+Source CRS: WGS 84 / UTM zone 43N (EPSG:32643). Output: WGS 84 longitude, latitude,
+six decimal places; pyproj transformation uses always_xy=True.
+Shared-edge Visvalingam-Whyatt simplification in source meters, tolerance 300 m
+(square-root triangle area parameter, not a maximum displacement). Islands/holes retained.
+Input has tiny shared-edge precision mismatches; individual source/output geometries
+are valid. Simplified area change per district stays below 0.5%; overlap increase
+stays below 100 square meters. This is a display asset, not a surveying boundary file.
+Conversion summary: {"features":31,"input_vertices":373881,"output_vertices":16675,"output_bytes":370350,"max_district_area_change_percent":0.037468,"source_overlap_m2":0.02,"display_overlap_m2":1.57}
+Tool versions: pyshp 2.3.1, Shapely 2.1.2, pyproj 3.7.2.
+Rebuild: install tools/requirements-karnataka-map.txt; run
+python tools/convert-karnataka-districts.py "path/to/District (2).zip"

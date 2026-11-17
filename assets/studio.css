@@ -575,6 +575,14 @@ canvas.preview.selected { border-color: var(--accent); outline: 2px solid var(--
 .map-overlay-actions { align-self: end; }
 .map-overlay-actions button { width: 100%; }
 #mapGraphicsLab .lab-output { align-self: start; }
+#mapGraphicsLab .map-scope-row { grid-template-columns: minmax(0,1fr); }
+#mapGraphicsLab .map-label-controls { display: grid; gap: 14px; padding: 14px; border: 1px solid var(--border); border-radius: var(--r); background: var(--bg2); }
+#mapPlaceEditor, #mapPlaceFields { display: grid; gap: 10px; }
+#mapPlaceEditor h3 { margin: 0; }
+#mapEditColor { width: 100%; min-height: 42px; }
+#mapGraphicsLab .lab-controls > .helper { line-height: 1.55; }
+#mapGraphicsLab .lab-output { padding: 16px; }
+#mapGraphicsLab .map-boundary-tools { border-left-width: 3px; padding: 14px; }
 #mapGraphicsLab .graphic-stage { padding: 0; border: 0; border-radius: 0; background: transparent; }
 #mapGraphicsLab .graphic-stage canvas { max-height: min(78dvh,900px); box-shadow: none; }
 @media (min-width: 1000px) { #mapGraphicsLab .lab-grid { grid-template-columns: minmax(280px,340px) minmax(0,1fr); gap: 20px; } }
