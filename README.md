@@ -1,5 +1,17 @@
 # AvI Studio
 
+## Creative suite
+
+The workspace and landing page link to three standalone editors under `assets/apps/`:
+
+- **Infographic Studio**: the supplied V3 editor, with charts, QR codes, shapes, templates, layers and image exports.
+- **Motion Studio**: the supplied 114-layout editor, with its original animation, typography, project and video export controls.
+- **India Motion**: the supplied map and route animation editor and its original `india-official-data.js` dataset.
+
+The imported application scripts, original element IDs, data attributes and event handlers are preserved. The AvI presentation layer consists of extra navigation and an `app.css` file per editor. Each app runs as a separate page, keeping its own original controls and export workflow. Browser support and original network dependencies still apply to video encoders, fonts, map routing and QR generation.
+
+`build_site.py` copies these editors with the other assets. Reproducible importers are in `tools/import-*-studio.mjs` and `tools/import-india-motion.mjs`. `assets/apps/source-manifest.json` records original script hashes; run `node --test tests/imported-studios.test.mjs` to check them. To compare against the supplied files again, run `tools/audit-studio-imports.mjs` with their three original HTML paths.
+
 AvI Studio is an editorial workspace for 4:5 carousels and single posters. GitHub Pages hosts the browser studio. GitHub Actions refreshes the news desk and runs the unattended Instagram publisher. The original Flask server, Cloud Run deployment, Cloud Scheduler and GCS dependencies have been removed.
 
 ## Studio
