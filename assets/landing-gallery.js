@@ -6,7 +6,8 @@
   const mc = map.getContext('2d');
   const play = document.getElementById('gallery-play');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let paused = reduced.matches, visible = true, frame = 0, last = 0, time = 1.8, study = 'kinetic', geography;
+  let paused = reduced.matches, visible = true, frame = 0, last = 0, time = 1.8, study = 'orbit', geography;
+  const pageMotion = document.getElementById('page-motion');
   const buttons = [...document.querySelectorAll('[data-study]')];
   function words(text, x, y, size, color) {
     ctx.font = `800 ${size}px "Bricolage Grotesque", sans-serif`;
@@ -14,7 +15,7 @@
   }
   function motion() {
     ctx.clearRect(0,0,900,580);
-    ctx.fillStyle = study === 'kinetic' ? '#254cff' : study === 'orbit' ? '#191e25' : '#f0f3e8';
+    ctx.fillStyle = study === 'kinetic' ? '#272041' : study === 'orbit' ? '#272041' : '#f4f1e8';
     ctx.fillRect(0,0,900,580);
     if (study === 'kinetic') {
       ctx.save();ctx.translate(615,275);ctx.rotate(-.55+Math.sin(time*.4)*.15);
@@ -25,9 +26,9 @@
       words('MAKE',42,305,110,'#f5f6ed');words('A MARK.',42,425,110,'#f5f6ed');
       words('FORM / COLOUR / POSSIBILITY',45,535,15,'#e3e8ff');
     } else if(study === 'orbit') {
-      ctx.save();ctx.translate(450,300);ctx.strokeStyle='#254cff';ctx.lineWidth=2;
+      ctx.save();ctx.translate(450,300);ctx.strokeStyle='#b6a2f766';ctx.lineWidth=2;
       for(let i=0;i<4;i++){ctx.beginPath();ctx.ellipse(0,0,170+i*48,75+i*28,-.4,0,Math.PI*2);ctx.stroke();}
-      ctx.fillStyle='#c6ff83';ctx.beginPath();ctx.arc(Math.cos(time)*275,Math.sin(time)*135,24,0,Math.PI*2);ctx.fill();ctx.restore();
+      ctx.fillStyle='#d9fc65';ctx.beginPath();ctx.arc(Math.cos(time)*275,Math.sin(time)*135,24,0,Math.PI*2);ctx.fill();ctx.restore();
       words('MAKE',225,280,118,'#f4f3eb');words('WAVES.',198,403,118,'#f4f3eb');
     } else {
       words('FIND THE SIGNAL.',48,125,70,'#111214');
@@ -59,9 +60,12 @@
   }
   function render(){motion();drawMap();}
   function tick(now){if(now-last>32){time+=Math.min((now-last)/1000,.1);last=now;render();}frame=requestAnimationFrame(tick);}
-  function sync(){cancelAnimationFrame(frame);frame=0;last=performance.now();if(!paused&&visible&&!document.hidden)frame=requestAnimationFrame(tick);play.textContent=paused?'▶':'Ⅱ';play.setAttribute('aria-label',paused?'Play gallery animation':'Pause gallery animation');play.setAttribute('aria-pressed',String(paused));document.getElementById('showcase-desk').dataset.playing=String(!paused);render();}
+  function sync(){cancelAnimationFrame(frame);frame=0;last=performance.now();if(!paused&&visible&&!document.hidden)frame=requestAnimationFrame(tick);play.textContent=paused?'▶':'Ⅱ';play.setAttribute('aria-label',paused?'Play gallery animation':'Pause gallery animation');play.setAttribute('aria-pressed',String(paused));document.getElementById('showcase-desk').dataset.playing=String(!paused);document.documentElement.dataset.motion=paused||document.hidden?'paused':'running';if(pageMotion){pageMotion.setAttribute('aria-label',paused?'Play page motion':'Pause page motion');pageMotion.setAttribute('aria-pressed',String(paused));pageMotion.firstElementChild.textContent=paused?'▶':'Ⅱ';pageMotion.lastElementChild.textContent=paused?'Motion off':'Motion on';}render();}
   buttons.forEach(button=>button.addEventListener('click',()=>{study=button.dataset.study;buttons.forEach(b=>b.setAttribute('aria-pressed',String(b===button)));canvas.setAttribute('aria-label',`${button.textContent} motion design preview`);render();}));
   play.addEventListener('click',()=>{paused=!paused;sync();});
+  pageMotion?.addEventListener('click',()=>{paused=!paused;sync();});
+  buttons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.study===study)));
+  canvas.setAttribute('aria-label','Orbit motion design preview');
   reduced.addEventListener('change',e=>{paused=e.matches;sync();});
   document.addEventListener('visibilitychange',sync);
   new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;sync();}).observe(document.getElementById('showcase-desk'));
@@ -71,4 +75,7 @@
   let category='all';
   function filter(){const terms=search.value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);let count=0;cards.forEach(card=>{card.hidden=!( (category==='all'||card.dataset.category===category)&&terms.every(term=>card.textContent.toLocaleLowerCase().includes(term)));if(!card.hidden)count++;});document.getElementById('tool-count').textContent=`${count} tools${search.value.trim()?` for “${search.value.trim()}”`:''}`;document.getElementById('no-tools').hidden=count>0;filters.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.filter===category)));}
   filters.forEach(b=>b.addEventListener('click',()=>{category=b.dataset.filter;filter();}));search.addEventListener('input',filter);search.addEventListener('search',filter);document.getElementById('clear-search').addEventListener('click',()=>{search.value='';category='all';filter();search.focus();});
+  const reveals=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');reveals.unobserve(entry.target);}}),{threshold:.08});
+  document.querySelectorAll('.new-studios .section-heading,.studio-card,.tool-section .section-heading,.tool-card,.workflow-grid article,.closing-inner').forEach((element,index)=>{element.classList.add('reveal-item');element.style.setProperty('--reveal-delay',`${index%3*70}ms`);reveals.observe(element);});
+  document.documentElement.classList.add('motion-ready');
 })();
