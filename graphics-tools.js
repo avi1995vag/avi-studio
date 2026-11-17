@@ -1318,5 +1318,8 @@
     toggleState(hit.code);
   });
   get('mapGraphicsLab').addEventListener('creator-tool-open',()=>{ open = true; renderMap(); });
+  // Map data is independent of web-font loading. Begin immediately so the
+  // default Map graphics tab does not present a blank canvas at startup.
+  if (open) renderMap();
   document.fonts.ready.then(() => { renderInfo(); if(open) renderMap(); });
 })();
