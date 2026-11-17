@@ -1,0 +1,3100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>India Motion — AvIStudio</title>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Kannada:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="./india-official-data.js"></script>
+<style>
+:root{
+  --bg:#050a12; --panel:#0b1320; --card:#121e31; --edge:#233754;
+  --text:#f0f6ff; --dim:#8ca3bf; --accent:#4ef2c8; --mint:#4ef2c8;
+  --blue:#38a3ff; --gold:#ffbe42; --red:#ff4d6d; --purple:#a57bff;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0;overflow:hidden;background:var(--bg);color:var(--text);font:13px 'Inter','Anek Kannada',system-ui,-apple-system,sans-serif}
+button,input,textarea,select{font-family:inherit}
+button{cursor:pointer;border-radius:9px;border:1px solid #2d4260;background:#18263b;color:#eef5ff;padding:8px 12px;font-weight:700;font-size:12px;transition:all .15s ease}
+button:hover{background:#243856;border-color:#4b6a94}
+button.primary{background:linear-gradient(135deg,#45e6bc,#7bfadd);border-color:#4ef2c8;color:#041a18;font-weight:800;box-shadow:0 4px 14px #4ef2c828}
+button.primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+button.danger{background:linear-gradient(135deg,#ff4d6d,#ff758f);border-color:#ff4d6d;color:#fff;font-weight:800;box-shadow:0 4px 14px #ff4d6d30}
+button:disabled{opacity:.45;cursor:wait}
+input,select,textarea{border:1px solid #283c58;background:#08101c;color:#f3f8ff;border-radius:9px;padding:8px 11px;font-size:12px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px #4ef2c828}
+input[type=color]{padding:2px;height:36px;cursor:pointer;background:#08101c}
+input[type=range]{accent-color:var(--accent);padding:3px 0}
+input[type=checkbox]{width:auto;accent-color:var(--accent);cursor:pointer}
+textarea{min-height:80px;resize:vertical;line-height:1.5}
+
+.app{height:100vh;display:grid;grid-template-columns:72px 420px minmax(0,1fr);grid-template-rows:60px minmax(0,1fr);background:var(--bg)}
+.globalHeader{grid-column:1/-1;grid-row:1;display:flex;justify-content:space-between;align-items:center;padding:0 18px 0 14px;background:#080f1b;border-bottom:1px solid #1c2c44;min-height:60px;z-index:10;gap:10px}
+.headerLeft,.headerActions{display:flex;align-items:center;gap:10px}
+.logo{display:flex;align-items:center;gap:9px}
+.logoSymbol{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#4ef2c8,#38a3ff);color:#04121f;font-size:16px;font-weight:900;box-shadow:0 3px 16px #4ef2c835}
+.logoText{display:flex;flex-direction:column;line-height:1.08}
+.logoText strong{letter-spacing:.5px;font-size:13px;color:#fff}
+.logoText span{font-size:9px;letter-spacing:1.6px;color:var(--accent);font-weight:800}
+
+.scopeSwitchBar{display:flex;align-items:center;background:#101b2d;border:1px solid #253956;border-radius:11px;padding:3px;gap:3px}
+.scopeBtn{padding:6px 11px;font-size:11px;font-weight:800;border-radius:8px;border:1px solid transparent;background:transparent;color:#93aac5;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.scopeBtn:hover{color:#fff;background:#192a44}
+.scopeBtn.active{background:linear-gradient(135deg,#164840,#153754);color:#6df7d4;border-color:#358979;box-shadow:0 2px 10px #0005}
+.soiBadge{color:#7cf9d7;background:#0e322b;border:1px solid #236859;padding:4px 8px;font-size:9.5px;border-radius:6px;font-weight:800;letter-spacing:.4px;white-space:nowrap}
+
+.toolRail{grid-column:1;grid-row:2;display:flex;flex-direction:column;align-items:center;gap:6px;background:#080f1b;border-right:1px solid #1c2c44;padding:14px 6px;overflow-y:auto}
+.toolButton{width:58px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 2px;background:transparent!important;border:1px solid transparent!important;color:#7d92ad;font-size:10px;font-weight:700;border-radius:11px}
+.toolButton:hover{color:#f5fbff;background:#152338!important}
+.toolButton.active{background:#123932!important;color:#6cf7d4!important;border-color:#267362!important}
+.toolButton .toolIcon{display:flex;align-items:center;justify-content:center;font-size:19px}
+
+.side{grid-column:2;grid-row:2;height:100%;overflow-y:auto;background:#0d1625;border-right:1px solid #1e304a;display:flex;flex-direction:column}
+.editorPanel{padding:0 16px 24px;flex:1;display:none}
+.editorPanel.active{display:block}
+.panelHeading{padding:16px 0 12px;border-bottom:1px solid #1e304a;margin-bottom:12px}
+.panelHeading .eyebrow{font-size:9.5px;letter-spacing:1.5px;color:var(--accent);font-weight:800;text-transform:uppercase}
+.panelHeading h2{font-size:20px;line-height:1.2;letter-spacing:-.4px;color:#f8fcff;margin:4px 0 2px}
+.panelSub{font-size:11px;color:#859bb5}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.row>*{flex:1}
+.field{margin-bottom:10px}
+label{display:block;color:#b2c5dc;font-size:11px;font-weight:700;margin-bottom:4px}
+.small{font-size:11px;line-height:1.45;color:#8299b3}
+.warning{color:#fec97e}.ok{color:#6fedc5}
+
+.cardBox{background:#121e31;border:1px solid #233753;border-radius:12px;padding:11px;margin:10px 0}
+.cardBox h4{margin:0 0 8px;font-size:10.5px;color:var(--accent);letter-spacing:.8px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+
+/* Highlight Region Cards */
+.hlCard{background:linear-gradient(155deg,#15253c,#0f1b2d);border:1px solid #2b4260;border-radius:11px;padding:10px;margin-bottom:8px}
+.hlTop{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px}
+.hlTitle{display:flex;align-items:center;gap:7px;font-weight:800;font-size:12.5px;color:#f2f8ff}
+.hlBadge{font-size:8.5px;font-weight:800;letter-spacing:.5px;padding:2px 6px;border-radius:5px;background:#13463c;color:#78f9d6;border:1px solid #287a68}
+.hlMediaRow{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center;margin-top:6px;padding-top:6px;border-top:1px solid #21344d}
+.hlThumb{width:52px;height:40px;border-radius:7px;background:#09111d;border:1px solid #2e4564;display:grid;place-items:center;overflow:hidden;font-size:9px;color:#6e88a6;font-weight:700}
+.hlThumb img{width:100%;height:100%;object-fit:cover}
+.hlControls{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.hlControls button,.hlControls label.btnUpload{padding:4px 8px;font-size:10px;border-radius:6px;background:#1c2d46;border:1px solid #324b6d;color:#dceaff;cursor:pointer;font-weight:700;margin:0;display:inline-flex;align-items:center;gap:4px}
+.hlControls button:hover,.hlControls label.btnUpload:hover{background:#294163;border-color:#5378a6}
+.hlColorInput{width:28px!important;height:25px!important;padding:1px!important;border-radius:6px!important;flex:0 0 28px!important}
+
+/* Route Stop Cards */
+.stopCard{background:linear-gradient(155deg,#142338,#0f1a2b);border:1px solid #29405e;border-radius:10px;padding:9px;margin-bottom:7px}
+.stopHeader{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;font-weight:800;color:#78fadb;margin-bottom:5px}
+.stopBody{display:grid;grid-template-columns:46px 1fr auto;gap:7px;align-items:center}
+.stopThumb{width:46px;height:36px;border-radius:6px;background:#09111d;border:1px solid #2b4260;display:grid;place-items:center;overflow:hidden;font-size:8.5px;color:#7391b2;cursor:pointer;font-weight:700}
+.stopThumb img{width:100%;height:100%;object-fit:cover}
+.stopBtns{display:flex;gap:3px}
+.stopBtns button{padding:4px 6px;font-size:10px}
+
+.toggle{display:flex;align-items:center;gap:8px;margin:6px 0;color:#e0eefb;font-size:11.5px;cursor:pointer}
+.toggle input{flex:none}
+.chipRow{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.chipBtn{padding:5px 9px;font-size:10.5px;background:#192a40;border:1px solid #2e4666;border-radius:7px;color:#d2e5f8}
+.chipBtn:hover{background:#273f5e;border-color:#4c709c}
+
+.studio{grid-column:3;grid-row:2;height:100%;overflow-y:auto;background:radial-gradient(ellipse at 50% 0,#132236 0,#050a12 72%);display:flex;flex-direction:column}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;border-bottom:1px solid #1c2c44;background:#09111e;gap:10px;flex-wrap:wrap}
+.topActions{display:flex;align-items:center;gap:7px}
+.topActions .flag{background:#112634;border:1px solid #24504a;border-radius:7px;color:#6ef4d2;font-size:9.5px;font-weight:800;padding:5px 9px;letter-spacing:.5px}
+
+.main{padding:14px 20px;flex:1;display:flex;flex-direction:column;gap:10px;max-width:1480px;width:100%;margin:0 auto}
+.stage{background:#040911;box-shadow:0 22px 75px #000b;border:1px solid #2b415e;border-radius:14px;overflow:hidden;position:relative}
+.stage.vertical{width:min(100%,365px);align-self:center}
+.stage.square{width:min(100%,660px);align-self:center}
+.stageSurface{width:100%;position:relative;aspect-ratio:16/9;background:#050c16}
+.stage.vertical .stageSurface{aspect-ratio:9/16}
+.stage.square .stageSurface{aspect-ratio:1/1}
+.stageSurface canvas{display:block;width:100%;height:auto;background:transparent}
+
+.transport{display:flex;align-items:center;gap:9px;background:#0e1828;border:1px solid #22354f;border-radius:12px;padding:9px 13px}
+.transport button{flex:0 0 auto;padding:8px 13px}
+.transport input[type=range]{flex:1;min-width:120px}
+.transport .time{font-variant-numeric:tabular-nums;white-space:nowrap;font-size:11.5px;color:#a8bdd4;min-width:98px;text-align:right}
+.status{margin:0;background:#09111d;border-top:1px solid #1c2c44;padding:8px 15px;color:#a9c0d9;font-size:11px}
+.hidden{display:none!important}
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:6px 0 10px}
+.modes button{padding:7px 3px;font-size:10.5px;background:#142134;border:1px solid #263a54}
+.modes button.active{background:#13433b;color:#78f9d6;border-color:#32967e}
+.exportBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.exportBtns button.mp4Btn{grid-column:1/-1;min-height:46px;font-size:13px}
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-thumb{background:#2c415d;border-radius:6px}
+::-webkit-scrollbar-track{background:#08101b}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./app.css"/>
+</head>
+<body>
+<nav class="aviShell" aria-label="AvIStudio tools">
+  <a class="aviBrand" href="../../../index.html" aria-label="AvIStudio home"><span class="aviBrandMark" aria-hidden="true">Av<span>i</span></span><span>AvIStudio<span class="aviBrandDot">.</span></span></a>
+  <div class="aviToolLinks">
+    <a href="../../../studio.html">News Studio</a>
+    <a href="../infographic-studio/">Infographic</a>
+    <a href="../motion-studio/">Motion</a>
+    <a class="isCurrent" href="./" aria-current="page">India Motion</a>
+  </div>
+  <a class="aviBack" href="../../../index.html"><span aria-hidden="true">↗</span> All tools</a>
+</nav>
+<div class="app">
+<!-- HEADER WITH 3 MAP MODES + ROUTE MODE + MP4 EXPORT -->
+<header class="globalHeader">
+  <div class="headerLeft">
+    <div class="logo">
+      <span class="logoSymbol" aria-hidden="true">◈</span>
+      <div class="logoText">
+        <strong>India Motion</strong>
+        <span>MAPS THAT TELL A STORY</span>
+      </div>
+    </div>
+    <div class="scopeSwitchBar" role="tablist">
+      <button class="scopeBtn" data-scope="world" type="button">World</button>
+      <button class="scopeBtn active" data-scope="india" type="button">India</button>
+      <button class="scopeBtn" data-scope="state" type="button">Districts</button>
+      <button class="scopeBtn" id="topRouteModeBtn" type="button">Travel routes</button>
+    </div>
+  </div>
+  <div class="headerActions">
+    <span class="soiBadge">★ GOI &amp; KGIS 31 DISTRICTS</span>
+    <button class="headerBtn" id="quickSave" type="button">Save</button>
+    <button class="headerBtn primary" id="quickMp4Btn" type="button">🎬 Export MP4 Video</button>
+  </div>
+</header>
+
+<!-- LEFT RAIL -->
+<nav aria-label="Editor navigation" class="toolRail">
+  <button class="toolButton active" data-panel="highlights" type="button">
+    <span class="toolIcon">⚔️</span>
+    <span>Explainer</span>
+  </button>
+  <button class="toolButton" data-panel="journey" type="button">
+    <span class="toolIcon">🚆</span>
+    <span>Route</span>
+  </button>
+  <button class="toolButton" data-panel="map" type="button">
+    <span class="toolIcon">🗺️</span>
+    <span>Maps</span>
+  </button>
+  <button class="toolButton" data-panel="motion" type="button">
+    <span class="toolIcon">🎬</span>
+    <span>Camera</span>
+  </button>
+  <button class="toolButton" data-panel="vehicles" type="button">
+    <span class="toolIcon">✈️</span>
+    <span>Vehicles</span>
+  </button>
+  <button class="toolButton" data-panel="export" type="button">
+    <span class="toolIcon">🎬</span>
+    <span>MP4 Export</span>
+  </button>
+</nav>
+
+<aside class="side">
+
+<!-- PANEL 1: GEOPOLITICS, WAR/DEFENSE & EXPLAINER HIGHLIGHTER -->
+<section class="editorPanel active" id="panel-highlights">
+  <div class="panelHeading">
+    <span class="eyebrow">EXPLAINER &amp; DEFENSE STUDIO / 01</span>
+    <h2>Geopolitics, War &amp; State Explainer</h2>
+    <div class="panelSub">World Countries, 36 States &amp; 31 Karnataka Districts (with Vijayanagara)</div>
+  </div>
+
+  <!-- QUICK DEMO PRESETS -->
+  <div class="cardBox" style="margin-top:0">
+    <h4><span>⚡ Instant Explainer &amp; Defense Demos</span></h4>
+    <div class="chipRow" style="margin-top:2px">
+      <button class="chipBtn" id="btnDemoWar" style="border-color:#ff4d6d;color:#ffb3c1" type="button">🚀 War &amp; Air Defense</button>
+      <button class="chipBtn" id="btnDemoWorld" type="button">🌍 India-Russia-USA</button>
+      <button class="chipBtn" id="btnDemoKarnataka" style="border-color:#4ef2c8;color:#8cfce1" type="button">🏛️ Vijayanagara &amp; KA (31 Dist)</button>
+      <button class="chipBtn" id="btnDemoStates" type="button">🇮🇳 Southern States</button>
+    </div>
+  </div>
+
+  <!-- REGION PICKER -->
+  <div class="cardBox">
+    <h4><span>1. Add Country, State or District</span> <span id="activeScopeBadge" style="color:#fff">INDIA STATES</span></h4>
+    <div class="field" id="worldPickerField" style="display:none">
+      <label for="quickCountrySelect">🌍 World Country (240 Countries · GoI Official Borders)</label>
+      <div class="row">
+        <select id="quickCountrySelect"></select>
+        <button class="primary" id="btnAddCountry" style="flex:0 0 auto" type="button">+ Highlight</button>
+      </div>
+    </div>
+    <div class="field" id="statePickerField">
+      <label for="storyStatePicker">🇮🇳 Indian State / UT (36 States &amp; UTs)</label>
+      <div class="row">
+        <select id="storyStatePicker"></select>
+        <button class="primary" id="storyAddStateBtn" style="flex:0 0 auto" type="button">+ Highlight State</button>
+      </div>
+    </div>
+    <div class="field" id="districtPickerField">
+      <label for="storyDistrictPicker">🏛️ District (<span id="storyDistCount">31</span> in State · Includes Vijayanagara)</label>
+      <div class="row">
+        <select id="storyDistrictPicker"></select>
+        <button class="primary" id="storyAddDistrictBtn" style="flex:0 0 auto" type="button">+ Highlight District</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIGHLIGHTED REGIONS WITH IMAGE UPLOAD + DEFENSE UNIT OVERLAY -->
+  <div class="cardBox">
+    <h4>
+      <span>2. Active Regions (Image, Flag &amp; Defense Unit)</span>
+      <button id="storyClear" style="padding:3px 8px;font-size:10px;background:#2b1d28;border-color:#633244;color:#ff9bab" type="button">Clear All</button>
+    </h4>
+    <div class="small" id="storyStatus" style="margin-bottom:7px">Each region supports custom image/flag upload + military/defense shields.</div>
+    <div id="storyPlaces"></div>
+
+    <!-- TACTICAL STRIKE / MISSILE / ALLIANCE BUILDER -->
+    <div style="margin-top:10px;padding-top:9px;border-top:1px solid #223550">
+      <label>3. Tactical Strike / Missile / Corridor (A ➔ B)</label>
+      <div class="grid2" style="margin-bottom:6px">
+        <select id="arrowFrom"></select>
+        <select id="arrowTo"></select>
+      </div>
+      <div class="grid2">
+        <select id="arrowKind">
+          <option value="missile">🚀 Ballistic Missile Strike (Blast)</option>
+          <option value="intercept">🛡️ Air Defense Intercept (S-400)</option>
+          <option value="jet">✈️ Fighter Jet Air Sortie</option>
+          <option value="clash">⚔️ Frontline Border Clash</option>
+          <option value="naval">🚢 Naval Fleet Corridor</option>
+          <option value="alliance" selected>🤝 Strategic / Trade Corridor</option>
+        </select>
+        <input id="arrowLabel" placeholder="Badge (e.g. BRAHMOS, DEAL)" value="STRATEGIC"/>
+      </div>
+      <button id="btnAddArrow" class="primary" style="width:100%;margin-top:7px" type="button">+ Launch Tactical Vector / Connection</button>
+      <div id="storyLinksView" style="margin-top:6px"></div>
+    </div>
+  </div>
+
+  <!-- SCRIPT AUTO-ANALYZER -->
+  <details class="cardBox" style="padding:10px 12px">
+    <summary style="cursor:pointer;font-weight:800;font-size:11.5px;color:#78fadb">✦ Script Auto-Analyzer (Paste Explainer Script)</summary>
+    <div class="field" style="margin-top:8px">
+      <textarea id="storyScript" rows="3" placeholder="Example: In Karnataka, Vijayanagara, Ballari, Mysuru and Bengaluru (Urban) drive heritage and technology."></textarea>
+    </div>
+    <div class="row">
+      <button class="primary" id="storyDetect" type="button">✦ Detect &amp; Highlight</button>
+      <input id="storyManual" placeholder="Type place + Enter"/>
+      <button id="storyAdd" style="flex:0 0 auto" type="button">Add</button>
+    </div>
+  </details>
+
+  <!-- AFTER EFFECTS VISUAL SETTINGS -->
+  <div class="cardBox">
+    <h4>4. After Effects Visuals &amp; HUD</h4>
+    <div class="field">
+      <label for="storyHeadline">On-Screen Explainer Headline</label>
+      <input id="storyHeadline" value="KARNATAKA 31 DISTRICTS · VIJAYANAGARA"/>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="aeCameraMode">AE Camera Choreography</label>
+        <select id="aeCameraMode">
+          <option value="tour" selected>🎬 AE Multi-Target Tour (1 ➔ 2 ➔ All)</option>
+          <option value="flyin">🚀 AE Wide-to-Target Fly-In</option>
+          <option value="drift">🎥 Slow Documentary Drift</option>
+          <option value="locked">🔒 Manual / Locked Frame</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="aeImageDisplay">Uploaded Image Placement</label>
+        <select id="aeImageDisplay">
+          <option value="both" selected>Polygon Fill + 3D Callout Card</option>
+          <option value="inside">Inside Polygon Boundary Only</option>
+          <option value="card">Inside 3D Callout Card Only</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="storyGlow">3D Lift &amp; Neon Glow</label><input id="storyGlow" max="100" min="0" step="5" type="range" value="85"/></div>
+      <div class="field"><label for="storySweep">Trim-Path &amp; Light Sweep</label><input id="storySweep" max="100" min="0" step="5" type="range" value="85"/></div>
+    </div>
+    <label class="toggle"><input checked id="aeSpotlightDim" type="checkbox"/> Spotlight Dimming (Darken non-highlighted surroundings)</label>
+    <label class="toggle"><input checked id="ae3dExtrude" type="checkbox"/> 3D Map Elevation Lift &amp; Drop Shadow</label>
+    <label class="toggle"><input checked id="aeTacticalHud" type="checkbox"/> Military / Broadcast Telemetry HUD Brackets &amp; Radar</label>
+  </div>
+</section>
+
+<!-- PANEL 2: WORLD'S BEST TRAVEL ROUTE ANIMATOR (COMPLETELY REWORKED) -->
+<section class="editorPanel" id="panel-journey">
+  <div class="panelHeading">
+    <span class="eyebrow">TRAVEL &amp; LOGISTICS ANIMATOR / 02</span>
+    <h2>World's Best Route Animator</h2>
+    <div class="panelSub">Real road routing, curved flight arcs, trains &amp; helicopter follow-cam</div>
+  </div>
+
+  <!-- ONE-CLICK ROUTE PRESETS -->
+  <div class="cardBox" style="margin-top:0">
+    <h4><span>⚡ Instant Route Presets</span></h4>
+    <div class="chipRow" style="margin-top:2px">
+      <button class="chipBtn" id="presetRouteKa" type="button">🚆 BLR ➔ Mandya ➔ Mysuru</button>
+      <button class="chipBtn" id="presetRouteHampi" type="button">🏛️ BLR ➔ Tumakuru ➔ Vijayanagara</button>
+      <button class="chipBtn" id="presetRouteCoast" type="button">🌊 Mangaluru ➔ Udupi ➔ Karwar ➔ Goa</button>
+      <button class="chipBtn" id="presetRouteFlight" type="button">✈️ Delhi ➔ Mumbai ➔ Bengaluru</button>
+    </div>
+  </div>
+
+  <!-- TRANSPORT MODE -->
+  <div class="cardBox">
+    <h4>1. Transport Mode &amp; Path Style</h4>
+    <div class="modes" id="modes">
+      <button data-mode="train" class="active" type="button">🚆 Train</button>
+      <button data-mode="road" type="button">🚗 Car/Road</button>
+      <button data-mode="flight" type="button">✈️ Flight</button>
+      <button data-mode="bus" type="button">🚌 Bus</button>
+      <button data-mode="bike" type="button">🏍️ Bike</button>
+      <button data-mode="river" type="button">⛵ Ship</button>
+      <button data-mode="jet" type="button">🚀 Fighter Jet</button>
+      <button data-mode="custom" type="button">⌖ Custom</button>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="routePathStyle">Route Geometry Engine</label>
+        <select id="routePathStyle">
+          <option value="auto" selected>✨ Smart Auto (Road/Spline/Arc)</option>
+          <option value="osrm">🛣️ Real Highway Roads (OSRM)</option>
+          <option value="spline">🚆 Smooth Curved Track Spline</option>
+          <option value="arc">✈️ Great-Circle Elevated Flight Arc</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="routeCamMode">Route Camera Tracking</label>
+        <select id="routeCamMode">
+          <option value="follow" selected>🚁 Helicopter Follow Vehicle</option>
+          <option value="waypoint">🎬 Waypoint Stop-to-Stop Fly</option>
+          <option value="full">🗺️ Full Route Overview</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOPS MANAGER -->
+  <div class="cardBox">
+    <h4>
+      <span>2. Journey Stops (With Photo Spotlight)</span>
+      <button id="addStopBtn" style="padding:3px 8px;font-size:10px" type="button">+ Add Stop</button>
+    </h4>
+    <div class="field">
+      <label for="bulk">Quick Paste Stops (One per line or separated by ➔)</label>
+      <textarea id="bulk" rows="3" placeholder="Bengaluru&#10;Mandya&#10;Mysuru"></textarea>
+    </div>
+    <div class="row" style="margin-bottom:9px">
+      <button class="primary" id="applyStopsBtn" type="button">✦ Build &amp; Animate Route</button>
+      <button id="fetchOsrmBtn" type="button">🛣️ Fetch Real Road</button>
+    </div>
+    <div id="stops"></div>
+  </div>
+
+  <!-- ROUTE STYLING -->
+  <div class="cardBox">
+    <h4>3. Route Line &amp; Telemetry</h4>
+    <div class="grid2">
+      <div class="field"><label for="routeColor">Route Glow Color</label><input id="routeColor" type="color" value="#4ef2c8"/></div>
+      <div class="field"><label for="routeWidth">Track Thickness</label><input id="routeWidth" max="18" min="3" type="range" value="7"/></div>
+    </div>
+    <label class="toggle"><input checked id="showDistanceCounter" type="checkbox"/> Show Live KM Distance Counter &amp; Progress HUD</label>
+    <label class="toggle"><input checked id="showBottom" type="checkbox"/> Show Lower-Third Station Spotlight Bar</label>
+    <label class="toggle"><input checked id="showStopHighlightPoly" type="checkbox"/> Auto-Highlight Stop Districts/States Along Route</label>
+  </div>
+</section>
+
+<!-- PANEL 3: MAPS & BOUNDARIES -->
+<section class="editorPanel" id="panel-map">
+  <div class="panelHeading">
+    <span class="eyebrow">MAP CONFIGURATION / 03</span>
+    <h2>3 Official Map Scopes</h2>
+    <div class="panelSub">World Geopolitics, India 36 States &amp; State District Maps</div>
+  </div>
+  <div class="cardBox">
+    <h4>Active Map Scope</h4>
+    <div class="field">
+      <label for="mapScopeSelect">Choose Map Scope</label>
+      <select id="mapScopeSelect">
+        <option value="world">🌍 1. World Map (240 Countries · GoI Official India Border)</option>
+        <option value="india" selected>🇮🇳 2. India Map (All 36 States &amp; Union Territories)</option>
+        <option value="state">🏛️ 3. State Map (Focused State with All Districts)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="activeStateMapSelect">Select State for Mode 3 (Includes 31 Karnataka Districts)</label>
+      <select id="activeStateMapSelect"></select>
+    </div>
+    <label class="toggle"><input checked id="isolateScopeMap" type="checkbox"/> Isolate active map (3D cutout with deep drop shadow)</label>
+  </div>
+
+  <div class="cardBox">
+    <h4>Map Aesthetic &amp; Aspect Ratio</h4>
+    <div class="field">
+      <label for="theme">Map Theme</label>
+      <select id="theme">
+        <option value="ae-dark" selected>★ After Effects Dark Tactical (Vox / Dhruv Rathee Style)</option>
+        <option value="ae-midnight">After Effects Midnight Blue Radar</option>
+        <option value="ae-parchment">Johnny Harris Warm Vintage Parchment</option>
+        <option value="official-india">Survey of India Classic Daylight Atlas</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="format">Aspect Ratio</label>
+      <select id="format">
+        <option value="16:9" selected>16:9 YouTube / Explainer (1920×1080)</option>
+        <option value="9:16">9:16 Reels / Shorts / TikTok (1080×1920)</option>
+        <option value="1:1">1:1 Square Post (1080×1080)</option>
+      </select>
+    </div>
+    <label class="toggle"><input checked id="showStateBorders" type="checkbox"/> Show State / Province Boundaries</label>
+    <label class="toggle"><input checked id="showDistrictBorders" type="checkbox"/> Show District Boundaries</label>
+    <label class="toggle"><input checked id="showStateLabels" type="checkbox"/> Show Collision-Safe Map Labels</label>
+    <label class="toggle"><input checked id="showDistrictLabels" type="checkbox"/> Show District Names in State/Zoom View</label>
+  </div>
+</section>
+
+<!-- PANEL 4: CAMERA & TIMING -->
+<section class="editorPanel" id="panel-motion">
+  <div class="panelHeading">
+    <span class="eyebrow">TIMING &amp; CAMERA / 04</span>
+    <h2>Duration &amp; Zoom</h2>
+    <div class="panelSub">Adjust animation speed &amp; camera zoom</div>
+  </div>
+  <div class="grid2">
+    <div class="field"><label for="duration">Total Duration (sec)</label><input id="duration" max="240" min="4" type="number" value="14"/></div>
+    <div class="field"><label for="hold">Stop Pause (sec)</label><input id="hold" max="6" min="0" step="0.2" type="number" value="0.8"/></div>
+  </div>
+  <div class="cardBox">
+    <h4>Camera Zoom Multiplier <output id="zoomRead" style="color:var(--accent)">1.0×</output></h4>
+    <div class="row">
+      <button id="zoomOut" type="button">− Out</button>
+      <input id="zoom" max="8" min="0.5" step="0.1" type="range" value="1"/>
+      <button id="zoomIn" type="button">+ In</button>
+      <button id="zoomFit" type="button">Reset 1.0×</button>
+    </div>
+  </div>
+</section>
+
+<!-- PANEL 5: VEHICLES -->
+<section class="editorPanel" id="panel-vehicles">
+  <div class="panelHeading">
+    <span class="eyebrow">VEHICLES &amp; SPRITES / 05</span>
+    <h2>Custom Vehicle &amp; Fleet</h2>
+    <div class="panelSub">Customize train coaches, aircraft &amp; custom PNGs</div>
+  </div>
+  <div class="grid2">
+    <div class="field"><label for="vehicle">Vehicle Model</label>
+      <select id="vehicle">
+        <option value="auto" selected>Match Transport Mode</option>
+        <option value="train">🚆 Indian Railways Train</option>
+        <option value="plane">✈️ Commercial Airliner</option>
+        <option value="jet">🚀 Fighter Jet (Rafale)</option>
+        <option value="car">🚗 SUV / Car</option>
+        <option value="bus">🚌 Express Bus</option>
+        <option value="bike">🏍️ Royal Enfield Bike</option>
+        <option value="boat">🚢 Naval / Cruise Ship</option>
+      </select>
+    </div>
+    <div class="field"><label for="coaches">Train Coaches</label>
+      <select id="coaches">
+        <option value="0">Engine only (0)</option>
+        <option value="2">2 Coaches</option>
+        <option value="3" selected>3 Coaches</option>
+        <option value="5">5 Coaches</option>
+      </select>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="field"><label for="vehicleSize">Vehicle Scale (%)</label><input id="vehicleSize" max="200" min="50" step="5" type="range" value="115"/></div>
+    <div class="field"><label for="vehicleName">Vehicle Name Tag</label><input id="vehicleName" placeholder="e.g. VANDE BHARAT / RAFALE" value="VANDE BHARAT"/></div>
+  </div>
+  <div class="cardBox">
+    <h4>Upload Custom Vehicle Sprite (PNG/WebP)</h4>
+    <input id="customVehicleUpload" type="file" accept="image/*"/>
+    <button id="clearCustomVehicle" style="margin-top:7px;width:100%" type="button">Reset to Built-In Vector Vehicle</button>
+  </div>
+</section>
+
+<!-- PANEL 6: MP4 & VIDEO EXPORT -->
+<section class="editorPanel" id="panel-export">
+  <div class="panelHeading">
+    <span class="eyebrow">RENDER &amp; EXPORT / 06</span>
+    <h2>MP4 Video &amp; 4K Export</h2>
+    <div class="panelSub">Direct H.264 MP4 recording, WebM &amp; 4K PNG snapshots</div>
+  </div>
+  <div class="field"><label for="resolution">Output Resolution</label>
+    <select id="resolution">
+      <option value="720">HD 720p (1280×720)</option>
+      <option value="1080" selected>Full HD 1080p (1920×1080 · Recommended)</option>
+      <option value="1440">2K QHD 1440p (2560×1440)</option>
+      <option value="2160">4K UHD 2160p (3840×2160)</option>
+    </select>
+  </div>
+  <div class="exportBtns">
+    <button class="primary mp4Btn" id="recordMp4" type="button">🎬 Record &amp; Export MP4 Video (H.264 .mp4)</button>
+    <button id="recordWebm" type="button">🎥 Record WebM (VP9)</button>
+    <button id="png" type="button">📸 Export 4K PNG</button>
+    <button id="save" type="button">💾 Save Project JSON</button>
+    <button id="open" type="button">📂 Load Project JSON</button>
+  </div>
+  <input class="hidden" id="projectFile" type="file" accept="application/json,.json"/>
+  <div class="cardBox">
+    <h4>Broadcast Export Info</h4>
+    <p class="small" id="codecSupportInfo" style="margin:0">Checking hardware MP4 encoder support…</p>
+  </div>
+</section>
+
+<div class="status" id="status" role="status">Ready · 31 Karnataka Districts (with Vijayanagara) Loaded</div>
+</aside>
+
+<!-- MAIN STUDIO VIEWPORT -->
+<div class="studio">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <strong id="canvasModeTitle">🏛️ KARNATAKA 31 DISTRICTS MAP (WITH VIJAYANAGARA)</strong>
+      <span class="small" id="cameraPhaseReadout" style="color:#4ef2c8;font-weight:700">● AE Camera Ready</span>
+    </div>
+    <div class="topActions">
+      <button id="btnReplayAnim" class="primary" type="button" style="padding:6px 12px">▶ Replay Animation</button>
+      <button id="previewFit" type="button">Fit View</button>
+      <button id="previewFullscreen" type="button">Fullscreen</button>
+      <span class="flag" id="routeFlag">SOI + KGIS VERIFIED</span>
+    </div>
+  </div>
+  <div class="main">
+    <div class="stage" id="stage">
+      <div class="stageSurface" id="stageSurface">
+        <canvas id="canvas" width="1920" height="1080"></canvas>
+      </div>
+    </div>
+    <div class="transport">
+      <button class="primary" id="play" type="button">Ⅱ Pause</button>
+      <button id="reset" type="button">↺ Restart (00:00)</button>
+      <input aria-label="Animation timeline" id="seek" max="1000" min="0" step="1" type="range" value="0"/>
+      <span class="time" id="clock">00:00 / 00:14</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $ = id => document.getElementById(id);
+const canvas = $('canvas'), ctx = canvas.getContext('2d', { alpha: false });
+
+// --- Color & Math Helpers ---
+function colorToRgba(c, a=1){
+  if(!c) return `rgba(78,242,200,${a})`;
+  c = String(c).trim();
+  if(c.startsWith('#')){
+    let hex = c.slice(1);
+    if(hex.length===3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    if(hex.length>=6){
+      const r = parseInt(hex.slice(0,2),16)||0;
+      const g = parseInt(hex.slice(2,4),16)||0;
+      const b = parseInt(hex.slice(4,6),16)||0;
+      return `rgba(${r},${g},${b},${a})`;
+    }
+  }
+  const m = c.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if(m) return `rgba(${m[1]},${m[2]},${m[3]},${a})`;
+  return `rgba(78,242,200,${a})`;
+}
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function lerp(a,b,t){ return a + (b - a) * t; }
+function easeInOutCubic(t){ t=clamp(t,0,1); return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2; }
+function easeOutQuint(t){ return 1 - Math.pow(1 - clamp(t,0,1), 5); }
+function easeOutBack(t){ const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(clamp(t,0,1) - 1, 3) + c1 * Math.pow(clamp(t,0,1) - 1, 2); }
+function num(id){ return +($(id)?.value || 0); }
+function status(msg){ if($('status')) $('status').textContent = msg; }
+function font(n, weight=700){ return `${weight} ${Math.round(n)}px 'Inter','Anek Kannada',system-ui,sans-serif`; }
+function valid(p){ return Number.isFinite(+p?.lat) && Number.isFinite(+p?.lon) && Math.abs(+p.lat)<=90 && Math.abs(+p.lon)<=180; }
+function geo(p){
+  const lat = clamp(+p.lat, -82, 82) * Math.PI / 180;
+  return { x: (+p.lon + 180) / 360, y: (1 - Math.log(Math.tan(lat) + 1 / Math.cos(lat)) / Math.PI) / 2 };
+}
+function earthDist(a,b){
+  const r = Math.PI/180, dlat = (b.lat-a.lat)*r, dlon = (b.lon-a.lon)*r;
+  const f = Math.sin(dlat/2)**2 + Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dlon/2)**2;
+  return 12742 * Math.asin(Math.sqrt(Math.min(1, f)));
+}
+
+// --- Built-in Offline Gazetteer for Major Cities, Stations, Ports & Tourist Hubs ---
+const BUILTIN_PLACES = {
+  'bengaluru': {lat:12.9716, lon:77.5946, state:'Karnataka'},
+  'bangalore': {lat:12.9716, lon:77.5946, state:'Karnataka'},
+  'mysuru': {lat:12.2958, lon:76.6394, state:'Karnataka'},
+  'mysore': {lat:12.2958, lon:76.6394, state:'Karnataka'},
+  'mandya': {lat:12.5244, lon:76.8973, state:'Karnataka'},
+  'maddur': {lat:12.5842, lon:77.0429, state:'Karnataka'},
+  'channapatna': {lat:12.6518, lon:77.2067, state:'Karnataka'},
+  'ramanagara': {lat:12.7209, lon:77.2799, state:'Karnataka'},
+  'tumakuru': {lat:13.3379, lon:77.1173, state:'Karnataka'},
+  'tumkur': {lat:13.3379, lon:77.1173, state:'Karnataka'},
+  'vijayanagara': {lat:15.2689, lon:76.3909, state:'Karnataka'},
+  'hospet': {lat:15.2689, lon:76.3909, state:'Karnataka'},
+  'hosapete': {lat:15.2689, lon:76.3909, state:'Karnataka'},
+  'hampi': {lat:15.3350, lon:76.4600, state:'Karnataka'},
+  'ballari': {lat:15.1394, lon:76.9214, state:'Karnataka'},
+  'bellary': {lat:15.1394, lon:76.9214, state:'Karnataka'},
+  'davanagere': {lat:14.4644, lon:75.9218, state:'Karnataka'},
+  'chitradurga': {lat:14.2251, lon:76.3980, state:'Karnataka'},
+  'shivamogga': {lat:13.9299, lon:75.5681, state:'Karnataka'},
+  'shimoga': {lat:13.9299, lon:75.5681, state:'Karnataka'},
+  'hubballi': {lat:15.3647, lon:75.1240, state:'Karnataka'},
+  'dharwad': {lat:15.4589, lon:75.0078, state:'Karnataka'},
+  'belagavi': {lat:15.8497, lon:74.4977, state:'Karnataka'},
+  'mangaluru': {lat:12.9141, lon:74.8560, state:'Karnataka'},
+  'mangalore': {lat:12.9141, lon:74.8560, state:'Karnataka'},
+  'udupi': {lat:13.3409, lon:74.7421, state:'Karnataka'},
+  'karwar': {lat:14.8185, lon:74.1280, state:'Karnataka'},
+  'gokarna': {lat:14.5479, lon:74.3188, state:'Karnataka'},
+  'murudeshwar': {lat:14.0940, lon:74.4899, state:'Karnataka'},
+  'hassan': {lat:13.0033, lon:76.1004, state:'Karnataka'},
+  'chikkamagaluru': {lat:13.3161, lon:75.7720, state:'Karnataka'},
+  'madikeri': {lat:12.4244, lon:75.7382, state:'Karnataka'},
+  'kodagu': {lat:12.4244, lon:75.7382, state:'Karnataka'},
+  'kalaburagi': {lat:17.3297, lon:76.8343, state:'Karnataka'},
+  'kalaburgi': {lat:17.3297, lon:76.8343, state:'Karnataka'},
+  'bidar': {lat:17.9104, lon:77.5199, state:'Karnataka'},
+  'raichur': {lat:16.2120, lon:77.3439, state:'Karnataka'},
+  'koppal': {lat:15.3505, lon:76.1567, state:'Karnataka'},
+  'gadag': {lat:15.4315, lon:75.6355, state:'Karnataka'},
+  'haveri': {lat:14.7951, lon:75.3991, state:'Karnataka'},
+  'bagalkote': {lat:16.1691, lon:75.6615, state:'Karnataka'},
+  'vijayapura': {lat:16.8302, lon:75.7100, state:'Karnataka'},
+  'kolara': {lat:13.1362, lon:78.1291, state:'Karnataka'},
+  'kolar': {lat:13.1362, lon:78.1291, state:'Karnataka'},
+  'chikkaballapura': {lat:13.4355, lon:77.7315, state:'Karnataka'},
+  'chamarajanagara': {lat:11.9261, lon:76.9437, state:'Karnataka'},
+  'yadgir': {lat:16.7700, lon:77.1376, state:'Karnataka'},
+  'goa': {lat:15.2993, lon:74.1240, state:'Goa'},
+  'madgaon': {lat:15.2832, lon:73.9862, state:'Goa'},
+  'panaji': {lat:15.4909, lon:73.8278, state:'Goa'},
+  'mumbai': {lat:19.0760, lon:72.8777, state:'Maharashtra'},
+  'pune': {lat:18.5204, lon:73.8567, state:'Maharashtra'},
+  'nagpur': {lat:21.1458, lon:79.0882, state:'Maharashtra'},
+  'new delhi': {lat:28.6139, lon:77.2090, state:'Delhi'},
+  'delhi': {lat:28.6139, lon:77.2090, state:'Delhi'},
+  'chennai': {lat:13.0827, lon:80.2707, state:'Tamil Nadu'},
+  'coimbatore': {lat:11.0168, lon:76.9558, state:'Tamil Nadu'},
+  'madurai': {lat:9.9252, lon:78.1198, state:'Tamil Nadu'},
+  'hyderabad': {lat:17.3850, lon:78.4867, state:'Telangana'},
+  'visakhapatnam': {lat:17.6868, lon:83.2185, state:'Andhra Pradesh'},
+  'tirupati': {lat:13.6288, lon:79.4192, state:'Andhra Pradesh'},
+  'kochi': {lat:9.9312, lon:76.2673, state:'Kerala'},
+  'thiruvananthapuram': {lat:8.5241, lon:76.9366, state:'Kerala'},
+  'kolkata': {lat:22.5726, lon:88.3639, state:'West Bengal'},
+  'ahmedabad': {lat:23.0225, lon:72.5714, state:'Gujarat'},
+  'jaipur': {lat:26.9124, lon:75.7873, state:'Rajasthan'},
+  'lucknow': {lat:26.8467, lon:80.9462, state:'Uttar Pradesh'},
+  'varanasi': {lat:25.3176, lon:82.9739, state:'Uttar Pradesh'},
+  'ayodhya': {lat:26.7922, lon:82.1998, state:'Uttar Pradesh'},
+  'srinagar': {lat:34.0837, lon:74.7973, state:'Jammu and Kashmir'},
+  'leh': {lat:34.1526, lon:77.5771, state:'Ladakh'}
+};
+
+// --- Studio State ---
+let S = {
+  scope: 'state', // 'world' | 'india' | 'state'
+  activeState: 'Karnataka',
+  routeActive: false,
+  mode: 'train',
+  stops: [
+    { name: 'Bengaluru', lat: 12.9716, lon: 77.5946, image: null, imageSrc: '' },
+    { name: 'Mandya', lat: 12.5244, lon: 76.8973, image: null, imageSrc: '' },
+    { name: 'Mysuru', lat: 12.2958, lon: 76.6394, image: null, imageSrc: '' }
+  ],
+  route: [],
+  totalKm: 0,
+  customVehicleImg: null,
+  seconds: 0,
+  playing: true,
+  recording: false
+};
+
+let highlights = [];
+let links = [];
+let geom = [], pathLen = 0, stopFractions = [];
+let raf = 0, lastFrame = 0, recorder = null, recordChunks = [];
+let smoothCam = { x: 0.71, y: 0.46, s: 4500, initialized: false };
+
+// --- Navigation Tabs ---
+const panels = [...document.querySelectorAll('.editorPanel')];
+const tools = [...document.querySelectorAll('.toolButton')];
+function activate(name){
+  panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  tools.forEach(b => b.classList.toggle('active', b.dataset.panel === name));
+  if(name === 'journey'){
+    S.routeActive = true;
+    updateTopBarButtons();
+    restartAnimation();
+  }
+}
+tools.forEach(b => b.addEventListener('click', () => activate(b.dataset.panel)));
+$('quickSave').onclick = () => $('save').click();
+$('quickMp4Btn').onclick = () => { activate('export'); $('recordMp4').click(); };
+$('topRouteModeBtn').onclick = () => activate('journey');
+
+function updateTopBarButtons(){
+  document.querySelectorAll('.scopeBtn[data-scope]').forEach(b => {
+    b.classList.toggle('active', !S.routeActive && b.dataset.scope === S.scope);
+  });
+  $('topRouteModeBtn').classList.toggle('active', S.routeActive);
+}
+
+// --- Map Scope Switching ---
+function setMapScope(scope, stateName){
+  S.scope = scope;
+  S.routeActive = false;
+  if(stateName) S.activeState = stateName;
+  $('mapScopeSelect').value = scope;
+  updateTopBarButtons();
+
+  $('worldPickerField').style.display = scope === 'world' ? 'block' : 'none';
+  $('statePickerField').style.display = 'block';
+  $('districtPickerField').style.display = (scope === 'state' || scope === 'india') ? 'block' : 'none';
+
+  const titles = {
+    world: '🌍 WORLD GEOPOLITICS MAP · GOVT OF INDIA OFFICIAL BORDERS',
+    india: '🇮🇳 OFFICIAL INDIA MAP · 36 STATES & UNION TERRITORIES',
+    state: `🏛️ ${S.activeState.toUpperCase()} STATE MAP · ALL DISTRICTS VIEW`
+  };
+  $('canvasModeTitle').textContent = titles[scope] || titles.india;
+  $('activeScopeBadge').textContent = scope === 'world' ? 'WORLD GEOPOLITICS' : (scope === 'state' ? S.activeState.toUpperCase() : 'INDIA STATES');
+  smoothCam.initialized = false;
+  restartAnimation();
+}
+
+document.querySelectorAll('.scopeBtn[data-scope]').forEach(b => {
+  b.addEventListener('click', () => {
+    activate('highlights');
+    setMapScope(b.dataset.scope);
+  });
+});
+$('mapScopeSelect').addEventListener('change', e => setMapScope(e.target.value));
+$('activeStateMapSelect').addEventListener('change', e => {
+  S.activeState = e.target.value;
+  $('storyStatePicker').value = S.activeState;
+  populateDistrictDropdown(S.activeState);
+  setMapScope('state', S.activeState);
+});
+
+// --- Entity Search (With Karnataka 31 Districts & Aliases) ---
+const DISTRICT_ALIASES = {
+  'bengaluru urban': 'Bengaluru (Urban)',
+  'bangalore urban': 'Bengaluru (Urban)',
+  'bengaluru': 'Bengaluru (Urban)',
+  'bangalore': 'Bengaluru (Urban)',
+  'bengaluru rural': 'Bengaluru (Rural)',
+  'bangalore rural': 'Bengaluru (Rural)',
+  'ramanagara': 'Bengaluru South',
+  'bengaluru south': 'Bengaluru South',
+  'kalaburagi': 'Kalaburgi',
+  'gulbarga': 'Kalaburgi',
+  'kolar': 'Kolara',
+  'hospet': 'Vijayanagara',
+  'hosapete': 'Vijayanagara',
+  'hampi': 'Vijayanagara',
+  'bellary': 'Ballari',
+  'belgaum': 'Belagavi',
+  'bijapur': 'Vijayapura',
+  'shimoga': 'Shivamogga',
+  'chikmagalur': 'Chikkamagaluru',
+  'mysore': 'Mysuru',
+  'mangalore': 'Dakshina Kannada',
+  'mangaluru': 'Dakshina Kannada'
+};
+
+function normStr(s){ return String(s||'').normalize('NFKC').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
+
+function findEntity(query, preferredKind=null){
+  const soi = window.INDIA_OFFICIAL_MAP;
+  if(!soi) return null;
+  let q = normStr(query);
+  if(!q) return null;
+  if(DISTRICT_ALIASES[q]) q = normStr(DISTRICT_ALIASES[q]);
+
+  const matchCountry = () => {
+    if(q === 'india' || q === 'bharat' || q === 'hindustan'){
+      return {
+        id: 'country:India', name: 'India', kind: 'country', iso2: 'in',
+        lat: 22.8, lon: 79.0, bounds: [68.14, 6.74, 97.36, 37.05],
+        geometry: soi.outline
+      };
+    }
+    for(const c of (soi.countries || [])){
+      if(normStr(c.name) === q || (c.aliases||[]).some(a => normStr(a) === q)){
+        return {
+          id: 'country:' + c.name, name: c.name, kind: 'country', iso2: c.iso2 || '',
+          lat: c.anchor[1], lon: c.anchor[0], bounds: c.bounds,
+          geometry: c.geometry
+        };
+      }
+    }
+    return null;
+  };
+
+  const matchState = () => {
+    for(const s of (soi.states || [])){
+      if(normStr(s.name) === q){
+        return {
+          id: 'state:' + s.name, name: s.name, kind: 'state', iso2: 'in',
+          lat: s.anchor[1], lon: s.anchor[0], bounds: s.bounds,
+          geometry: s.geometry
+        };
+      }
+    }
+    return null;
+  };
+
+  const matchDistrict = () => {
+    for(const d of (soi.districts || [])){
+      if(normStr(d.district) === q || normStr(`${d.district} ${d.state}`) === q){
+        return {
+          id: `district:${d.district}:${d.state}`, name: d.district, state: d.state, kind: 'district', iso2: 'in',
+          lat: d.anchor[1], lon: d.anchor[0], bounds: d.bounds,
+          geometry: d.geometry
+        };
+      }
+    }
+    return null;
+  };
+
+  if(preferredKind === 'country') return matchCountry() || matchState() || matchDistrict();
+  if(preferredKind === 'state') return matchState() || matchCountry() || matchDistrict();
+  if(preferredKind === 'district') return matchDistrict() || matchState() || matchCountry();
+
+  if(S.scope === 'world') return matchCountry() || matchState() || matchDistrict();
+  if(S.scope === 'state') return matchDistrict() || matchState() || matchCountry();
+  return matchState() || matchDistrict() || matchCountry();
+}
+
+// --- Populate Selectors ---
+function populateDistrictDropdown(stateName){
+  const soi = window.INDIA_OFFICIAL_MAP;
+  if(!soi) return;
+  const distSel = $('storyDistrictPicker');
+  distSel.innerHTML = '';
+  const dists = (soi.districts || []).filter(d => d.state.toLowerCase() === String(stateName||'').toLowerCase()).sort((a,b)=>a.district.localeCompare(b.district));
+  dists.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.district;
+    opt.textContent = d.district;
+    distSel.appendChild(opt);
+  });
+  $('storyDistCount').textContent = dists.length;
+  // Select Vijayanagara by default if in Karnataka so the user immediately sees it!
+  if(dists.some(d => d.district === 'Vijayanagara')) distSel.value = 'Vijayanagara';
+}
+
+function initSelectors(){
+  const soi = window.INDIA_OFFICIAL_MAP;
+  if(!soi) return;
+
+  const cSel = $('quickCountrySelect');
+  cSel.innerHTML = '';
+  (soi.countries || []).forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    opt.textContent = `${c.name}${c.code ? ' ('+c.code+')' : ''}`;
+    cSel.appendChild(opt);
+  });
+  cSel.value = 'India';
+
+  const sSel = $('storyStatePicker');
+  const mapStateSel = $('activeStateMapSelect');
+  sSel.innerHTML = ''; mapStateSel.innerHTML = '';
+  const sortedStates = [...(soi.states || [])].sort((a,b)=>a.name.localeCompare(b.name));
+  sortedStates.forEach(s => {
+    const count = (soi.districts || []).filter(d => d.state.toLowerCase() === s.name.toLowerCase()).length;
+    const opt = document.createElement('option');
+    opt.value = s.name;
+    opt.textContent = `${s.name} (${count} districts)`;
+    sSel.appendChild(opt);
+    mapStateSel.appendChild(opt.cloneNode(true));
+  });
+  sSel.value = 'Karnataka';
+  mapStateSel.value = 'Karnataka';
+  populateDistrictDropdown('Karnataka');
+
+  sSel.addEventListener('change', () => {
+    S.activeState = sSel.value;
+    mapStateSel.value = sSel.value;
+    populateDistrictDropdown(sSel.value);
+    if(S.scope === 'state') setMapScope('state', sSel.value);
+  });
+}
+
+// --- Highlights + Per-Region Image Upload + Defense Unit Selector ---
+const paletteColors = ['#ff4d6d', '#4ef2c8', '#ffbe42', '#38a3ff', '#a57bff', '#ff8533', '#2ec4b6'];
+
+function addHighlight(entity, customColor=null, autoFlag=false, defenseUnit='none', subText=''){
+  if(!entity) return null;
+  const existing = highlights.find(h => h.id === entity.id);
+  if(existing){
+    if(customColor) existing.color = customColor;
+    if(defenseUnit !== 'none') existing.defenseUnit = defenseUnit;
+    if(subText) existing.subText = subText;
+    renderHighlightCards();
+    return existing;
+  }
+  const color = customColor || paletteColors[highlights.length % paletteColors.length];
+  const item = {
+    ...entity,
+    color,
+    defenseUnit,
+    subText,
+    image: null,
+    imageSrc: ''
+  };
+  highlights.push(item);
+  if(autoFlag && item.iso2){
+    loadCountryFlag(item, item.iso2);
+  }
+  renderHighlightCards();
+  restartAnimation();
+  return item;
+}
+
+function loadCountryFlag(item, iso2){
+  const code = String(iso2||'in').toLowerCase();
+  const url = `https://flagcdn.com/w640/${code}.png`;
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => { item.image = img; item.imageSrc = url; renderHighlightCards(); };
+  img.src = url;
+}
+
+function handleRegionImageUpload(item, file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      item.image = img;
+      item.imageSrc = String(reader.result);
+      renderHighlightCards();
+      status(`Uploaded image for ${item.name}`);
+    };
+    img.src = String(reader.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderHighlightCards(){
+  const container = $('storyPlaces');
+  container.replaceChildren();
+
+  const fromSel = $('arrowFrom'), toSel = $('arrowTo');
+  fromSel.innerHTML = ''; toSel.innerHTML = '';
+  highlights.forEach(h => {
+    const o1 = document.createElement('option'); o1.value = h.name; o1.textContent = h.name;
+    const o2 = document.createElement('option'); o2.value = h.name; o2.textContent = h.name;
+    fromSel.appendChild(o1); toSel.appendChild(o2);
+  });
+  if(highlights.length >= 2){
+    fromSel.value = highlights[0].name;
+    toSel.value = highlights[1].name;
+  }
+
+  highlights.forEach((h, idx) => {
+    const card = document.createElement('div');
+    card.className = 'hlCard';
+
+    const top = document.createElement('div');
+    top.className = 'hlTop';
+    top.innerHTML = `
+      <div class="hlTitle">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${h.color};box-shadow:0 0 8px ${h.color}"></span>
+        <span>${idx + 1}. ${h.name}</span>
+        <span class="hlBadge">${h.kind.toUpperCase()}</span>
+      </div>
+    `;
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '✕';
+    delBtn.style.cssText = 'padding:2px 7px;font-size:10px;background:#2a1b24;border-color:#592d3e;color:#ff9aa9';
+    delBtn.onclick = () => {
+      highlights = highlights.filter(x => x !== h);
+      links = links.filter(l => l.from !== h.name && l.to !== h.name);
+      renderHighlightCards();
+    };
+    top.appendChild(delBtn);
+    card.appendChild(top);
+
+    const mediaRow = document.createElement('div');
+    mediaRow.className = 'hlMediaRow';
+
+    const thumb = document.createElement('div');
+    thumb.className = 'hlThumb';
+    if(h.imageSrc){
+      const im = document.createElement('img');
+      im.src = h.imageSrc;
+      thumb.appendChild(im);
+    } else thumb.textContent = 'NO IMG';
+    mediaRow.appendChild(thumb);
+
+    const ctrls = document.createElement('div');
+    ctrls.className = 'hlControls';
+
+    // Color picker
+    const colInput = document.createElement('input');
+    colInput.type = 'color';
+    colInput.className = 'hlColorInput';
+    colInput.value = h.color;
+    colInput.oninput = e => { h.color = e.target.value; };
+    ctrls.appendChild(colInput);
+
+    // Upload image
+    const uploadLabel = document.createElement('label');
+    uploadLabel.className = 'btnUpload';
+    uploadLabel.innerHTML = '📷 Image';
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.className = 'hidden';
+    fileInput.onchange = e => handleRegionImageUpload(h, e.target.files?.[0]);
+    uploadLabel.appendChild(fileInput);
+    ctrls.appendChild(uploadLabel);
+
+    // Flag button
+    if(h.iso2){
+      const flagBtn = document.createElement('button');
+      flagBtn.type = 'button';
+      flagBtn.textContent = '🏳️ Flag';
+      flagBtn.onclick = () => loadCountryFlag(h, h.iso2);
+      ctrls.appendChild(flagBtn);
+    }
+
+    // Clear Img
+    if(h.image){
+      const clr = document.createElement('button');
+      clr.type = 'button';
+      clr.textContent = '✕ Img';
+      clr.onclick = () => { h.image = null; h.imageSrc = ''; renderHighlightCards(); };
+      ctrls.appendChild(clr);
+    }
+
+    mediaRow.appendChild(ctrls);
+    card.appendChild(mediaRow);
+
+    // Defense / Military Unit Overlay + Sub-Caption Row
+    const extraRow = document.createElement('div');
+    extraRow.className = 'grid2';
+    extraRow.style.marginTop = '6px';
+
+    const unitSel = document.createElement('select');
+    unitSel.style.cssText = 'padding:4px 6px;font-size:10.5px;background:#08101c';
+    unitSel.innerHTML = `
+      <option value="none">🎯 Standard Explainer Pin</option>
+      <option value="dome">🛡️ S-400 Air Defense Dome</option>
+      <option value="jet">✈️ Fighter Jet Squadron</option>
+      <option value="missile">🚀 Missile Target Lock</option>
+      <option value="naval">⚓ Naval Carrier Fleet</option>
+      <option value="tank">🪖 Armored Tank Division</option>
+    `;
+    unitSel.value = h.defenseUnit || 'none';
+    unitSel.onchange = e => { h.defenseUnit = e.target.value; };
+
+    const capInput = document.createElement('input');
+    capInput.placeholder = 'Callout Sub-text (e.g. Hampi / S-400)';
+    capInput.value = h.subText || '';
+    capInput.style.cssText = 'padding:4px 7px;font-size:10.5px;background:#08101c';
+    capInput.oninput = e => { h.subText = e.target.value; };
+
+    extraRow.appendChild(unitSel);
+    extraRow.appendChild(capInput);
+    card.appendChild(extraRow);
+
+    container.appendChild(card);
+  });
+
+  // Render active arrows/strikes
+  const linksBox = $('storyLinksView');
+  linksBox.replaceChildren();
+  links.forEach((l, idx) => {
+    const chip = document.createElement('div');
+    chip.className = 'storyLinkChip';
+    chip.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:5px 8px;margin-top:4px;background:#152438;border:1px solid #2b4466;border-radius:7px;font-size:10.5px';
+    chip.innerHTML = `<span><strong>${l.from}</strong> ➔ <strong>${l.to}</strong> · <em style="color:#4ef2c8">${l.kind.toUpperCase()}: ${l.label}</em></span>`;
+    const rm = document.createElement('button');
+    rm.textContent = '✕';
+    rm.style.cssText = 'padding:2px 6px;font-size:9.5px';
+    rm.onclick = () => { links.splice(idx, 1); renderHighlightCards(); };
+    chip.appendChild(rm);
+    linksBox.appendChild(chip);
+  });
+}
+
+// --- Add Highlight & Strike Buttons ---
+$('btnAddCountry').onclick = () => {
+  const ent = findEntity($('quickCountrySelect').value, 'country');
+  if(ent){ setMapScope('world'); addHighlight(ent, null, true); }
+};
+$('storyAddStateBtn').onclick = () => {
+  const ent = findEntity($('storyStatePicker').value, 'state');
+  if(ent){ if(S.scope === 'state') setMapScope('india'); addHighlight(ent); }
+};
+$('storyAddDistrictBtn').onclick = () => {
+  const dist = $('storyDistrictPicker').value, st = $('storyStatePicker').value;
+  const ent = findEntity(`${dist} ${st}`, 'district') || findEntity(dist, 'district');
+  if(ent){ setMapScope('state', st); addHighlight(ent); }
+};
+$('btnAddArrow').onclick = () => {
+  const from = $('arrowFrom').value, to = $('arrowTo').value;
+  const kind = $('arrowKind').value;
+  const label = $('arrowLabel').value.trim() || kind.toUpperCase();
+  if(!from || !to || from === to) return status('Select two different regions.');
+  links.push({ from, to, kind, label });
+  renderHighlightCards();
+  restartAnimation();
+};
+
+// --- 4 Built-In Explainer & Defense Demos ---
+function loadKarnataka31Demo(){
+  highlights = []; links = [];
+  $('storyStatePicker').value = 'Karnataka';
+  $('activeStateMapSelect').value = 'Karnataka';
+  populateDistrictDropdown('Karnataka');
+  setMapScope('state', 'Karnataka');
+  $('storyHeadline').value = 'KARNATAKA 31 DISTRICTS · VIJAYANAGARA, BALLARI & BENGALURU';
+  addHighlight(findEntity('Vijayanagara', 'district'), '#ffbe42', false, 'none', 'Hampi World Heritage');
+  addHighlight(findEntity('Ballari', 'district'), '#ff4d6d', false, 'none', 'Mineral Rich Hub');
+  addHighlight(findEntity('Bengaluru (Urban)', 'district'), '#4ef2c8', false, 'none', 'Silicon Valley of India');
+  addHighlight(findEntity('Mysuru', 'district'), '#38a3ff', false, 'none', 'Cultural Capital');
+  links.push({ from: 'Bengaluru (Urban)', to: 'Vijayanagara', kind: 'alliance', label: 'HERITAGE CORRIDOR' });
+  links.push({ from: 'Vijayanagara', to: 'Ballari', kind: 'alliance', label: 'CARVED IN 2021' });
+  renderHighlightCards();
+  restartAnimation();
+}
+
+function loadWarDefenseDemo(){
+  highlights = []; links = [];
+  setMapScope('world');
+  $('storyHeadline').value = 'STRATEGIC DEFENSE · S-400 SHIELD & BRAHMOS DETERRENCE';
+  addHighlight(findEntity('India', 'country'), '#4ef2c8', true, 'dome', 'S-400 Air Defense Active');
+  addHighlight(findEntity('Pakistan', 'country'), '#ff4d6d', false, 'missile', 'Western Sector');
+  addHighlight(findEntity('China', 'country'), '#ffbe42', false, 'jet', 'Northern LAC Sector');
+  links.push({ from: 'Pakistan', to: 'India', kind: 'intercept', label: 'S-400 INTERCEPT' });
+  links.push({ from: 'India', to: 'China', kind: 'jet', label: 'RAFALE CAP SORTIE' });
+  renderHighlightCards();
+  restartAnimation();
+}
+
+function loadWorldGeopoliticsDemo(){
+  highlights = []; links = [];
+  setMapScope('world');
+  $('storyHeadline').value = 'GLOBAL GEOPOLITICS · INDIA, RUSSIA & UNITED STATES';
+  addHighlight(findEntity('India', 'country'), '#ff8533', true, 'naval', 'Global South Leader');
+  addHighlight(findEntity('Russia', 'country'), '#38a3ff', true, 'dome', 'Energy & Defense Ally');
+  addHighlight(findEntity('United States', 'country'), '#4ef2c8', true, 'jet', 'INDOPACOM Partner');
+  links.push({ from: 'Russia', to: 'India', kind: 'naval', label: 'OIL & S-400 SUPPLY' });
+  links.push({ from: 'United States', to: 'India', kind: 'alliance', label: 'CRITICAL TECH DEAL' });
+  renderHighlightCards();
+  restartAnimation();
+}
+
+function loadSouthernStatesDemo(){
+  highlights = []; links = [];
+  setMapScope('india');
+  $('storyHeadline').value = 'INDIA INDUSTRIAL CORRIDOR · KARNATAKA, MAHARASHTRA & TN';
+  addHighlight(findEntity('Karnataka', 'state'), '#4ef2c8', false, 'none', '#1 IT Exports');
+  addHighlight(findEntity('Maharashtra', 'state'), '#38a3ff', false, 'none', 'Financial Hub');
+  addHighlight(findEntity('Tamil Nadu', 'state'), '#ffbe42', false, 'none', 'Auto & Electronics');
+  links.push({ from: 'Maharashtra', to: 'Karnataka', kind: 'alliance', label: 'MUMBAI-BLR CORRIDOR' });
+  links.push({ from: 'Karnataka', to: 'Tamil Nadu', kind: 'alliance', label: 'EV MANUFACTURING' });
+  renderHighlightCards();
+  restartAnimation();
+}
+
+$('btnDemoKarnataka').onclick = loadKarnataka31Demo;
+$('btnDemoWar').onclick = loadWarDefenseDemo;
+$('btnDemoWorld').onclick = loadWorldGeopoliticsDemo;
+$('btnDemoStates').onclick = loadSouthernStatesDemo;
+
+// Script Auto-Detector
+$('storyDetect').onclick = () => {
+  const script = $('storyScript').value.trim();
+  if(!script) return status('Paste your script first.');
+  const soi = window.INDIA_OFFICIAL_MAP;
+  if(!soi) return;
+  highlights = []; links = [];
+  const matched = [];
+  const lower = script.toLowerCase();
+
+  for(const c of (soi.countries || [])){
+    const names = [c.name, ...(c.aliases||[])].filter(x => x && x.length >= 3);
+    for(const n of names){
+      const re = new RegExp(`(^|[^a-z])${n.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?=$|[^a-z])`, 'i');
+      if(re.test(lower)){
+        const ent = findEntity(c.name, 'country');
+        if(ent && !matched.some(m => m.id === ent.id)) matched.push({ ent, pos: lower.search(re) });
+        break;
+      }
+    }
+  }
+  for(const s of (soi.states || [])){
+    const re = new RegExp(`(^|[^a-z])${s.name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?=$|[^a-z])`, 'i');
+    if(re.test(lower)){
+      const ent = findEntity(s.name, 'state');
+      if(ent && !matched.some(m => m.id === ent.id)) matched.push({ ent, pos: lower.search(re) });
+    }
+  }
+  for(const d of (soi.districts || [])){
+    if(d.district.length < 4) continue;
+    const cleanD = d.district.replace(/[()]/g, '');
+    const re = new RegExp(`(^|[^a-z])${cleanD.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?=$|[^a-z])`, 'i');
+    if(re.test(lower)){
+      const ent = findEntity(`${d.district} ${d.state}`, 'district');
+      if(ent && !matched.some(m => m.id === ent.id)) matched.push({ ent, pos: lower.search(re) });
+    }
+  }
+
+  matched.sort((a,b) => a.pos - b.pos);
+  matched.forEach(m => addHighlight(m.ent, null, m.ent.kind === 'country'));
+  const hasForeign = matched.some(m => m.ent.kind === 'country' && m.ent.name !== 'India');
+  const hasDist = matched.find(m => m.ent.kind === 'district');
+  if(hasForeign) setMapScope('world');
+  else if(hasDist) setMapScope('state', hasDist.ent.state || 'Karnataka');
+  else setMapScope('india');
+
+  for(let i=0; i<matched.length-1; i++){
+    links.push({ from: matched[i].ent.name, to: matched[i+1].ent.name, kind: 'alliance', label: 'LINK' });
+  }
+  renderHighlightCards();
+  restartAnimation();
+};
+
+$('storyAdd').onclick = () => {
+  const v = $('storyManual').value.trim();
+  if(!v) return;
+  const ent = findEntity(v);
+  if(ent){ addHighlight(ent, null, ent.kind === 'country'); $('storyManual').value = ''; }
+  else status(`Place "${v}" not found.`);
+};
+$('storyManual').addEventListener('keydown', e => { if(e.key === 'Enter'){ $('storyAdd').click(); e.preventDefault(); } });
+$('storyClear').onclick = () => { highlights = []; links = []; renderHighlightCards(); restartAnimation(); };
+
+// --- WORLD'S BEST TRAVEL ROUTE ANIMATOR ENGINE ---
+async function resolveStopCoordinates(name){
+  const raw = String(name || '').trim();
+  if(!raw) return null;
+  const key = normStr(raw.split(',')[0]);
+  if(BUILTIN_PLACES[key]) return { ...BUILTIN_PLACES[key] };
+  const ent = findEntity(raw) || findEntity(key);
+  if(ent && valid(ent)) return { lat: ent.lat, lon: ent.lon, state: ent.state || ent.name };
+
+  // Online Photon fallback for any village/station
+  try {
+    const r = await fetch('https://photon.komoot.io/api/?limit=1&q=' + encodeURIComponent(raw));
+    if(r.ok){
+      const j = await r.json();
+      const f = j.features?.[0];
+      if(f?.geometry?.coordinates){
+        return { lon: +f.geometry.coordinates[0], lat: +f.geometry.coordinates[1] };
+      }
+    }
+  } catch(e){}
+  return null;
+}
+
+function buildSplineRoute(points, styleMode){
+  if(points.length < 2) return [];
+  const mode = styleMode === 'auto'
+    ? (S.mode === 'flight' || S.mode === 'jet' ? 'arc' : 'spline')
+    : styleMode;
+
+  const out = [];
+  if(mode === 'arc'){
+    // Great-Circle Elevated Parabolic Arc between each pair
+    for(let i=0; i<points.length-1; i++){
+      const a = points[i], b = points[i+1];
+      const steps = 64;
+      const dx = b.lon - a.lon, dy = b.lat - a.lat;
+      const dist = Math.hypot(dx, dy);
+      const liftLat = dist * 0.22;
+      for(let s=0; s<=steps; s++){
+        if(i > 0 && s === 0) continue;
+        const t = s / steps;
+        const arc = Math.sin(t * Math.PI) * liftLat;
+        out.push({
+          lat: lerp(a.lat, b.lat, t) + arc,
+          lon: lerp(a.lon, b.lon, t),
+          alt: Math.sin(t * Math.PI) // 0 at ends, 1 at mid-flight apex
+        });
+      }
+    }
+    return out;
+  }
+
+  // Catmull-Rom Smooth Spline through all stops
+  for(let i=0; i<points.length-1; i++){
+    const p0 = points[Math.max(0, i-1)];
+    const p1 = points[i];
+    const p2 = points[i+1];
+    const p3 = points[Math.min(points.length-1, i+2)];
+    const steps = 45;
+    for(let s=0; s<=steps; s++){
+      if(i > 0 && s === 0) continue;
+      const t = s / steps, t2 = t*t, t3 = t2*t;
+      const lat = 0.5 * ((2*p1.lat) + (-p0.lat + p2.lat)*t + (2*p0.lat - 5*p1.lat + 4*p2.lat - p3.lat)*t2 + (-p0.lat + 3*p1.lat - 3*p2.lat + p3.lat)*t3);
+      const lon = 0.5 * ((2*p1.lon) + (-p0.lon + p2.lon)*t + (2*p0.lon - 5*p1.lon + 4*p2.lon - p3.lon)*t2 + (-p0.lon + 3*p1.lon - 3*p2.lon + p3.lon)*t3);
+      out.push({ lat, lon, alt: 0 });
+    }
+  }
+  return out;
+}
+
+async function fetchOsrmRoadRoute(){
+  const pts = S.stops.filter(valid);
+  if(pts.length < 2) return status('Need at least 2 located stops for OSRM road routing.');
+  status('Fetching real highway geometry from OSRM…');
+  try {
+    const coordsStr = pts.map(p => `${p.lon},${p.lat}`).join(';');
+    const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson`);
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const coords = j.routes?.[0]?.geometry?.coordinates;
+    if(!coords?.length) throw new Error('No road route returned');
+    S.route = coords.map(([lon, lat]) => ({ lat: +lat, lon: +lon, alt: 0 }));
+    compileRouteMetrics();
+    S.routeActive = true;
+    updateTopBarButtons();
+    restartAnimation();
+    status(`Loaded real highway route (${S.route.length} road points, ${Math.round(S.totalKm)} km).`);
+  } catch(e){
+    status('OSRM online service unreachable; using smooth spline route.');
+    rebuildRoute();
+  }
+}
+
+function compileRouteMetrics(){
+  const p = S.route.length >= 2 ? S.route : S.stops.filter(valid);
+  if(p.length < 2){ geom = []; pathLen = 0; S.totalKm = 0; return; }
+  geom = p.map(geo);
+  pathLen = 0;
+  let km = 0;
+  const cum = [0];
+  for(let i=1; i<geom.length; i++){
+    const a = geom[i-1], b = geom[i];
+    const d = Math.hypot((b.x-a.x)*Math.cos((p[i].lat+p[i-1].lat)*Math.PI/360), (b.y-a.y));
+    pathLen += d;
+    cum.push(pathLen);
+    km += earthDist(p[i-1], p[i]);
+  }
+  S.cum = cum;
+  S.totalKm = km;
+
+  // Map each stop to its closest fraction along `geom`
+  stopFractions = S.stops.map((st, idx) => {
+    if(idx === 0) return 0;
+    if(idx === S.stops.length - 1) return 1;
+    if(!valid(st)) return idx / (S.stops.length - 1);
+    const g = geo(st);
+    let bestD = Infinity, bestFrac = idx / (S.stops.length - 1);
+    for(let j=0; j<geom.length; j++){
+      const d = Math.hypot(geom[j].x - g.x, geom[j].y - g.y);
+      if(d < bestD){ bestD = d; bestFrac = cum[j] / Math.max(1e-9, pathLen); }
+    }
+    return bestFrac;
+  });
+  for(let i=1; i<stopFractions.length; i++){
+    stopFractions[i] = Math.max(stopFractions[i-1] + 0.001, stopFractions[i]);
+  }
+  stopFractions[stopFractions.length - 1] = 1;
+}
+
+function rebuildRoute(){
+  const validStops = S.stops.filter(valid);
+  if(validStops.length < 2){ geom = []; return; }
+  const styleMode = $('routePathStyle').value;
+  if(styleMode === 'osrm'){
+    fetchOsrmRoadRoute();
+    return;
+  }
+  S.route = buildSplineRoute(validStops, styleMode);
+  compileRouteMetrics();
+
+  // Auto-highlight stop districts/states if enabled
+  if($('showStopHighlightPoly').checked){
+    highlights = [];
+    validStops.forEach((st, idx) => {
+      const ent = findEntity(st.name, S.scope === 'state' ? 'district' : undefined);
+      if(ent) addHighlight(ent, paletteColors[idx % paletteColors.length]);
+    });
+  }
+}
+
+function renderStopsUI(){
+  const container = $('stops');
+  container.replaceChildren();
+  S.stops.forEach((st, idx) => {
+    const card = document.createElement('div');
+    card.className = 'stopCard';
+    card.innerHTML = `
+      <div class="stopHeader">
+        <span>${idx === 0 ? '🟢 START' : (idx === S.stops.length - 1 ? '🏁 FINISH' : `📍 STOP ${idx + 1}`)}</span>
+        <span class="${valid(st) ? 'ok' : 'warning'}">${valid(st) ? `${st.lat.toFixed(2)}°N, ${st.lon.toFixed(2)}°E` : 'Locating…'}</span>
+      </div>
+    `;
+    const body = document.createElement('div');
+    body.className = 'stopBody';
+
+    // Photo thumbnail upload per stop
+    const thumbLabel = document.createElement('label');
+    thumbLabel.className = 'stopThumb';
+    thumbLabel.title = 'Upload Stop Photo';
+    if(st.imageSrc){
+      const im = document.createElement('img');
+      im.src = st.imageSrc;
+      thumbLabel.appendChild(im);
+    } else thumbLabel.textContent = '📷 IMG';
+    const fileIn = document.createElement('input');
+    fileIn.type = 'file'; fileIn.accept = 'image/*'; fileIn.className = 'hidden';
+    fileIn.onchange = e => {
+      const f = e.target.files?.[0];
+      if(!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        const im = new Image();
+        im.onload = () => { st.image = im; st.imageSrc = String(r.result); renderStopsUI(); };
+        im.src = String(r.result);
+      };
+      r.readAsDataURL(f);
+    };
+    thumbLabel.appendChild(fileIn);
+    body.appendChild(thumbLabel);
+
+    const nameIn = document.createElement('input');
+    nameIn.value = st.name;
+    nameIn.onchange = async e => {
+      st.name = e.target.value.trim();
+      const loc = await resolveStopCoordinates(st.name);
+      if(loc){ st.lat = loc.lat; st.lon = loc.lon; }
+      renderStopsUI();
+      rebuildRoute();
+    };
+    body.appendChild(nameIn);
+
+    const btns = document.createElement('div');
+    btns.className = 'stopBtns';
+    const upB = document.createElement('button'); upB.textContent = '↑';
+    upB.onclick = () => { if(idx > 0){ [S.stops[idx-1], S.stops[idx]] = [S.stops[idx], S.stops[idx-1]]; renderStopsUI(); rebuildRoute(); } };
+    const dnB = document.createElement('button'); dnB.textContent = '↓';
+    dnB.onclick = () => { if(idx < S.stops.length-1){ [S.stops[idx+1], S.stops[idx]] = [S.stops[idx], S.stops[idx+1]]; renderStopsUI(); rebuildRoute(); } };
+    const rmB = document.createElement('button'); rmB.textContent = '✕';
+    rmB.onclick = () => { if(S.stops.length > 2){ S.stops.splice(idx, 1); renderStopsUI(); rebuildRoute(); } };
+    btns.append(upB, dnB, rmB);
+    body.appendChild(btns);
+
+    card.appendChild(body);
+    container.appendChild(card);
+  });
+  $('bulk').value = S.stops.map(s => s.name).join('\n');
+}
+
+async function applyBulkStops(namesList, mode='train', scopeOverride=null){
+  S.mode = mode;
+  document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  S.stops = [];
+  for(const raw of namesList){
+    const loc = await resolveStopCoordinates(raw);
+    S.stops.push({
+      name: raw,
+      lat: loc ? loc.lat : 12.97,
+      lon: loc ? loc.lon : 77.59,
+      image: null,
+      imageSrc: ''
+    });
+  }
+  if(scopeOverride){
+    S.scope = scopeOverride.scope;
+    if(scopeOverride.state) S.activeState = scopeOverride.state;
+  }
+  S.routeActive = true;
+  updateTopBarButtons();
+  renderStopsUI();
+  rebuildRoute();
+  smoothCam.initialized = false;
+  restartAnimation();
+  $('canvasModeTitle').textContent = `🚆 TRAVEL ROUTE ANIMATOR · ${S.stops[0]?.name.toUpperCase()} ➔ ${S.stops.at(-1)?.name.toUpperCase()}`;
+}
+
+$('applyStopsBtn').onclick = () => {
+  const lines = $('bulk').value.split(/\r?\n|\s*(?:➔|→|->)\s*/).map(x=>x.trim()).filter(Boolean);
+  if(lines.length >= 2) applyBulkStops(lines, S.mode);
+};
+$('fetchOsrmBtn').onclick = fetchOsrmRoadRoute;
+$('addStopBtn').onclick = () => {
+  S.stops.push({ name: 'Hassan', lat: 13.0033, lon: 76.1004, image: null, imageSrc: '' });
+  renderStopsUI(); rebuildRoute();
+};
+document.querySelectorAll('#modes button').forEach(b => {
+  b.onclick = () => {
+    S.mode = b.dataset.mode;
+    document.querySelectorAll('#modes button').forEach(x => x.classList.toggle('active', x === b));
+    S.routeActive = true;
+    updateTopBarButtons();
+    rebuildRoute();
+    restartAnimation();
+  };
+});
+$('routePathStyle').onchange = rebuildRoute;
+$('showStopHighlightPoly').onchange = rebuildRoute;
+
+// Route Presets
+$('presetRouteKa').onclick = () => {
+  $('storyHeadline').value = 'BENGALURU TO MYSURU EXPRESS CORRIDOR';
+  applyBulkStops(['Bengaluru', 'Ramanagara', 'Mandya', 'Mysuru'], 'train', { scope: 'state', state: 'Karnataka' });
+};
+$('presetRouteHampi').onclick = () => {
+  $('storyHeadline').value = 'VIJAYANAGARA (HAMPI) HERITAGE EXPEDITION';
+  applyBulkStops(['Bengaluru', 'Tumakuru', 'Chitradurga', 'Vijayanagara'], 'road', { scope: 'state', state: 'Karnataka' });
+};
+$('presetRouteCoast').onclick = () => {
+  $('storyHeadline').value = 'KONKAN & COASTAL KARNATAKA SCENIC DRIVE';
+  applyBulkStops(['Mangaluru', 'Udupi', 'Karwar', 'Goa'], 'bike', { scope: 'state', state: 'Karnataka' });
+};
+$('presetRouteFlight').onclick = () => {
+  $('storyHeadline').value = 'GOLDEN TRIANGLE AIR CORRIDOR · DELHI ➔ MUMBAI ➔ BLR';
+  applyBulkStops(['New Delhi', 'Mumbai', 'Bengaluru'], 'flight', { scope: 'india' });
+};
+
+// Custom Vehicle Upload
+$('customVehicleUpload').onchange = e => {
+  const f = e.target.files?.[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const im = new Image();
+    im.onload = () => { S.customVehicleImg = im; status('Custom vehicle sprite loaded!'); };
+    im.src = String(r.result);
+  };
+  r.readAsDataURL(f);
+};
+$('clearCustomVehicle').onclick = () => { S.customVehicleImg = null; status('Reset to vector vehicle.'); };
+
+// --- Route Travel Fraction & Point Interpolation ---
+function totalSecs(){
+  const base = clamp(num('duration') || 14, 4, 240);
+  const hold = S.routeActive ? clamp(num('hold') || 0.8, 0, 6) * Math.max(0, S.stops.length - 2) : 0;
+  return base + hold;
+}
+
+function travelFraction(){
+  const tot = totalSecs();
+  const sec = clamp(S.seconds, 0, tot);
+  if(!S.routeActive || !stopFractions.length) return sec / tot;
+  const travel = clamp(num('duration') || 14, 4, 240);
+  const hold = clamp(num('hold') || 0.8, 0, 6);
+  for(let i=0; i<S.stops.length-1; i++){
+    const a = stopFractions[i], b = stopFractions[i+1];
+    const start = a * travel + i * hold, end = b * travel + i * hold;
+    if(sec < end) return clamp(a + (sec - start) / Math.max(0.001, end - start) * (b - a), 0, 1);
+    if(i < S.stops.length - 2 && sec < end + hold) return b;
+  }
+  return 1;
+}
+
+function reachedStopIndex(t){
+  let idx = 0;
+  while(idx < stopFractions.length - 1 && t >= stopFractions[idx + 1] - 0.002) idx++;
+  return idx;
+}
+
+function routeGeoAt(t){
+  if(!geom.length) return { x: 0.71, y: 0.46, alt: 0 };
+  t = clamp(t, 0, 1);
+  const target = t * pathLen, cum = S.cum || [0, 1];
+  let lo = 1, hi = cum.length - 1;
+  while(lo < hi){ const mid = (lo + hi) >> 1; if(cum[mid] < target) lo = mid + 1; else hi = mid; }
+  const i = clamp(lo, 1, geom.length - 1);
+  const d = cum[i] - cum[i-1], f = d ? (target - cum[i-1]) / d : 0;
+  const alt = lerp(S.route[i-1]?.alt || 0, S.route[i]?.alt || 0, f);
+  return {
+    x: lerp(geom[i-1].x, geom[i].x, f),
+    y: lerp(geom[i-1].y, geom[i].y, f),
+    alt
+  };
+}
+
+// --- Camera Calculation (Supports Explainer Modes + Route Follow Modes) ---
+function boundsToMercCam(bounds, L, paddingFactor=0.22){
+  const p1 = geo({ lon: bounds[0], lat: bounds[3] });
+  const p2 = geo({ lon: bounds[2], lat: bounds[1] });
+  const minX = Math.min(p1.x, p2.x), maxX = Math.max(p1.x, p2.x);
+  const minY = Math.min(p1.y, p2.y), maxY = Math.max(p1.y, p2.y);
+  const padX = L.W * paddingFactor, padY = L.mapH * paddingFactor;
+  let scale = Math.min(
+    (L.W - 2*padX) / Math.max(0.0003, maxX - minX),
+    (L.mapH - 2*padY) / Math.max(0.0003, maxY - minY)
+  );
+  scale = clamp(scale, L.W * 0.85, L.W * 240);
+  return { x: (minX + maxX)/2, y: (minY + maxY)/2, s: scale };
+}
+
+function getScopeOverviewBounds(){
+  const soi = window.INDIA_OFFICIAL_MAP;
+  if(S.scope === 'world'){
+    if(highlights.length){
+      let minLon=180, minLat=90, maxLon=-180, maxLat=-90;
+      highlights.forEach(h => {
+        if(h.bounds){
+          minLon = Math.min(minLon, h.bounds[0]); minLat = Math.min(minLat, h.bounds[1]);
+          maxLon = Math.max(maxLon, h.bounds[2]); maxLat = Math.max(maxLat, h.bounds[3]);
+        }
+      });
+      if(maxLon > minLon) return [clamp(minLon-12,-170,170), clamp(minLat-8,-60,75), clamp(maxLon+12,-170,170), clamp(maxLat+8,-60,75)];
+    }
+    return [-130, -42, 155, 68];
+  }
+  if(S.scope === 'state' && soi?.states){
+    const st = soi.states.find(s => s.name.toLowerCase() === S.activeState.toLowerCase());
+    if(st?.bounds) return st.bounds;
+  }
+  return [68.1, 6.7, 97.4, 37.1];
+}
+
+function getRouteBounds(){
+  const pts = S.route.length >= 2 ? S.route : S.stops.filter(valid);
+  if(!pts.length) return getScopeOverviewBounds();
+  let minLon=180, minLat=90, maxLon=-180, maxLat=-90;
+  pts.forEach(p => {
+    minLon = Math.min(minLon, p.lon); minLat = Math.min(minLat, p.lat);
+    maxLon = Math.max(maxLon, p.lon); maxLat = Math.max(maxLat, p.lat);
+  });
+  const padLon = Math.max(0.45, (maxLon - minLon) * 0.28);
+  const padLat = Math.max(0.45, (maxLat - minLat) * 0.28);
+  return [minLon - padLon, minLat - padLat, maxLon + padLon, maxLat + padLat];
+}
+
+function getCombinedHighlightBounds(){
+  if(!highlights.length) return getScopeOverviewBounds();
+  let minLon=180, minLat=90, maxLon=-180, maxLat=-90;
+  highlights.forEach(h => {
+    if(h.bounds){
+      minLon = Math.min(minLon, h.bounds[0]); minLat = Math.min(minLat, h.bounds[1]);
+      maxLon = Math.max(maxLon, h.bounds[2]); maxLat = Math.max(maxLat, h.bounds[3]);
+    }
+  });
+  if(maxLon <= minLon) return getScopeOverviewBounds();
+  const spanLon = Math.max(0.8, (maxLon - minLon) * 0.25);
+  const spanLat = Math.max(0.8, (maxLat - minLat) * 0.25);
+  return [minLon - spanLon, minLat - spanLat, maxLon + spanLat, maxLat + spanLat];
+}
+
+function computeTargetCamera(L, sec, total){
+  const userZoom = clamp(num('zoom') || 1, 0.5, 8);
+
+  // A. Route Camera Tracking when Route Mode is Active
+  if(S.routeActive && geom.length >= 2){
+    const rCamMode = $('routeCamMode').value;
+    const fullRouteCam = boundsToMercCam(getRouteBounds(), L, 0.20);
+    const t = travelFraction();
+    const curPt = routeGeoAt(t);
+
+    if(rCamMode === 'full'){
+      $('cameraPhaseReadout').textContent = `🗺️ Full Route (${Math.round(S.totalKm * t)} / ${Math.round(S.totalKm)} KM)`;
+      return { c: { x: fullRouteCam.x, y: fullRouteCam.y }, s: fullRouteCam.s * userZoom };
+    }
+    if(rCamMode === 'follow'){
+      // Helicopter Follow Camera: zooms in 2.1x on the moving vehicle, pulls out at very end
+      const endPullback = t > 0.92 ? easeInOutCubic((t - 0.92) / 0.08) : 0;
+      const followScale = clamp(fullRouteCam.s * 2.15, L.W * 4, L.W * 95);
+      const x = lerp(curPt.x, fullRouteCam.x, endPullback * 0.85);
+      const y = lerp(curPt.y, fullRouteCam.y, endPullback * 0.85);
+      const s = lerp(followScale, fullRouteCam.s, endPullback);
+      const stIdx = reachedStopIndex(t);
+      $('cameraPhaseReadout').textContent = `🚁 Tracking ${S.mode.toUpperCase()} · Near ${S.stops[stIdx]?.name || ''}`;
+      return { c: { x, y }, s: s * userZoom };
+    }
+    if(rCamMode === 'waypoint'){
+      const stIdx = reachedStopIndex(t);
+      const nextIdx = Math.min(S.stops.length - 1, stIdx + 1);
+      const legFrac = clamp((t - stopFractions[stIdx]) / Math.max(0.001, stopFractions[nextIdx] - stopFractions[stIdx]), 0, 1);
+      // Zoom into stops at start/end of leg, widen mid-leg
+      const midZoomOut = 1 - 0.32 * Math.sin(legFrac * Math.PI);
+      const baseScale = clamp(fullRouteCam.s * 1.85 * midZoomOut, L.W * 3, L.W * 85);
+      $('cameraPhaseReadout').textContent = `🎬 Leg ${stIdx+1}: ${S.stops[stIdx]?.name} ➔ ${S.stops[nextIdx]?.name}`;
+      return { c: { x: curPt.x, y: curPt.y }, s: baseScale * userZoom };
+    }
+  }
+
+  // B. Explainer Camera Choreography
+  const mode = $('aeCameraMode').value;
+  const overviewCam = boundsToMercCam(getScopeOverviewBounds(), L, 0.16);
+  const focusAllCam = boundsToMercCam(getCombinedHighlightBounds(), L, 0.22);
+  let target = { ...focusAllCam };
+  let phaseLabel = '● Overview Frame';
+
+  if(mode === 'locked' || !highlights.length){
+    target = { ...overviewCam };
+    phaseLabel = '🔒 Locked Map Frame';
+  } else if(mode === 'drift'){
+    const p = clamp(sec / Math.max(1, total), 0, 1);
+    target = { x: focusAllCam.x, y: focusAllCam.y, s: focusAllCam.s * (1 + 0.24 * easeInOutCubic(p)) };
+    phaseLabel = '🎥 Slow Documentary Drift';
+  } else if(mode === 'flyin'){
+    const tFly = clamp(sec / Math.min(3.2, total * 0.45), 0, 1);
+    const e = easeOutQuint(tFly);
+    target = {
+      x: lerp(overviewCam.x, focusAllCam.x, e),
+      y: lerp(overviewCam.y, focusAllCam.y, e),
+      s: lerp(overviewCam.s * 0.82, focusAllCam.s, e)
+    };
+    phaseLabel = tFly < 1 ? '🚀 AE Camera Fly-In' : '🎯 Target Locked';
+  } else if(mode === 'tour'){
+    const N = highlights.length;
+    const introDur = Math.min(1.6, total * 0.14);
+    const outroDur = N > 1 ? Math.min(2.6, total * 0.22) : 0;
+    const tourDur = Math.max(1, total - introDur - outroDur);
+    const perStop = tourDur / N;
+
+    if(sec < introDur){
+      const e = easeOutQuint(sec / introDur);
+      const firstCam = boundsToMercCam(highlights[0].bounds || getScopeOverviewBounds(), L, 0.26);
+      target = {
+        x: lerp(overviewCam.x, firstCam.x, e),
+        y: lerp(overviewCam.y, firstCam.y, e),
+        s: lerp(overviewCam.s * 0.85, firstCam.s, e)
+      };
+      phaseLabel = `🎬 Flying to ${highlights[0].name}`;
+    } else if(sec < introDur + tourDur){
+      const localT = sec - introDur;
+      const idx = Math.min(N - 1, Math.floor(localT / perStop));
+      const nextIdx = Math.min(N - 1, idx + 1);
+      const subT = (localT - idx * perStop) / perStop;
+      const camA = boundsToMercCam(highlights[idx].bounds || getScopeOverviewBounds(), L, 0.27);
+      const camB = boundsToMercCam(highlights[nextIdx].bounds || getScopeOverviewBounds(), L, 0.27);
+      const moveT = subT < 0.58 ? 0 : easeInOutCubic((subT - 0.58) / 0.42);
+      target = {
+        x: lerp(camA.x, camB.x, moveT),
+        y: lerp(camA.y, camB.y, moveT),
+        s: lerp(camA.s * (1 + 0.06 * subT), camB.s, moveT)
+      };
+      phaseLabel = `📍 Focusing: ${highlights[idx].name} (${idx+1}/${N})`;
+    } else {
+      const outroT = easeInOutCubic((sec - introDur - tourDur) / Math.max(0.1, outroDur));
+      const lastCam = boundsToMercCam(highlights[N - 1].bounds || getScopeOverviewBounds(), L, 0.27);
+      target = {
+        x: lerp(lastCam.x, focusAllCam.x, outroT),
+        y: lerp(lastCam.y, focusAllCam.y, outroT),
+        s: lerp(lastCam.s, focusAllCam.s, outroT)
+      };
+      phaseLabel = '🌐 Final Geopolitical Overview';
+    }
+  }
+
+  target.s *= userZoom;
+  $('cameraPhaseReadout').textContent = phaseLabel;
+  return { c: { x: target.x, y: target.y }, s: target.s };
+}
+
+// --- Projection & Path Builders ---
+let activeMapHeight = 1080;
+function projectMerc(p, cam){
+  return {
+    x: (p.x - cam.c.x) * cam.s + canvas.width / 2,
+    y: (p.y - cam.c.y) * cam.s + activeMapHeight / 2
+  };
+}
+function posGeo(p, cam){ return projectMerc(geo(p), cam); }
+
+function buildPath2DFromGeom(geometry, cam, stepLimit=500){
+  const path = new Path2D();
+  let bb = { x1: 1e9, y1: 1e9, x2: -1e9, y2: -1e9 };
+  if(!geometry) return { path, bb };
+  const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : (geometry.type === 'MultiPolygon' ? geometry.coordinates : []);
+  for(const poly of polys){
+    for(const ring of poly){
+      if(!ring?.length) continue;
+      const step = Math.max(1, Math.floor(ring.length / stepLimit));
+      let first = true;
+      for(let i=0; i<ring.length; i+=step){
+        const pt = ring[i];
+        const a = posGeo({ lon: pt[0], lat: pt[1] }, cam);
+        bb.x1 = Math.min(bb.x1, a.x); bb.y1 = Math.min(bb.y1, a.y);
+        bb.x2 = Math.max(bb.x2, a.x); bb.y2 = Math.max(bb.y2, a.y);
+        if(first){ path.moveTo(a.x, a.y); first = false; }
+        else path.lineTo(a.x, a.y);
+      }
+      const last = ring[ring.length - 1];
+      if(last){
+        const a = posGeo({ lon: last[0], lat: last[1] }, cam);
+        path.lineTo(a.x, a.y);
+      }
+      path.closePath();
+    }
+  }
+  return { path, bb };
+}
+
+let hatchPatternCanvas = null;
+function getHatchPattern(color){
+  if(!hatchPatternCanvas) hatchPatternCanvas = document.createElement('canvas');
+  hatchPatternCanvas.width = 18; hatchPatternCanvas.height = 18;
+  const hctx = hatchPatternCanvas.getContext('2d');
+  hctx.clearRect(0,0,18,18);
+  hctx.strokeStyle = colorToRgba(color, 0.24);
+  hctx.lineWidth = 2;
+  hctx.beginPath();
+  hctx.moveTo(0,18); hctx.lineTo(18,0);
+  hctx.moveTo(-9,9); hctx.lineTo(9,-9);
+  hctx.moveTo(9,27); hctx.lineTo(27,9);
+  hctx.stroke();
+  return ctx.createPattern(hatchPatternCanvas, 'repeat');
+}
+
+function createLabelCollider(){
+  const boxes = [];
+  return {
+    tryPlace(x, y, w, h, pad=6){
+      const candidate = { x1: x - w/2 - pad, y1: y - h/2 - pad, x2: x + w/2 + pad, y2: y + h/2 + pad };
+      for(const b of boxes){
+        if(!(candidate.x2 < b.x1 || candidate.x1 > b.x2 || candidate.y2 < b.y1 || candidate.y1 > b.y2)) return false;
+      }
+      boxes.push(candidate);
+      return true;
+    },
+    reserve(x, y, w, h){
+      boxes.push({ x1: x - w/2, y1: y - h/2, x2: x + w/2, y2: y + h/2 });
+    }
+  };
+}
+
+// --- Draw Base Map (World / India States / State Districts) ---
+function drawBaseMap(cam, L, collider){
+  const soi = window.INDIA_OFFICIAL_MAP;
+  if(!soi) return;
+  const theme = $('theme').value;
+  const isolate = $('isolateScopeMap').checked;
+  const dimSurroundings = $('aeSpotlightDim').checked && (highlights.length > 0 || S.routeActive);
+
+  const pal = {
+    'ae-dark': {
+      sea1: '#040911', sea2: '#091526', grid: 'rgba(64,145,255,0.07)',
+      worldFill: '#101c2d', worldStroke: '#223550',
+      indiaFill: '#15253b', indiaStroke: '#3d648f',
+      stateStroke: '#2a4566', distStroke: 'rgba(68,108,150,0.44)',
+      labelColor: 'rgba(175,204,235,0.78)', labelBg: 'rgba(6,13,24,0.72)'
+    },
+    'ae-midnight': {
+      sea1: '#030812', sea2: '#061a33', grid: 'rgba(78,242,200,0.075)',
+      worldFill: '#0d1d34', worldStroke: '#1e3961',
+      indiaFill: '#132a4a', indiaStroke: '#4ef2c8',
+      stateStroke: '#284f7c', distStroke: 'rgba(80,140,200,0.42)',
+      labelColor: 'rgba(195,225,255,0.82)', labelBg: 'rgba(4,12,24,0.74)'
+    },
+    'ae-parchment': {
+      sea1: '#cad9dc', sea2: '#b6c9ce', grid: 'rgba(40,60,70,0.08)',
+      worldFill: '#e3decb', worldStroke: '#b5ae99',
+      indiaFill: '#efeada', indiaStroke: '#5c5346',
+      stateStroke: '#a69d88', distStroke: 'rgba(130,118,98,0.45)',
+      labelColor: '#3a342b', labelBg: 'rgba(245,241,230,0.8)'
+    },
+    'official-india': {
+      sea1: '#b8d8e0', sea2: '#cfe4de', grid: 'rgba(30,70,90,0.07)',
+      worldFill: '#d5dfd3', worldStroke: '#aebdb0',
+      indiaFill: '#e6efd8', indiaStroke: '#3f7d6e',
+      stateStroke: '#8fa899', distStroke: 'rgba(115,145,130,0.45)',
+      labelColor: '#28453d', labelBg: 'rgba(255,255,255,0.78)'
+    }
+  }[theme] || {
+    sea1: '#040911', sea2: '#091526', grid: 'rgba(64,145,255,0.07)',
+    worldFill: '#101c2d', worldStroke: '#223550',
+    indiaFill: '#15253b', indiaStroke: '#3d648f',
+    stateStroke: '#2a4566', distStroke: 'rgba(68,108,150,0.44)',
+    labelColor: 'rgba(175,204,235,0.78)', labelBg: 'rgba(6,13,24,0.72)'
+  };
+
+  const seaGrad = ctx.createRadialGradient(L.W*0.5, L.mapH*0.5, L.W*0.05, L.W*0.5, L.mapH*0.5, L.W*0.75);
+  seaGrad.addColorStop(0, pal.sea2); seaGrad.addColorStop(1, pal.sea1);
+  ctx.fillStyle = seaGrad;
+  ctx.fillRect(0, 0, L.W, L.mapH);
+
+  // Tactical Grid
+  if($('aeTacticalHud').checked){
+    ctx.save();
+    ctx.strokeStyle = pal.grid;
+    ctx.lineWidth = 1 * L.unit;
+    for(let lon = -160; lon <= 180; lon += 10){
+      const p = posGeo({ lon, lat: 0 }, cam);
+      if(p.x >= 0 && p.x <= L.W){ ctx.beginPath(); ctx.moveTo(p.x, 0); ctx.lineTo(p.x, L.mapH); ctx.stroke(); }
+    }
+    for(let lat = -60; lat <= 70; lat += 10){
+      const p = posGeo({ lon: 0, lat }, cam);
+      if(p.y >= 0 && p.y <= L.mapH){ ctx.beginPath(); ctx.moveTo(0, p.y); ctx.lineTo(L.W, p.y); ctx.stroke(); }
+    }
+    ctx.restore();
+  }
+
+  collider.reserve(L.W/2, 52*L.unit, L.W, 105*L.unit);
+  highlights.forEach(h => { const p = posGeo(h, cam); collider.reserve(p.x, p.y, 175*L.unit, 75*L.unit); });
+  if(S.routeActive){
+    S.stops.forEach(st => { if(valid(st)){ const p = posGeo(st, cam); collider.reserve(p.x, p.y, 145*L.unit, 58*L.unit); } });
+  }
+
+  // 1. World Countries
+  if(S.scope === 'world' || !isolate){
+    ctx.save();
+    if(S.scope !== 'world') ctx.globalAlpha = 0.30;
+    const worldPath = new Path2D();
+    for(const c of (soi.countries || [])){
+      if(c.name === 'India' && S.scope !== 'world') continue;
+      if(c.bounds){
+        const tl = posGeo({ lon: c.bounds[0], lat: c.bounds[3] }, cam);
+        const br = posGeo({ lon: c.bounds[2], lat: c.bounds[1] }, cam);
+        if(br.x < -50 || tl.x > L.W + 50 || br.y < -50 || tl.y > L.mapH + 50) continue;
+      }
+      const { path } = buildPath2DFromGeom(c.geometry, cam, 350);
+      worldPath.addPath(path);
+    }
+    ctx.fillStyle = pal.worldFill;
+    ctx.fill(worldPath, 'evenodd');
+    ctx.strokeStyle = pal.worldStroke;
+    ctx.lineWidth = Math.max(0.8, 1.1 * L.unit);
+    ctx.stroke(worldPath);
+    ctx.restore();
+  }
+
+  // 2. India Outline & 36 States
+  if(S.scope === 'india' || S.scope === 'world' || !isolate){
+    ctx.save();
+    if(S.scope === 'state' && isolate) ctx.globalAlpha = 0.14;
+    const { path: indiaPath } = buildPath2DFromGeom(soi.outline, cam, 600);
+    if(S.scope === 'india' && isolate){
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.7)';
+      ctx.shadowBlur = 28 * L.unit;
+      ctx.shadowOffsetY = 10 * L.unit;
+      ctx.fillStyle = pal.indiaFill;
+      ctx.fill(indiaPath, 'evenodd');
+      ctx.restore();
+    } else {
+      ctx.fillStyle = pal.indiaFill;
+      ctx.fill(indiaPath, 'evenodd');
+    }
+
+    if($('showStateBorders').checked && soi.states){
+      const statePath = new Path2D();
+      for(const s of soi.states){
+        const { path } = buildPath2DFromGeom(s.geometry, cam, 350);
+        statePath.addPath(path);
+      }
+      ctx.strokeStyle = pal.stateStroke;
+      ctx.lineWidth = Math.max(0.9, 1.25 * L.unit);
+      ctx.stroke(statePath);
+    }
+    ctx.strokeStyle = pal.indiaStroke;
+    ctx.lineWidth = Math.max(1.8, 2.3 * L.unit);
+    ctx.stroke(indiaPath);
+    ctx.restore();
+  }
+
+  // 3. State Districts Map (Including all 31 KGIS Karnataka Districts with Vijayanagara)
+  if(S.scope === 'state' && soi.states){
+    const stateDists = (soi.districts || []).filter(d => d.state.toLowerCase() === S.activeState.toLowerCase());
+    ctx.save();
+    const distPath = new Path2D();
+    for(const d of stateDists){
+      const { path } = buildPath2DFromGeom(d.geometry, cam, 400);
+      distPath.addPath(path);
+    }
+    // 3D Cutout Shadow under State
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 32 * L.unit;
+    ctx.shadowOffsetY = 12 * L.unit;
+    ctx.fillStyle = pal.indiaFill;
+    ctx.fill(distPath, 'evenodd');
+    ctx.restore();
+
+    ctx.strokeStyle = pal.indiaStroke;
+    ctx.lineWidth = Math.max(1.2, 1.6 * L.unit);
+    ctx.stroke(distPath);
+    ctx.restore();
+  }
+
+  if(dimSurroundings){
+    ctx.fillStyle = theme.includes('parchment') || theme.includes('official') ? 'rgba(10,18,28,0.20)' : 'rgba(2,6,13,0.46)';
+    ctx.fillRect(0, 0, L.W, L.mapH);
+  }
+
+  // 4. Collision-Safe Map Labels
+  if($('showStateLabels').checked){
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const hlNames = new Set(highlights.map(h => h.name.toLowerCase()));
+
+    if(S.scope === 'world'){
+      const fs = Math.max(10, 12.5 * L.unit);
+      ctx.font = font(fs, 700);
+      const priority = ['India','United States','Russia','China','Brazil','Australia','Canada','United Kingdom','France','Germany','Japan','Saudi Arabia','Iran','Israel','Pakistan','Indonesia','South Africa','Egypt','Ukraine','Turkey'];
+      const sorted = [...(soi.countries || [])].sort((a,b) => {
+        const ia = priority.indexOf(a.name), ib = priority.indexOf(b.name);
+        return (ia !== -1 && ib !== -1) ? ia - ib : (ia !== -1 ? -1 : (ib !== -1 ? 1 : 0));
+      });
+      for(const c of sorted){
+        if(!c.anchor || hlNames.has(c.name.toLowerCase())) continue;
+        const p = posGeo({ lon: c.anchor[0], lat: c.anchor[1] }, cam);
+        if(p.x < 40 || p.x > L.W - 40 || p.y < 90*L.unit || p.y > L.mapH - 30) continue;
+        const tw = ctx.measureText(c.name).width;
+        if(collider.tryPlace(p.x, p.y, tw + 10*L.unit, fs + 6*L.unit, 8*L.unit)){
+          ctx.fillStyle = pal.labelColor;
+          ctx.fillText(c.name, p.x, p.y);
+        }
+      }
+    } else if(S.scope === 'india'){
+      const fs = Math.max(10.5, 13 * L.unit);
+      ctx.font = font(fs, 700);
+      const shortNames = {
+        'Dadra and Nagar Haveli and Daman and Diu': 'DNH & DD',
+        'Andaman and Nicobar Islands': 'Andaman & Nicobar'
+      };
+      for(const s of (soi.states || [])){
+        if(!s.anchor || hlNames.has(s.name.toLowerCase())) continue;
+        const p = posGeo({ lon: s.anchor[0], lat: s.anchor[1] }, cam);
+        if(p.x < 40 || p.x > L.W - 40 || p.y < 95*L.unit || p.y > L.mapH - 30) continue;
+        const label = shortNames[s.name] || s.name;
+        const tw = ctx.measureText(label).width;
+        if(collider.tryPlace(p.x, p.y, tw + 12*L.unit, fs + 6*L.unit, 6*L.unit)){
+          ctx.fillStyle = pal.labelBg;
+          ctx.beginPath(); ctx.roundRect(p.x - tw/2 - 5*L.unit, p.y - fs/2 - 2*L.unit, tw + 10*L.unit, fs + 4*L.unit, 4*L.unit); ctx.fill();
+          ctx.fillStyle = pal.labelColor;
+          ctx.fillText(label, p.x, p.y);
+        }
+      }
+    } else if(S.scope === 'state' && $('showDistrictLabels').checked){
+      const fs = Math.max(10.5, 12.5 * L.unit);
+      ctx.font = font(fs, 700);
+      const stateDists = (soi.districts || []).filter(d => d.state.toLowerCase() === S.activeState.toLowerCase());
+      for(const d of stateDists){
+        if(!d.anchor || hlNames.has(d.district.toLowerCase())) continue;
+        const p = posGeo({ lon: d.anchor[0], lat: d.anchor[1] }, cam);
+        if(p.x < 35 || p.x > L.W - 35 || p.y < 90*L.unit || p.y > L.mapH - 25) continue;
+        const tw = ctx.measureText(d.district).width;
+        if(collider.tryPlace(p.x, p.y, tw + 10*L.unit, fs + 5*L.unit, 3*L.unit)){
+          ctx.fillStyle = pal.labelBg;
+          ctx.beginPath(); ctx.roundRect(p.x - tw/2 - 4*L.unit, p.y - fs/2 - 2*L.unit, tw + 8*L.unit, fs + 4*L.unit, 4*L.unit); ctx.fill();
+          ctx.fillStyle = pal.labelColor;
+          ctx.fillText(d.district, p.x, p.y);
+        }
+      }
+    }
+    ctx.restore();
+  }
+}
+
+// --- Military / Defense Unit Overlay Renderer (S-400 Dome, Fighter Squadron, Target Reticle, Carrier, Tank) ---
+function drawDefenseUnitOverlay(h, center, strokeCol, L){
+  const unit = h.defenseUnit || 'none';
+  if(unit === 'none') return;
+  const now = performance.now();
+  const u = L.unit;
+  ctx.save();
+  ctx.translate(center.x, center.y);
+
+  if(unit === 'dome'){
+    // S-400 / Iron Dome Air Defense Radar Hemisphere + Rotating Sweep Beam
+    const domeR = 54 * u;
+    const domeGrad = ctx.createRadialGradient(0, 0, 4*u, 0, 0, domeR);
+    domeGrad.addColorStop(0, colorToRgba('#4ef2c8', 0.05));
+    domeGrad.addColorStop(0.7, colorToRgba('#4ef2c8', 0.18));
+    domeGrad.addColorStop(1, colorToRgba('#4ef2c8', 0.42));
+    ctx.fillStyle = domeGrad;
+    ctx.beginPath(); ctx.arc(0, 0, domeR, 0, Math.PI*2); ctx.fill();
+
+    ctx.strokeStyle = '#4ef2c8';
+    ctx.lineWidth = 1.6 * u;
+    ctx.setLineDash([6*u, 4*u]);
+    ctx.beginPath(); ctx.arc(0, 0, domeR, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, domeR * 0.62, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Rotating Radar Sweep Cone
+    const angle = (now / 650) % (Math.PI * 2);
+    ctx.rotate(angle);
+    const sweepGrad = ctx.createLinearGradient(0, 0, domeR, 0);
+    sweepGrad.addColorStop(0, 'rgba(78,242,200,0.45)');
+    sweepGrad.addColorStop(1, 'rgba(78,242,200,0.0)');
+    ctx.fillStyle = sweepGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, domeR, -0.45, 0.05);
+    ctx.closePath();
+    ctx.fill();
+  } else if(unit === 'missile'){
+    // Rotating Tactical Target Lock-On Crosshair Reticle
+    const r = 38 * u;
+    const rot = (now / 900) % (Math.PI * 2);
+    ctx.strokeStyle = '#ff4d6d';
+    ctx.lineWidth = 2 * u;
+    ctx.save();
+    ctx.rotate(rot);
+    for(let i=0; i<4; i++){
+      ctx.rotate(Math.PI / 2);
+      ctx.beginPath();
+      ctx.arc(0, 0, r, -0.35, 0.35);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(r - 6*u, 0); ctx.lineTo(r + 6*u, 0);
+      ctx.stroke();
+    }
+    ctx.restore();
+  } else if(unit === 'jet'){
+    // Orbiting Fighter Jet Squadron
+    const orbitR = 44 * u;
+    const ang = (now / 850) % (Math.PI * 2);
+    const jx = Math.cos(ang) * orbitR, jy = Math.sin(ang) * orbitR;
+    ctx.strokeStyle = colorToRgba(strokeCol, 0.35);
+    ctx.setLineDash([4*u, 4*u]);
+    ctx.beginPath(); ctx.arc(0, 0, orbitR, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    drawFighterJetSprite(jx, jy, ang + Math.PI/2, 0.9 * u, strokeCol);
+  } else if(unit === 'naval'){
+    // Naval Sonar Pings
+    const p = ((now / 1200) % 1);
+    ctx.strokeStyle = colorToRgba('#38a3ff', 1 - p);
+    ctx.lineWidth = 2.2 * u;
+    ctx.beginPath(); ctx.arc(0, 0, (18 + 45 * p) * u, 0, Math.PI*2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFighterJetSprite(x, y, angle, scale, color='#4ef2c8'){
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.moveTo(16, 0);       // nose
+  ctx.lineTo(4, -3.5);
+  ctx.lineTo(-4, -14);     // left delta wing
+  ctx.lineTo(-9, -14);
+  ctx.lineTo(-6, -4);
+  ctx.lineTo(-14, -6);     // tail fin
+  ctx.lineTo(-14, 6);
+  ctx.lineTo(-6, 4);
+  ctx.lineTo(-9, 14);
+  ctx.lineTo(-4, 14);      // right delta wing
+  ctx.lineTo(4, 3.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+// --- After Effects Highlight Polygon + 3D Lift + Trim Paths + Custom Image Fill + Callout Card ---
+function drawAfterEffectsHighlight(h, idx, totalHighlights, cam, L, sec, totalDur){
+  const glow = (num('storyGlow') || 85) / 100;
+  const sweep = (num('storySweep') || 85) / 100;
+  const imgDisplay = $('aeImageDisplay').value;
+  const extrude3D = $('ae3dExtrude').checked;
+  const strokeCol = h.color || '#ff4d6d';
+
+  const staggerStart = S.routeActive ? 0 : idx * Math.min(1.3, (totalDur * 0.42) / Math.max(1, totalHighlights));
+  const localElapsed = Math.max(0, sec - staggerStart);
+  const borderProgress = S.routeActive ? 1 : easeOutQuint(clamp(localElapsed / 1.1, 0, 1));
+  const fillProgress = S.routeActive ? 1 : easeInOutCubic(clamp((localElapsed - 0.2) / 0.85, 0, 1));
+  const cardPop = S.routeActive ? 1 : easeOutBack(clamp((localElapsed - 0.4) / 0.65, 0, 1));
+
+  if(borderProgress <= 0.001) return;
+  const liftY = extrude3D ? -6 * L.unit * fillProgress : 0;
+
+  ctx.save();
+  ctx.translate(0, liftY);
+  const { path, bb } = buildPath2DFromGeom(h.geometry, cam, 550);
+
+  if(bb.x2 > bb.x1 && bb.y2 > bb.y1){
+    if(extrude3D && fillProgress > 0.05){
+      ctx.save();
+      ctx.translate(0, -liftY + 4 * L.unit * fillProgress);
+      ctx.fillStyle = colorToRgba(strokeCol, 0.24 * fillProgress);
+      ctx.shadowColor = 'rgba(0,0,0,0.85)';
+      ctx.shadowBlur = (22 + 18 * glow) * L.unit;
+      ctx.shadowOffsetY = 10 * L.unit * fillProgress;
+      ctx.fill(path, 'evenodd');
+      ctx.restore();
+    }
+
+    if(fillProgress > 0.01){
+      ctx.save();
+      ctx.globalAlpha = fillProgress;
+      ctx.clip(path, 'evenodd');
+      const bw = Math.max(1, bb.x2 - bb.x1), bh = Math.max(1, bb.y2 - bb.y1);
+      const hasCustomImg = h.image && (imgDisplay === 'both' || imgDisplay === 'inside');
+
+      if(hasCustomImg){
+        const imgScale = 1.12 - 0.12 * fillProgress;
+        const iw = h.image.width || 100, ih = h.image.height || 100;
+        const scale = Math.max(bw / iw, bh / ih) * imgScale;
+        const dw = iw * scale, dh = ih * scale;
+        ctx.drawImage(h.image, bb.x1 + (bw - dw)/2, bb.y1 + (bh - dh)/2, dw, dh);
+        ctx.fillStyle = colorToRgba(strokeCol, 0.18);
+        ctx.fillRect(bb.x1 - 5, bb.y1 - 5, bw + 10, bh + 10);
+      } else {
+        const g = ctx.createLinearGradient(bb.x1, bb.y1, bb.x2, bb.y2);
+        g.addColorStop(0, colorToRgba(strokeCol, 0.58));
+        g.addColorStop(0.55, colorToRgba(strokeCol, 0.26));
+        g.addColorStop(1, colorToRgba(strokeCol, 0.12));
+        ctx.fillStyle = g;
+        ctx.fillRect(bb.x1 - 5, bb.y1 - 5, bw + 10, bh + 10);
+
+        const pat = getHatchPattern(strokeCol);
+        if(pat){ ctx.fillStyle = pat; ctx.fillRect(bb.x1 - 5, bb.y1 - 5, bw + 10, bh + 10); }
+      }
+
+      if(sweep > 0){
+        const travel = ((performance.now() / 1650 + idx * 0.3) % 1);
+        const sw = bw * (0.22 + 0.25 * sweep);
+        const sx = bb.x1 - sw + (bw + sw * 2) * travel;
+        const sGrad = ctx.createLinearGradient(sx, bb.y1, sx + sw, bb.y1 + bh * 0.4);
+        sGrad.addColorStop(0, 'rgba(255,255,255,0)');
+        sGrad.addColorStop(0.5, `rgba(255,255,255,${0.14 + 0.28 * sweep})`);
+        sGrad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = sGrad;
+        ctx.fillRect(bb.x1 - 10, bb.y1 - 10, bw + 20, bh + 20);
+      }
+      ctx.restore();
+    }
+
+    // Trim-Paths Border Trace
+    ctx.save();
+    const approxPerim = Math.max(400, 2.8 * ((bb.x2 - bb.x1) + (bb.y2 - bb.y1)));
+    if(borderProgress < 0.999) ctx.setLineDash([approxPerim * borderProgress, approxPerim * 2]);
+    ctx.strokeStyle = colorToRgba(strokeCol, 0.32);
+    ctx.lineWidth = (7 + 5 * glow) * L.unit;
+    ctx.stroke(path);
+
+    ctx.shadowColor = strokeCol;
+    ctx.shadowBlur = (15 + 25 * glow) * L.unit;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = (2.5 + 1.5 * glow) * L.unit;
+    ctx.stroke(path);
+    ctx.restore();
+  }
+
+  // Defense Unit Overlay + 3D Callout Card
+  if(valid(h) && cardPop > 0.02){
+    const center = posGeo(h, cam);
+    if(center.x > -50 && center.x < L.W + 50 && center.y > -50 && center.y < L.mapH + 50){
+      drawDefenseUnitOverlay(h, center, strokeCol, L);
+
+      if(!S.routeActive){
+        const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 240);
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, (12 + 9 * pulse) * L.unit, 0, Math.PI * 2);
+        ctx.strokeStyle = colorToRgba(strokeCol, 0.45 * (1 - pulse * 0.5));
+        ctx.lineWidth = 2 * L.unit;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, 5 * L.unit, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(center.x, center.y - 34 * L.unit);
+        ctx.scale(cardPop, cardPop);
+
+        const showThumbInCard = h.image && (imgDisplay === 'both' || imgDisplay === 'card');
+        const subStr = (h.subText || '').trim();
+        ctx.font = font(Math.max(13, 15 * L.unit), 800);
+        const nameW = ctx.measureText(h.name.toUpperCase()).width;
+        ctx.font = font(Math.max(10, 11 * L.unit), 600);
+        const subW = subStr ? ctx.measureText(subStr).width : 0;
+        const textBlockW = Math.max(nameW, subW);
+        const thumbW = showThumbInCard ? 38 * L.unit : 0;
+        const cardW = textBlockW + thumbW + (showThumbInCard ? 36 : 28) * L.unit;
+        const cardH = (subStr ? 44 : (showThumbInCard ? 38 : 30)) * L.unit;
+
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.shadowBlur = 16 * L.unit;
+        ctx.shadowOffsetY = 5 * L.unit;
+        ctx.fillStyle = 'rgba(7, 15, 27, 0.94)';
+        ctx.strokeStyle = strokeCol;
+        ctx.lineWidth = 1.8 * L.unit;
+        ctx.beginPath();
+        ctx.roundRect(-cardW/2, -cardH/2, cardW, cardH, 8 * L.unit);
+        ctx.fill(); ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = strokeCol;
+        ctx.beginPath();
+        ctx.roundRect(-cardW/2, -cardH/2, 5 * L.unit, cardH, [8*L.unit, 0, 0, 8*L.unit]);
+        ctx.fill();
+
+        let textX = 2 * L.unit;
+        if(showThumbInCard){
+          const tx = -cardW/2 + 11 * L.unit, ty = -cardH/2 + 5 * L.unit;
+          const tw = 34 * L.unit, th = cardH - 10 * L.unit;
+          ctx.save();
+          ctx.beginPath(); ctx.roundRect(tx, ty, tw, th, 4 * L.unit); ctx.clip();
+          ctx.drawImage(h.image, tx, ty, tw, th);
+          ctx.restore();
+          textX = (tw + 6 * L.unit) / 2;
+        }
+
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = font(Math.max(13, 15 * L.unit), 800);
+        ctx.fillText(h.name.toUpperCase(), textX, subStr ? -7 * L.unit : 0);
+        if(subStr){
+          ctx.font = font(Math.max(10, 11 * L.unit), 700);
+          ctx.fillStyle = '#78fadb';
+          ctx.fillText(subStr, textX, 9 * L.unit);
+        }
+        ctx.restore();
+      }
+    }
+  }
+  ctx.restore();
+}
+
+// --- Tactical Strike, Missile, S-400 Intercept, Fighter Sortie & Corridor Renderer ---
+function drawTacticalVectors(cam, L, sec){
+  if(!links.length || S.routeActive) return;
+  const u = L.unit;
+  ctx.save();
+
+  links.forEach((link, idx) => {
+    const a = highlights.find(h => h.name === link.from);
+    const b = highlights.find(h => h.name === link.to);
+    if(!a || !b || !valid(a) || !valid(b)) return;
+
+    const startDelay = 0.7 + idx * 0.65;
+    const rawProg = clamp((sec - startDelay) / 1.35, 0, 1);
+    const prog = easeInOutCubic(rawProg);
+    if(prog <= 0.01) return;
+
+    const pa = posGeo(a, cam), pb = posGeo(b, cam);
+    const dx = pb.x - pa.x, dy = pb.y - pa.y;
+    const kind = link.kind || 'alliance';
+
+    // High parabolic arc for ballistic missiles
+    const arcLift = kind === 'missile' || kind === 'intercept' ? 95 * u : 38 * u;
+    const ctrlX = (pa.x + pb.x) / 2 - dy * 0.14;
+    const ctrlY = (pa.y + pb.y) / 2 - arcLift;
+
+    const col = kind === 'missile' || kind === 'clash' ? '#ff4d6d' : (kind === 'intercept' ? '#ffbe42' : (a.color || '#4ef2c8'));
+    const maxT = kind === 'intercept' ? Math.min(prog, 0.56) : prog;
+
+    ctx.beginPath();
+    const steps = 50;
+    const maxStep = Math.max(1, Math.floor(steps * maxT));
+    let tipX = pa.x, tipY = pa.y, prevX = pa.x, prevY = pa.y;
+    for(let i=0; i<=maxStep; i++){
+      const t = (i / steps);
+      const x = (1-t)*(1-t)*pa.x + 2*(1-t)*t*ctrlX + t*t*pb.x;
+      const y = (1-t)*(1-t)*pa.y + 2*(1-t)*t*ctrlY + t*t*pb.y;
+      if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      prevX = tipX; prevY = tipY; tipX = x; tipY = y;
+    }
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 3.6 * u;
+    ctx.shadowColor = col;
+    ctx.shadowBlur = 15 * u;
+    ctx.stroke();
+
+    // Flowing core dashes
+    ctx.save();
+    ctx.setLineDash([10 * u, 8 * u]);
+    ctx.lineDashOffset = -((performance.now() / 20) % 36);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5 * u;
+    ctx.stroke();
+    ctx.restore();
+
+    const angle = Math.atan2(tipY - prevY, tipX - prevX);
+
+    if(kind === 'jet'){
+      drawFighterJetSprite(tipX, tipY, angle, 1.25 * u, col);
+    } else if(kind === 'missile'){
+      // Glowing Missile Warhead + Impact Blast Shockwave when prog >= 0.96
+      ctx.save();
+      ctx.translate(tipX, tipY);
+      ctx.rotate(angle);
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(12*u, 0); ctx.lineTo(-8*u, -4.5*u); ctx.lineTo(-5*u, 0); ctx.lineTo(-8*u, 4.5*u);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+
+      if(prog >= 0.95){
+        const blastP = ((performance.now() / 700) % 1);
+        ctx.save();
+        ctx.strokeStyle = `rgba(255, 77, 109, ${1 - blastP})`;
+        ctx.lineWidth = 3 * u;
+        ctx.beginPath(); ctx.arc(pb.x, pb.y, (12 + 52 * blastP) * u, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = `rgba(255, 190, 66, ${0.45 * (1 - blastP)})`;
+        ctx.beginPath(); ctx.arc(pb.x, pb.y, (8 + 26 * blastP) * u, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
+    } else if(kind === 'intercept' && prog > 0.35){
+      // Draw Interceptor Missile launching from B to meet at t=0.56!
+      const intProg = clamp((prog - 0.35) / 0.25, 0, 1);
+      const meetX = 0.44*0.44*pa.x + 2*0.44*0.56*ctrlX + 0.56*0.56*pb.x;
+      const meetY = 0.44*0.44*pa.y + 2*0.44*0.56*ctrlY + 0.56*0.56*pb.y;
+      const curIX = lerp(pb.x, meetX, intProg), curIY = lerp(pb.y, meetY, intProg);
+      ctx.strokeStyle = '#4ef2c8';
+      ctx.lineWidth = 3 * u;
+      ctx.beginPath(); ctx.moveTo(pb.x, pb.y); ctx.lineTo(curIX, curIY); ctx.stroke();
+
+      if(intProg >= 0.95){
+        const flash = ((performance.now() / 500) % 1);
+        ctx.strokeStyle = `rgba(78, 242, 200, ${1 - flash})`;
+        ctx.lineWidth = 3 * u;
+        ctx.beginPath(); ctx.arc(meetX, meetY, (10 + 38 * flash) * u, 0, Math.PI*2); ctx.stroke();
+      }
+    } else {
+      // Standard tactical arrowhead
+      ctx.save();
+      ctx.translate(tipX, tipY);
+      ctx.rotate(angle);
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(8*u, 0); ctx.lineTo(-7*u, -5.5*u); ctx.lineTo(-4*u, 0); ctx.lineTo(-7*u, 5.5*u);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+
+    // Midpoint Label Pill
+    if(prog > 0.5){
+      const mx = 0.25*pa.x + 0.5*ctrlX + 0.25*pb.x;
+      const my = 0.25*pa.y + 0.5*ctrlY + 0.25*pb.y;
+      ctx.font = font(Math.max(10.5, 12 * u), 800);
+      const lw = ctx.measureText(link.label).width + 18 * u, lh = 22 * u;
+      ctx.fillStyle = 'rgba(6, 14, 24, 0.94)';
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 1.4 * u;
+      ctx.beginPath(); ctx.roundRect(mx - lw/2, my - lh/2, lw, lh, 6 * u); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = col;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(link.label, mx, my);
+    }
+  });
+  ctx.restore();
+}
+
+// --- Complete Travel Route & Moving Vehicle Renderer ---
+function sampleScreenPath(cam){
+  const pts = geom.map((p, idx) => {
+    const sp = projectMerc(p, cam);
+    return { x: sp.x, y: sp.y, alt: S.route[idx]?.alt || 0 };
+  });
+  let dist = [0];
+  for(let i=1; i<pts.length; i++){
+    dist[i] = dist[i-1] + Math.hypot(pts[i].x - pts[i-1].x, pts[i].y - pts[i-1].y);
+  }
+  return { pts, dist, total: dist.at(-1) || 1 };
+}
+
+function screenAtDistance(path, d){
+  const pts = path.pts, dd = path.dist;
+  if(!pts.length) return { x: 0, y: 0, a: 0, alt: 0 };
+  if(pts.length === 1) return { ...pts[0], a: 0 };
+  d = clamp(d, 0, path.total);
+  let lo = 1, hi = dd.length - 1;
+  while(lo < hi){ const m = (lo + hi) >> 1; if(dd[m] < d) lo = m + 1; else hi = m; }
+  const j = lo, den = dd[j] - dd[j-1], f = den ? (d - dd[j-1]) / den : 0;
+  const p = pts[j-1], q = pts[j];
+  return {
+    x: lerp(p.x, q.x, f),
+    y: lerp(p.y, q.y, f),
+    a: Math.atan2(q.y - p.y, q.x - p.x),
+    alt: lerp(p.alt || 0, q.alt || 0, f)
+  };
+}
+
+function drawVehicleModel(kind, x, y, angle, scale, isEngine=true, alt=0){
+  ctx.save();
+  ctx.translate(x, y);
+
+  // If custom uploaded vehicle image exists
+  if(S.customVehicleImg && isEngine){
+    ctx.rotate(angle);
+    const w = 68 * scale, h = 42 * scale;
+    ctx.shadowColor = 'rgba(0,0,0,0.75)'; ctx.shadowBlur = 12;
+    ctx.drawImage(S.customVehicleImg, -w/2, -h/2, w, h);
+    ctx.restore();
+    return;
+  }
+
+  if(kind === 'plane' || kind === 'jet' || S.mode === 'flight' || S.mode === 'jet'){
+    // Ground Shadow under aircraft
+    const shadowOffset = 14 + alt * 38 * scale;
+    ctx.save();
+    ctx.translate(shadowOffset * 0.4, shadowOffset);
+    ctx.rotate(angle + Math.PI/2);
+    ctx.scale(scale * 0.85, scale * 0.85);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.beginPath();
+    ctx.moveTo(0, -28); ctx.lineTo(24, 6); ctx.lineTo(0, 18); ctx.lineTo(-24, 6); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    if(kind === 'jet' || S.mode === 'jet'){
+      ctx.restore();
+      drawFighterJetSprite(x, y, angle, scale * 1.45, $('routeColor').value);
+      return;
+    }
+
+    ctx.rotate(angle + Math.PI/2);
+    ctx.scale(scale * (1 + alt * 0.22), scale * (1 + alt * 0.22));
+    ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 12;
+    ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#38a3ff'; ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(0,-34); ctx.lineTo(5,-8); ctx.lineTo(28,6); ctx.lineTo(28,13);
+    ctx.lineTo(5,7); ctx.lineTo(5,22); ctx.lineTo(13,28); ctx.lineTo(13,32);
+    ctx.lineTo(0,28); ctx.lineTo(-13,32); ctx.lineTo(-13,28); ctx.lineTo(-5,22);
+    ctx.lineTo(-5,7); ctx.lineTo(-28,13); ctx.lineTo(-28,6); ctx.lineTo(-5,-8);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+    return;
+  }
+
+  ctx.rotate(angle + Math.PI/2);
+  ctx.scale(scale, scale);
+  ctx.shadowColor = 'rgba(0,0,0,0.75)'; ctx.shadowBlur = 9; ctx.shadowOffsetY = 3;
+
+  if(kind === 'train' || S.mode === 'train' || S.mode === 'metro'){
+    ctx.fillStyle = isEngine ? '#f6e5bc' : '#2d7eb0';
+    ctx.strokeStyle = '#102a42'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.roundRect(-14, -26, 28, 52, 6); ctx.fill(); ctx.stroke();
+    if(isEngine){
+      ctx.fillStyle = '#183f66';
+      ctx.beginPath(); ctx.roundRect(-11, -22, 22, 11, 3); ctx.fill();
+      ctx.fillStyle = '#e04f42';
+      ctx.fillRect(-13, -9, 26, 4); ctx.fillRect(-13, 14, 26, 4);
+    } else {
+      ctx.fillStyle = '#99d5ea';
+      for(let j=0; j<4; j++){ ctx.beginPath(); ctx.roundRect(-11, -20+j*11, 22, 7, 2); ctx.fill(); }
+    }
+  } else if(kind === 'bus' || S.mode === 'bus'){
+    ctx.fillStyle = '#f2bc3f'; ctx.strokeStyle = '#1d3750'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.roundRect(-14, -26, 28, 52, 6); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#205f7d';
+    ctx.beginPath(); ctx.roundRect(-11, -21, 22, 11, 3); ctx.fill();
+  } else if(kind === 'boat' || S.mode === 'river'){
+    ctx.fillStyle = '#e8f9ff'; ctx.strokeStyle = '#1b698f'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0,-28); ctx.quadraticCurveTo(18,-3,13,20); ctx.quadraticCurveTo(0,28,-13,20); ctx.quadraticCurveTo(-18,-3,0,-28);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  } else {
+    // Car / Bike
+    ctx.fillStyle = '#ff4d6d'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(-12, -22, 24, 44, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#13283f';
+    ctx.beginPath(); ctx.roundRect(-9, -12, 18, 13, 3); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawActiveRoute(cam, L, collider){
+  if(!S.routeActive || geom.length < 2) return;
+  const u = L.unit;
+  const t = travelFraction();
+  const path = sampleScreenPath(cam);
+  const dest = path.total * t;
+  const routeCol = $('routeColor').value || '#4ef2c8';
+  const rw = num('routeWidth') || 7;
+
+  ctx.save();
+  // 1. Full Unvisited Track Casing
+  ctx.beginPath();
+  path.pts.forEach((p,i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = 'rgba(7, 18, 32, 0.82)';
+  ctx.lineWidth = (rw + 6) * u;
+  ctx.stroke();
+
+  ctx.strokeStyle = colorToRgba(routeCol, 0.22);
+  ctx.lineWidth = rw * u;
+  ctx.stroke();
+
+  // Railway Sleeper Crossties when in Train Mode
+  if(S.mode === 'train'){
+    ctx.save();
+    ctx.setLineDash([3 * u, 11 * u]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+    ctx.lineWidth = (rw + 4) * u;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 2. Active Traveled Neon Line up to `dest`
+  ctx.beginPath();
+  for(let i=0; i<path.pts.length; i++){
+    const p = path.pts[i];
+    if(i === 0) ctx.moveTo(p.x, p.y);
+    else if(path.dist[i] <= dest) ctx.lineTo(p.x, p.y);
+    else {
+      const tip = screenAtDistance(path, dest);
+      ctx.lineTo(tip.x, tip.y);
+      break;
+    }
+  }
+  ctx.shadowColor = routeCol;
+  ctx.shadowBlur = 18 * u;
+  ctx.strokeStyle = routeCol;
+  ctx.lineWidth = rw * u;
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1.6 * u;
+  ctx.stroke();
+
+  // 3. Stop Pins, Labels & Photo Spotlight Cards
+  const curStopIdx = reachedStopIndex(t);
+  S.stops.forEach((st, idx) => {
+    if(!valid(st)) return;
+    const p = posGeo(st, cam);
+    const isReached = idx <= curStopIdx;
+    const isCurrent = idx === curStopIdx;
+
+    // Stop Pin Circle
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, (idx === 0 || idx === S.stops.length - 1 ? 7.5 : 5.5) * u, 0, Math.PI * 2);
+    ctx.fillStyle = isReached ? routeCol : '#1b2d45';
+    ctx.fill();
+    ctx.lineWidth = 2.2 * u;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+
+    // Stop Name Badge
+    ctx.font = font(Math.max(11.5, 13.5 * u), 800);
+    const label = st.name;
+    const tw = ctx.measureText(label).width;
+    const bw = tw + 20 * u, bh = 25 * u;
+    const bx = p.x - bw/2, by = p.y - bh - 14 * u;
+
+    ctx.fillStyle = isCurrent ? 'rgba(12, 36, 48, 0.96)' : 'rgba(8, 16, 28, 0.88)';
+    ctx.strokeStyle = isReached ? routeCol : '#395578';
+    ctx.lineWidth = 1.5 * u;
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 6 * u); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, p.x, by + bh/2);
+
+    // If stop has an uploaded photo and vehicle is near this stop, show Photo Spotlight Card
+    if(st.image && isCurrent){
+      const pw = 115 * u, ph = 78 * u;
+      const px = p.x - pw/2, py = by - ph - 8 * u;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 14 * u;
+      ctx.fillStyle = '#091422'; ctx.strokeStyle = routeCol; ctx.lineWidth = 2 * u;
+      ctx.beginPath(); ctx.roundRect(px, py, pw, ph, 8 * u); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(px + 3*u, py + 3*u, pw - 6*u, ph - 6*u, 6 * u); ctx.clip();
+      ctx.drawImage(st.image, px + 3*u, py + 3*u, pw - 6*u, ph - 6*u);
+      ctx.restore();
+    }
+  });
+
+  // 4. Moving Vehicle (With Multi-Coach Train Articulation)
+  const vKind = $('vehicle').value === 'auto' ? S.mode : $('vehicle').value;
+  const vScale = (num('vehicleSize') / 100) * u * 1.05;
+  const head = screenAtDistance(path, dest);
+  const coaches = (vKind === 'train' || S.mode === 'train') ? Math.max(0, +$('coaches').value) : 0;
+
+  if(coaches > 0){
+    const spacing = 48 * vScale;
+    const cars = [head];
+    for(let c=1; c<=coaches; c++) cars.push(screenAtDistance(path, dest - c * spacing));
+    for(let c=cars.length-1; c>=0; c--){
+      drawVehicleModel('train', cars[c].x, cars[c].y, cars[c].a, vScale, c === 0, 0);
+    }
+  } else {
+    drawVehicleModel(vKind, head.x, head.y, head.a, vScale, true, head.alt);
+  }
+
+  // Vehicle Floating Name Tag
+  const vName = $('vehicleName').value.trim();
+  if(vName){
+    ctx.font = font(Math.max(10.5, 12 * u), 800);
+    const nw = ctx.measureText(vName).width + 16 * u, nh = 21 * u;
+    const nx = head.x - nw/2, ny = head.y + 28 * u;
+    ctx.fillStyle = 'rgba(6, 15, 26, 0.92)';
+    ctx.strokeStyle = routeCol; ctx.lineWidth = 1.3 * u;
+    ctx.beginPath(); ctx.roundRect(nx, ny, nw, nh, 5 * u); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = routeCol;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(vName, head.x, ny + nh/2);
+  }
+  ctx.restore();
+}
+
+// --- Lower-Third Journey Spotlight Bar & Live KM Telemetry HUD ---
+function drawRouteLowerThirdAndHUD(L, t){
+  if(!S.routeActive || S.stops.length < 2) return;
+  const u = L.unit;
+  const routeCol = $('routeColor').value || '#4ef2c8';
+  const curIdx = reachedStopIndex(t), nextIdx = Math.min(S.stops.length - 1, curIdx + 1);
+  const kmNow = Math.round(S.totalKm * t), kmTot = Math.max(1, Math.round(S.totalKm));
+
+  // Top-Right Live Telemetry Pill (KM Traveled + Progress %)
+  if($('showDistanceCounter').checked){
+    ctx.save();
+    const cw = 245 * u, ch = 58 * u;
+    const cx = L.W - cw - 18 * u, cy = 16 * u;
+    ctx.fillStyle = 'rgba(6, 14, 25, 0.92)';
+    ctx.strokeStyle = routeCol;
+    ctx.lineWidth = 1.6 * u;
+    ctx.beginPath(); ctx.roundRect(cx, cy, cw, ch, 10 * u); ctx.fill(); ctx.stroke();
+
+    ctx.font = font(10.5 * u, 800);
+    ctx.fillStyle = '#8cb0d1';
+    ctx.textAlign = 'left';
+    ctx.fillText(`LIVE ROUTE TELEMETRY · ${Math.round(t*100)}%`, cx + 14*u, cy + 18*u);
+
+    ctx.font = font(21 * u, 900);
+    ctx.fillStyle = routeCol;
+    ctx.fillText(`${kmNow.toLocaleString()} / ${kmTot.toLocaleString()} KM`, cx + 14*u, cy + 43*u);
+    ctx.restore();
+  }
+
+  // Bottom Lower-Third Bar
+  if(L.lower > 0){
+    const Y = L.mapH, H = L.lower, W = L.W;
+    ctx.save();
+    ctx.fillStyle = '#081220';
+    ctx.fillRect(0, Y, W, H);
+    ctx.fillStyle = routeCol;
+    ctx.fillRect(0, Y, W, 3.5 * u);
+
+    const pad = 26 * u;
+    ctx.textAlign = 'left';
+    ctx.font = font(11.5 * u, 800);
+    ctx.fillStyle = routeCol;
+    ctx.fillText(`● CURRENT STOP (${curIdx + 1}/${S.stops.length})`, pad, Y + H * 0.28);
+
+    ctx.font = font(24 * u, 900);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(S.stops[curIdx]?.name || 'Start', pad, Y + H * 0.60);
+
+    ctx.textAlign = 'right';
+    ctx.font = font(11.5 * u, 800);
+    ctx.fillStyle = '#8cb0d1';
+    ctx.fillText(nextIdx > curIdx ? `NEXT DESTINATION (${nextIdx + 1}/${S.stops.length})` : '🎉 JOURNEY COMPLETE', W - pad, Y + H * 0.28);
+
+    ctx.font = font(22 * u, 800);
+    ctx.fillStyle = '#78fadb';
+    ctx.fillText(S.stops[nextIdx]?.name || 'Finish', W - pad, Y + H * 0.60);
+
+    // Timeline Progress Bar at bottom edge
+    const barY = Y + H - 14 * u, bw = W - 2 * pad;
+    ctx.strokeStyle = '#1f3550'; ctx.lineWidth = 4 * u;
+    ctx.beginPath(); ctx.moveTo(pad, barY); ctx.lineTo(pad + bw, barY); ctx.stroke();
+    ctx.strokeStyle = routeCol; ctx.lineWidth = 4.5 * u;
+    ctx.beginPath(); ctx.moveTo(pad, barY); ctx.lineTo(pad + bw * t, barY); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// --- Broadcast Explainer Header Banner & Military HUD Corner Brackets ---
+function drawExplainerHUD(L){
+  const headline = $('storyHeadline').value.trim();
+  const u = L.unit;
+
+  if(headline){
+    ctx.save();
+    const hh = 74 * u;
+    const bg = ctx.createLinearGradient(0, 0, L.W * 0.72, 0);
+    bg.addColorStop(0, 'rgba(5, 11, 20, 0.94)');
+    bg.addColorStop(0.75, 'rgba(8, 18, 32, 0.76)');
+    bg.addColorStop(1, 'rgba(8, 18, 32, 0)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, L.W * 0.78, hh);
+
+    ctx.fillStyle = '#4ef2c8';
+    ctx.fillRect(0, 0, 6.5 * u, hh);
+
+    const scopeTag = S.routeActive
+      ? `TRAVEL ROUTE ANIMATOR · ${S.mode.toUpperCase()} CORRIDOR`
+      : (S.scope === 'world'
+          ? 'GLOBAL GEOPOLITICS · GOVT OF INDIA OFFICIAL MAP'
+          : (S.scope === 'state' ? `${S.activeState.toUpperCase()} 31 DISTRICTS · SURVEY OF INDIA & KGIS` : 'OFFICIAL INDIA MAP · 36 STATES & UTs'));
+    ctx.font = font(Math.max(10, 11.5 * u), 800);
+    ctx.fillStyle = '#4ef2c8';
+    ctx.textAlign = 'left';
+    ctx.fillText(scopeTag, 20 * u, 22 * u);
+
+    ctx.font = font(Math.max(19, 26 * u), 900);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(headline, 20 * u, 50 * u, L.W * 0.72);
+    ctx.restore();
+  }
+
+  // Tactical HUD Corner Brackets
+  if($('aeTacticalHud').checked){
+    ctx.save();
+    ctx.strokeStyle = 'rgba(78, 242, 200, 0.35)';
+    ctx.lineWidth = 2 * u;
+    const m = 14 * u, len = 22 * u;
+    // Bottom-Left bracket
+    ctx.beginPath(); ctx.moveTo(m, L.mapH - m - len); ctx.lineTo(m, L.mapH - m); ctx.lineTo(m + len, L.mapH - m); ctx.stroke();
+    // Bottom-Right bracket
+    ctx.beginPath(); ctx.moveTo(L.W - m - len, L.mapH - m); ctx.lineTo(L.W - m, L.mapH - m); ctx.lineTo(L.W - m, L.mapH - m - len); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// --- Main Draw & Loop ---
+function dimensions(){
+  const size = num('resolution') || 1080;
+  const fmt = $('format').value;
+  return fmt === '9:16' ? [Math.round(size*9/16), size] : (fmt === '1:1' ? [size, size] : [Math.round(size*16/9), size]);
+}
+function layout(){
+  const W = canvas.width, H = canvas.height, port = $('format').value === '9:16';
+  const lower = (S.routeActive && $('showBottom').checked) ? Math.round(H * 0.14) : 0;
+  return { W, H, lower, mapH: H - lower, unit: Math.max(0.65, W / (port ? 640 : 1920) * 1.45), portrait: port };
+}
+
+function draw(){
+  const L = layout();
+  activeMapHeight = L.mapH;
+  const total = totalSecs();
+  const sec = clamp(S.seconds, 0, total);
+  const targetCam = computeTargetCamera(L, sec, total);
+
+  if(!smoothCam.initialized){
+    smoothCam.x = targetCam.c.x; smoothCam.y = targetCam.c.y; smoothCam.s = targetCam.s;
+    smoothCam.initialized = true;
+  } else {
+    const damp = S.playing ? 0.14 : 0.30;
+    smoothCam.x = lerp(smoothCam.x, targetCam.c.x, damp);
+    smoothCam.y = lerp(smoothCam.y, targetCam.c.y, damp);
+    smoothCam.s = lerp(smoothCam.s, targetCam.s, damp);
+  }
+  const cam = { c: { x: smoothCam.x, y: smoothCam.y }, s: smoothCam.s };
+  const collider = createLabelCollider();
+
+  ctx.clearRect(0, 0, L.W, L.H);
+
+  // 1. Base Map
+  drawBaseMap(cam, L, collider);
+
+  // 2. Highlighted Polygons + 3D Lift + Custom Images + Defense Domes
+  highlights.forEach((h, idx) => {
+    drawAfterEffectsHighlight(h, idx, highlights.length, cam, L, sec, total);
+  });
+
+  // 3. Tactical Vectors (Missiles, S-400 Intercepts, Fighter Sorties, Alliances)
+  drawTacticalVectors(cam, L, sec);
+
+  // 4. Active Travel Route & Moving Vehicles
+  drawActiveRoute(cam, L, collider);
+
+  // 5. Broadcast Explainer Headline & Route Lower-Third
+  drawExplainerHUD(L);
+  drawRouteLowerThirdAndHUD(L, travelFraction());
+
+  $('seek').value = Math.round((sec / total) * 1000);
+  const fm = x => String(Math.floor(x/60)).padStart(2,'0') + ':' + String(Math.floor(x%60)).padStart(2,'0');
+  $('clock').textContent = `${fm(sec)} / ${fm(total)}`;
+  $('zoomRead').textContent = Number(num('zoom') || 1).toFixed(1) + '×';
+}
+
+function restartAnimation(){
+  S.seconds = 0;
+  S.playing = true;
+  $('play').textContent = 'Ⅱ Pause';
+}
+
+function loop(time){
+  const dt = lastFrame ? (time - lastFrame) / 1000 : 0;
+  lastFrame = time;
+  if(S.playing){
+    S.seconds += Math.min(dt, 0.1);
+    if(S.seconds >= totalSecs()){
+      if(S.recording){
+        S.seconds = totalSecs();
+        finishRecording();
+      } else {
+        S.seconds = 0;
+      }
+    }
+  }
+  draw();
+  raf = requestAnimationFrame(loop);
+}
+
+// --- Controls & MP4 / WebM Video Export ---
+$('play').onclick = () => {
+  S.playing = !S.playing;
+  $('play').textContent = S.playing ? 'Ⅱ Pause' : '▶ Play';
+};
+$('reset').onclick = $('btnReplayAnim').onclick = () => restartAnimation();
+$('seek').oninput = e => {
+  S.seconds = (+e.target.value / 1000) * totalSecs();
+  S.playing = false;
+  $('play').textContent = '▶ Play';
+  smoothCam.initialized = false;
+  draw();
+};
+$('zoomIn').onclick = () => { $('zoom').value = clamp(num('zoom') + 0.2, 0.5, 8).toFixed(1); };
+$('zoomOut').onclick = () => { $('zoom').value = clamp(num('zoom') - 0.2, 0.5, 8).toFixed(1); };
+$('zoomFit').onclick = $('previewFit').onclick = () => { $('zoom').value = '1'; smoothCam.initialized = false; };
+$('previewFullscreen').onclick = async () => {
+  if(document.fullscreenElement) await document.exitFullscreen();
+  else await $('stage').requestFullscreen();
+};
+$('stageSurface').addEventListener('wheel', e => {
+  e.preventDefault();
+  $('zoom').value = clamp(num('zoom') + (e.deltaY < 0 ? 0.15 : -0.15), 0.5, 8).toFixed(1);
+}, { passive: false });
+
+function resize(){
+  const [w, h] = dimensions();
+  canvas.width = w; canvas.height = h;
+  $('stage').className = 'stage' + ($('format').value === '9:16' ? ' vertical' : ($('format').value === '1:1' ? ' square' : ''));
+  smoothCam.initialized = false;
+  draw();
+}
+$('format').onchange = resize;
+$('resolution').onchange = resize;
+
+// Check MP4 Hardware Support
+const mp4Mimes = [
+  'video/mp4;codecs=avc1.64002a',
+  'video/mp4;codecs=avc1.42E01E',
+  'video/mp4;codecs=avc1',
+  'video/mp4;codecs=h264',
+  'video/mp4'
+];
+const supportedMp4Mime = window.MediaRecorder ? mp4Mimes.find(m => MediaRecorder.isTypeSupported(m)) : null;
+if($('codecSupportInfo')){
+  $('codecSupportInfo').textContent = supportedMp4Mime
+    ? `✓ Hardware H.264 MP4 Encoder Active (${supportedMp4Mime}) · 60 FPS Broadcast Capture Ready`
+    : '✓ High-Bitrate 60 FPS Video Capture Ready';
+}
+
+function startVideoRecording(preferMp4=true){
+  if(S.recording){ finishRecording(); return; }
+  if(!canvas.captureStream || !window.MediaRecorder) return status('Use Chrome or Edge for video recording.');
+
+  let mime = preferMp4 && supportedMp4Mime
+    ? supportedMp4Mime
+    : ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(m => MediaRecorder.isTypeSupported(m));
+  const ext = (preferMp4 && supportedMp4Mime) ? 'mp4' : (preferMp4 ? 'mp4' : 'webm');
+
+  const stream = canvas.captureStream(60);
+  recordChunks = [];
+  recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 18000000 });
+  recorder.ondataavailable = e => { if(e.data.size) recordChunks.push(e.data); };
+  recorder.onstop = () => {
+    const blob = new Blob(recordChunks, { type: preferMp4 ? 'video/mp4' : mime });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `india-motion-v24-${S.routeActive ? 'route' : S.scope}-${canvas.width}x${canvas.height}.${ext}`;
+    a.click();
+    status(`Downloaded ${ext.toUpperCase()} video (${canvas.width}×${canvas.height} @ 60fps)!`);
+  };
+  S.seconds = 0;
+  smoothCam.initialized = false;
+  S.playing = true;
+  S.recording = true;
+  $('play').textContent = 'Ⅱ Pause';
+  $('recordMp4').textContent = '■ Stop & Download MP4';
+  recorder.start(200);
+  status(`Recording 60 FPS ${ext.toUpperCase()} Video…`);
+}
+
+function finishRecording(){
+  if(!S.recording) return;
+  S.recording = false;
+  S.playing = false;
+  $('play').textContent = '▶ Play';
+  $('recordMp4').textContent = '🎬 Record & Export MP4 Video (H.264 .mp4)';
+  if(recorder?.state !== 'inactive') recorder.stop();
+}
+
+$('recordMp4').onclick = () => startVideoRecording(true);
+$('recordWebm').onclick = () => startVideoRecording(false);
+$('png').onclick = () => {
+  canvas.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `india-motion-v24-${canvas.width}x${canvas.height}.png`;
+    a.click();
+    status('Exported high-resolution PNG snapshot.');
+  });
+};
+
+$('save').onclick = () => {
+  const proj = {
+    version: 24,
+    scope: S.scope,
+    activeState: S.activeState,
+    routeActive: S.routeActive,
+    mode: S.mode,
+    stops: S.stops.map(s => ({ name: s.name, lat: s.lat, lon: s.lon, imageSrc: s.imageSrc })),
+    headline: $('storyHeadline').value,
+    highlights: highlights.map(h => ({ id: h.id, name: h.name, kind: h.kind, color: h.color, defenseUnit: h.defenseUnit, subText: h.subText, imageSrc: h.imageSrc })),
+    links
+  };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(proj, null, 2)], { type: 'application/json' }));
+  a.download = 'india-motion-v24-project.json';
+  a.click();
+};
+$('open').onclick = () => $('projectFile').click();
+$('projectFile').onchange = async e => {
+  const f = e.target.files?.[0];
+  if(!f) return;
+  try {
+    const p = JSON.parse(await f.text());
+    if(p.scope) setMapScope(p.scope, p.activeState);
+    if(p.headline) $('storyHeadline').value = p.headline;
+    if(Array.isArray(p.highlights)){
+      highlights = [];
+      p.highlights.forEach(item => {
+        const ent = findEntity(item.name, item.kind);
+        if(ent){
+          const added = addHighlight(ent, item.color, false, item.defenseUnit || 'none', item.subText || '');
+          if(item.imageSrc){
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => { added.image = img; added.imageSrc = item.imageSrc; renderHighlightCards(); };
+            img.src = item.imageSrc;
+          }
+        }
+      });
+    }
+    if(Array.isArray(p.links)) links = p.links;
+    if(Array.isArray(p.stops) && p.stops.length >= 2){
+      S.stops = p.stops.map(s => ({ ...s, image: null }));
+      renderStopsUI(); rebuildRoute();
+    }
+    S.routeActive = !!p.routeActive;
+    updateTopBarButtons();
+    renderHighlightCards();
+    restartAnimation();
+    status('Project loaded.');
+  } catch(err){ status('Error loading project: ' + err.message); }
+  e.target.value = '';
+};
+
+// --- Initialize V24 with Karnataka 31 Districts (Showcasing Vijayanagara!) ---
+initSelectors();
+renderStopsUI();
+rebuildRoute();
+resize();
+loadKarnataka31Demo();
+raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
