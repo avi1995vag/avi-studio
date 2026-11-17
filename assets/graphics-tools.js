@@ -58,7 +58,7 @@
     }
     ctx.fillStyle = theme.accent;
     const titleX = Number(options.titleX || 0), titleY = Number(options.titleY || 0);
-    const deckX = Number(options.deckX || titleX), deckY = Number(options.deckY || titleY);
+    const deckX = Number(options.deckX ?? titleX), deckY = Number(options.deckY ?? titleY);
     ctx.fillRect(65+titleX,61+titleY,42,8);
     font(ctx,24,700);
     text(ctx,kind,123+titleX,75+titleY,820);
@@ -67,15 +67,23 @@
     const bodySize = Number(options.bodySize || 32);
     font(ctx,titleSize,800);
     let y = lines(ctx,title,64+titleX,165+titleY,952,Math.round(titleSize*1.07),2);
+    const titleBottom = y-titleY;
+    let contentBottom = titleBottom;
     ctx.fillStyle = theme.soft;
     font(ctx,bodySize,550);
-    if (subtitle.trim()) y = lines(ctx,subtitle,67+deckX,y-10+deckY,940,Math.round(bodySize*1.18),2) + 8;
+    if (subtitle.trim()) {
+      y = lines(ctx,subtitle,67+deckX,titleBottom-10+deckY,940,Math.round(bodySize*1.18),2) + 8;
+      contentBottom = y-deckY;
+    }
     ctx.fillStyle = theme.line;
     ctx.fillRect(64,height-105,952,2);
     ctx.fillStyle = theme.soft;
     font(ctx,22,600);
     text(ctx,source,66,height-68,948);
-    return {ctx,top:Math.max(y+15,240),bottom:height-136};
+    return {ctx,top:Math.max(contentBottom+15,240),bottom:height-136,
+      titleArea:{key:'title',x:42+titleX,y:38+titleY,w:996,h:titleBottom-38},
+      deckArea:{key:'deck',x:42+deckX,y:titleBottom-10-bodySize+deckY,w:996,h:Math.max(bodySize*1.2,contentBottom-titleBottom+bodySize)},
+    };
   }
 
   function editable(ids,key,render) {
@@ -133,6 +141,10 @@
     timeline:{name:'TIMELINE',hint:'Up to six events in Date or step | Description format.',sample:'08:00 | Select the lead story\n10:30 | Verify the source material\n13:00 | Design the visual\n17:00 | Publish the edition'},
     stats:{name:'KEY FIGURES',hint:'Up to six cards in Label | Value format. Values can include units.',sample:'Sources checked | 12\nPhoto options | 6\nDrafts reviewed | 3\nFinal edition | 1'},
     comparison:{name:'COMPARISON',hint:'Two columns in Heading | Detail format. Separate points with semicolons.',sample:'Single poster | One strong image;Short headline;Quick to scan\nCarousel | Multiple frames;Step-by-step detail;Room for context'},
+    donut:{name:'DONUT BREAKDOWN',hint:'Up to six lines in Label | Number format. The total and shares are calculated for you.',sample:'BJP | 38\nINC | 27\nJD(S) | 11\nOthers | 6'},
+    ranking:{name:'RANKING BOARD',hint:'Up to six lines in Label | Number format. The largest value is ranked first.',sample:'Bengaluru Urban | 84\nMysuru | 62\nBelagavi | 51\nKoppal | 43'},
+    process:{name:'STORY PROCESS',hint:'Up to six steps in Step | Detail format. Use it for explainers, plans, and election timelines.',sample:'01. Collect | Gather verified data\n02. Compare | Find the story signal\n03. Explain | Add map context\n04. Publish | Share the result'},
+    quote:{name:'QUOTE CARD',hint:'One to three lines in Speaker | Quote format. The first line is the featured quote.',sample:'Newsroom note | Data gives a story its direction.\nContext | Maps make the change visible.'},
   };
 
   function drawBars(ctx,entries,theme,top,bottom) {
@@ -216,11 +228,124 @@
     }
   }
 
+  function drawDonut(ctx,entries,theme,top,bottom) {
+    const values = entries.map(([,value])=>Number(value));
+    const total = values.reduce((sum,value)=>sum+Math.max(0,value),0) || 1;
+    const cx = 365, cy = (top+bottom)/2+22, radius = Math.min(205,(bottom-top)*.31);
+    const colors = [theme.accent,theme.secondary,'#71d9dc','#9b87ff','#ff8faa','#d8ef8b'];
+    let start = -Math.PI/2;
+    entries.forEach(([label,value],index)=>{
+      const portion = Math.max(0,Number(value))/total*Math.PI*2;
+      ctx.beginPath();
+      ctx.arc(cx,cy,radius,start,start+portion);
+      ctx.arc(cx,cy,radius*.58,start+portion,start,true);
+      ctx.closePath();
+      ctx.fillStyle = colors[index%colors.length];
+      ctx.fill();
+      start += portion;
+    });
+    block(ctx,cx-105,cy-48,210,96,48,theme.bg);
+    ctx.fillStyle = theme.ink;
+    ctx.textAlign = 'center';
+    font(ctx,51,850);
+    text(ctx,number(total),cx,cy+12,180);
+    ctx.fillStyle = theme.soft;
+    font(ctx,19,750);
+    text(ctx,'TOTAL',cx,cy+40,160);
+    ctx.textAlign = 'left';
+    entries.forEach(([label,value],index)=>{
+      const y = top+34+index*Math.min(82,(bottom-top-70)/entries.length);
+      const x = 665;
+      block(ctx,x,y,24,24,7,colors[index%colors.length]);
+      ctx.fillStyle = theme.ink;
+      font(ctx,28,750);
+      text(ctx,label,x+42,y+23,250);
+      ctx.fillStyle = theme.soft;
+      font(ctx,23,700);
+      ctx.textAlign = 'right';
+      text(ctx,number(Number(value))+' · '+Math.round(Number(value)/total*100)+'%',985,y+22,180);
+      ctx.textAlign = 'left';
+    });
+  }
+
+  function drawRanking(ctx,entries,theme,top,bottom) {
+    const sorted = [...entries].sort((a,b)=>Number(b[1])-Number(a[1]));
+    const max = Math.max(...sorted.map(([,value])=>Number(value)),1);
+    const row = (bottom-top)/sorted.length;
+    sorted.forEach(([label,value],index)=>{
+      const y = top+index*row;
+      block(ctx,70,y+8,75,Math.min(94,row-12),18,index===0 ? theme.accent : theme.card);
+      ctx.fillStyle = index===0 ? theme.bg : theme.accent;
+      font(ctx,37,850);
+      ctx.textAlign = 'center';
+      text(ctx,String(index+1).padStart(2,'0'),107,y+66,58);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = theme.ink;
+      font(ctx,31,800);
+      text(ctx,label,176,y+48,480);
+      block(ctx,176,y+66,560,20,10,theme.card);
+      block(ctx,176,y+66,560*Number(value)/max,20,10,index===0 ? theme.secondary : theme.accent);
+      ctx.fillStyle = theme.ink;
+      ctx.textAlign = 'right';
+      font(ctx,38,850);
+      text(ctx,number(Number(value)),997,y+64,190);
+      ctx.textAlign = 'left';
+    });
+  }
+
+  function drawProcess(ctx,entries,theme,top,bottom) {
+    const row = (bottom-top)/entries.length;
+    ctx.strokeStyle = theme.line;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(138,top+45); ctx.lineTo(138,bottom-38); ctx.stroke();
+    entries.forEach(([label,value],index)=>{
+      const y = top+index*row;
+      block(ctx,102,y+22,72,72,36,index===entries.length-1 ? theme.secondary : theme.accent);
+      ctx.fillStyle = theme.bg;
+      ctx.textAlign = 'center';
+      font(ctx,25,850);
+      text(ctx,String(index+1).padStart(2,'0'),138,y+68,58);
+      ctx.textAlign = 'left';
+      block(ctx,220,y+8,750,Math.min(112,row-16),18,theme.card);
+      ctx.fillStyle = theme.accent;
+      font(ctx,27,800);
+      text(ctx,label,248,y+46,680);
+      ctx.fillStyle = theme.ink;
+      font(ctx,29,650);
+      lines(ctx,value,248,y+79,680,32,2);
+    });
+  }
+
+  function drawQuote(ctx,entries,theme,top,bottom) {
+    const [speaker,quote] = entries[0];
+    block(ctx,70,top+20,940,Math.min(430,bottom-top-35),26,theme.card);
+    ctx.fillStyle = theme.accent;
+    font(ctx,170,850);
+    text(ctx,'“',109,top+184,160);
+    ctx.fillStyle = theme.ink;
+    font(ctx,55,800);
+    const quoteEnd = lines(ctx,quote,194,top+125,745,64,4);
+    ctx.fillStyle = theme.secondary;
+    font(ctx,25,800);
+    text(ctx,'— '+speaker,194,Math.min(top+410,quoteEnd+46),710);
+    entries.slice(1).forEach(([label,value],index)=>{
+      const y = top+485+index*112;
+      if (y>bottom-40) return;
+      ctx.fillStyle = theme.accent;
+      font(ctx,23,800);
+      text(ctx,label,94,y,220);
+      ctx.fillStyle = theme.soft;
+      font(ctx,26,650);
+      lines(ctx,value,94,y+38,850,30,2);
+    });
+  }
+
   function renderInfo() {
     activeFont = fonts;
     const selected = get('infoTemplate').value;
     const config = templates[selected];
-    const limit = selected === 'comparison' ? 2 : 6;
+    const limit = selected === 'comparison' ? 2 : selected === 'quote' ? 3 : 6;
     const height = Number(get('infoShape').value);
     const theme = palettes[get('infoTheme').value];
     const entries = [];
@@ -230,7 +355,7 @@
       const label = line.slice(0,divider).trim();
       const value = line.slice(divider+1).trim();
       if (divider<1 || !label || !value || entries.length===limit ||
-        (selected==='bars' && !validNumber(value))) {
+        (['bars','donut','ranking'].includes(selected) && !validNumber(value))) {
         skipped++;
       } else entries.push([label,value]);
     }
@@ -238,7 +363,7 @@
     const {ctx,top,bottom} = begin(infoCanvas,height,theme,get('infoTitle').value || 'Untitled infographic',
       get('infoDeck').value,get('infoSource').value,config.name);
     if (entries.length) {
-      const draw = {bars:drawBars,timeline:drawTimeline,stats:drawStats,comparison:drawComparison}[selected];
+      const draw = {bars:drawBars,timeline:drawTimeline,stats:drawStats,comparison:drawComparison,donut:drawDonut,ranking:drawRanking,process:drawProcess,quote:drawQuote}[selected];
       draw(ctx,entries,theme,top,bottom);
     }
     const valid = entries.length >= (selected==='comparison' ? 2 : 1);
@@ -278,7 +403,23 @@
     shivamogga:[13.9299,75.5681], tumakuru:[13.3379,77.1173], newdelhi:[28.6139,77.2090], delhi:[28.6139,77.2090],
   };
   const markColors = {saffron:'#f47a21',blue:'#2675d8',green:'#20a56b',red:'#dd4451',violet:'#8467d7',grey:'#84909b'};
+  const partyColours = {bjp:'saffron',nda:'saffron',inc:'blue',congress:'blue',aap:'violet',jds:'green','jd(s)':'green',independent:'grey',others:'grey'};
   const mapKey = value => String(value || '').normalize('NFKC').trim().toLowerCase().replace(/\s*&\s*/g,' and ');
+  const colorToken = value => {
+    const key = mapKey(value).replace(/\./g,'');
+    if (/^#[a-f0-9]{6}$/i.test(key)) return key;
+    if (markColors[key] || partyColours[key]) return markColors[key] ? key : partyColours[key];
+    // User-supplied party/item names receive a stable colour, consistently
+    // across the two comparison maps. No result data is invented.
+    if (/^[\p{L}][\p{L}\p{N}\s().&+/-]{0,59}$/u.test(key)) {
+      const colours = ['#d97842','#3e8dd5','#33a479','#b96ac8','#d5ab38','#de6078','#56a7aa','#987a5c'];
+      let hash = 0;
+      for (const char of key) hash = (hash*31+char.codePointAt(0))>>>0;
+      return colours[hash%colours.length];
+    }
+    return '';
+  };
+  const markColorValue = value => { const token = colorToken(value); return markColors[token] || token; };
   const isIndia = () => territory.value.startsWith('india');
   const isStates = () => territory.value === 'indiaStates';
   const isDistricts = () => territory.value === 'indiaDistricts';
@@ -290,7 +431,10 @@
   let focusCode = '';
   let hitAreas = [];
   let outlineHitPath;
-  let open = false;
+  // Map graphics is the default visible tool in a fresh studio session.
+  // Start loading immediately in that case; otherwise the first map would
+  // stay blank until the user changed a control.
+  let open = !get('mapGraphicsLab').hidden;
   let dragAreas = [];
   let dragState = null;
   let suppressMapClick = false;
@@ -396,7 +540,9 @@
   function refreshFeaturePicker(data,features,scopeName) {
     const tools = get('mapBoundaryTools');
     const boundaryLayer = isBoundaryLayer();
-    tools.hidden = !boundaryLayer;
+    tools.hidden = isIndia() && !isStates() && !boundaryLayer;
+    tools.querySelector('.map-manual-tools').hidden = !boundaryLayer;
+    get('mapBulkApply').disabled = get('mapBulkSample').disabled = tools.hidden;
     if (!boundaryLayer) return;
     const signature = mapDataKey() + '|' + mapScope.value;
     if (featurePick.dataset.signature === signature) return;
@@ -411,7 +557,7 @@
     featurePick.dataset.signature = signature;
     featurePick.value = options.some(option=>option.value===current) ? current : '';
     const enabled = options.length > 0;
-    featurePick.disabled = get('mapFeatureMark').disabled = get('mapFeaturePin').disabled = get('mapFeatureClear').disabled = !enabled;
+    featurePick.disabled = get('mapFeatureMark').disabled = get('mapFeaturePin').disabled = get('mapFeatureClear').disabled = get('mapBulkApply').disabled = get('mapBulkSample').disabled = !enabled;
     get('mapFeatureHint').textContent = enabled
       ? scopeName + ' · ' + options.length.toLocaleString('en-IN') + ' available. Choose one or click a boundary to colour and label it.'
       : 'Choose a State / UT first to load available boundaries.';
@@ -450,11 +596,10 @@
 
   function resolvePin(label,latText,lonText,data,features) {
     const lat = Number(latText), lon = Number(lonText);
-    if (Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat)<=90 && Math.abs(lon)<=180) return {lat,lon};
+    if (latText && lonText && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat)<=90 && Math.abs(lon)<=180) return {lat,lon};
     const known = placePins[mapKey(label).replace(/\s+/g,'')];
     if (known) return {lat:known[0],lon:known[1]};
-    const id = data.names?.get(mapKey(label));
-    const feature = features.find(item=>featureIdentity(item.properties)===String(id));
+    const feature = resolveBoundaryFeature(label,data,features);
     if (feature) {
       const [featureLon,featureLat] = featureAnchor(feature);
       return {lat:featureLat,lon:featureLon};
@@ -561,6 +706,47 @@
     }
   }
 
+  function compactPlace(value) {
+    return mapKey(value).replace(/[^a-z0-9\u0c80-\u0cff]+/gi,'').replace(/(district|constituency|assembly|loksabha|seat)$/,'');
+  }
+
+  function resolveBoundaryFeature(name,data,features) {
+    const direct = data.names?.get(mapKey(name));
+    const directFeature = features.find(feature=>featureIdentity(feature.properties)===String(direct));
+    if (directFeature) return directFeature;
+    const target = compactPlace(name);
+    if (!target) return null;
+    const matches = features.filter(feature=>compactPlace(featureLabel(feature.properties))===target);
+    if (matches.length===1) return matches[0];
+    const close = features.filter(feature=>{
+      const candidate = compactPlace(featureLabel(feature.properties));
+      return candidate.length>3 && (candidate.startsWith(target) || target.startsWith(candidate));
+    });
+    return close.length===1 ? close[0] : null;
+  }
+
+  function comparisonValues(raw,data,features) {
+    const before = new Map(), beforeStyles = new Map();
+    const after = new Map(), afterStyles = new Map();
+    let matched = 0, skipped = 0;
+    for (const [rawName,rawBefore='',rawAfter='',rawNote=''] of mapDataRows(raw)) {
+      const feature = resolveBoundaryFeature(rawName,data,features);
+      const beforeValue = rawBefore || '';
+      const afterValue = rawAfter || '';
+      if (!feature || (!beforeValue && !afterValue) ||
+        (beforeValue && !validNumber(beforeValue) && !colorToken(beforeValue)) ||
+        (afterValue && !validNumber(afterValue) && !colorToken(afterValue))) { skipped++; continue; }
+      const id = featureIdentity(feature.properties);
+      before.set(id,validNumber(beforeValue) ? Number(beforeValue) : null);
+      after.set(id,validNumber(afterValue) ? Number(afterValue) : null);
+      if (colorToken(beforeValue)) beforeStyles.set(id,markColorValue(beforeValue));
+      if (colorToken(afterValue)) afterStyles.set(id,markColorValue(afterValue));
+      if (rawNote) after.set(id,validNumber(afterValue) ? Number(afterValue) : null);
+      matched++;
+    }
+    return {before,beforeStyles,after,afterStyles,matched,skipped};
+  }
+
   function renderMap() {
     activeFont = mapTypeface();
     mapCanvas.dataset.draggable = 'true';
@@ -582,8 +768,12 @@
     const data = dataSets[mapDataKey()];
     if (!data) {
       enableMap(false);
-      if (open) void loadMap(mapDataKey());
+      void loadMap(mapDataKey());
       return;
+    }
+    if (boundaryLayer && mapScope.dataset.layer !== mapDataKey()) {
+      refreshMapScopes(data);
+      mapScope.dataset.layer = mapDataKey();
     }
 
     const baseTheme = get('mapDesign').value === 'signal' ? palettes[get('mapTheme').value] : (() => {
@@ -592,19 +782,19 @@
     })();
     const theme = get('mapUseCustomColors').checked ? {...baseTheme,ink:get('mapTextColor').value,accent:get('mapAccentColor').value,card:get('mapPanelColor').value} : baseTheme;
     const layout = (stateMode || boundaryLayer) ? get('mapLayout').value : 'atlas';
+    get('mapComparisonTools').hidden = !((stateMode || boundaryLayer) && layout==='comparison');
     const height = Number(get('mapShape').value);
-    const credit = [get('mapSource').value.trim(),stateMode ? 'India viewpoint · Natural Earth · © OpenStreetMap contributors (openstreetmap.org/copyright)'
-      : india ? 'Made with Natural Earth · India viewpoint' : 'Made with Natural Earth'].filter(Boolean).join('  ·  ');
+    const credit = [get('mapSource').value.trim(),'Made with AvI Studio'].filter(Boolean).join('  ·  ');
     const titleSize = Number(get('mapTitleSize').value);
     const bodySize = Number(get('mapBodySize').value);
-    const {ctx,top,bottom} = begin(mapCanvas,height,theme,get('mapTitle').value || 'Untitled map',get('mapDeck').value,credit,'MAP GRAPHIC',{
+    const {ctx,top,bottom,titleArea,deckArea} = begin(mapCanvas,height,theme,get('mapTitle').value || 'Untitled map',get('mapDeck').value,credit,'MAP GRAPHIC',{
       titleX:mapPositions.title.x,titleY:mapPositions.title.y,deckX:mapPositions.deck.x,deckY:mapPositions.deck.y,titleSize,bodySize,noFrame:true,
     });
     const focus = stateMode && focusCode ? data.states.find(state => state.code === focusCode) : null;
     const scopeKey = boundaryLayer ? mapKey(mapScope.value) : 'all';
     const scopedFeatures = boundaryLayer && scopeKey !== 'all'
       ? data.features.filter(feature=>mapKey(featureState(feature.properties))===scopeKey)
-      : data.features;
+      : stateMode ? data.states.map(state=>({geometry:state.geometry,properties:{code:state.code,NAME:state.name}})) : (data.features || []);
     const scopeName = boundaryLayer && scopeKey !== 'all'
       ? (mapScope.options[mapScope.selectedIndex]?.textContent || 'the selected state')
       : 'All India';
@@ -612,56 +802,85 @@
     const view = boundaryLayer ? featureBounds(scopedFeatures) : india ? indiaBounds(focus ? focus.bounds : data.bounds, Boolean(focus)) : regions[territory.value];
     const fills = new Map();
     const markStyles = new Map();
+    const markNotes = new Map();
+    const categoryLegend = new Map();
     const stateRows = [];
     let skipped = 0;
     const savedValues = get('mapValues').value;
-    const input = stateMode || (india && !boundaryLayer) ? '' : savedValues;
+    const input = stateMode ? stateValues.value : (india && !boundaryLayer) ? '' : savedValues;
     for (const line of input.split('\n').filter(value => value.trim())) {
       const [label,raw,note] = line.split('|');
-      const id = data.names.get(mapKey(label));
+      const id = boundaryLayer ? featureIdentity(resolveBoundaryFeature(label,data,scopedFeatures)?.properties) : data.names.get(mapKey(label));
       const value = raw?.trim();
       if (!id) {
         // Boundary marks are controlled by the picker. Old names saved from a
         // previous layer should not create a distracting error state.
         if (!boundaryLayer) skipped++;
       }
-      else if (value && !validNumber(value) && !markColors[mapKey(value)]) skipped++;
+      else if (value && !validNumber(value) && !colorToken(value)) skipped++;
       else {
         const numeric = value && validNumber(value) ? Number(value) : null;
         fills.set(id,numeric);
-        if (value && markColors[mapKey(value)]) markStyles.set(id,markColors[mapKey(value)]);
+        if (value && colorToken(value)) {
+          markStyles.set(id,markColorValue(value));
+          categoryLegend.set(value,markColorValue(value));
+        }
+        if (note?.trim()) markNotes.set(id,note.trim());
         if (stateMode) {
           const state = data.states.find(item => item.code===id);
           if (state) stateRows.push({id,state,value:numeric,note:note?.trim() || ''});
         }
       }
     }
+    const isComparison = (stateMode || boundaryLayer) && layout==='comparison';
+    const comparison = isComparison ? comparisonValues(get('mapComparisonData').value,data,scopedFeatures) : null;
+    if (comparison) {
+      fills.clear();
+      markStyles.clear();
+      for (const [id,value] of comparison.after) fills.set(id,value);
+      for (const [id,color] of comparison.afterStyles) markStyles.set(id,color);
+      skipped += comparison.skipped;
+      categoryLegend.clear();
+      for (const [,before,after] of mapDataRows(get('mapComparisonData').value)) for (const value of [before,after]) {
+        if (value && colorToken(value)) categoryLegend.set(value,markColorValue(value));
+      }
+    }
     const values = [...fills.values()].filter(Number.isFinite);
-    const low = values.length ? Math.min(...values) : 0;
-    const high = values.length ? Math.max(...values) : 1;
+    const beforeValues = comparison ? [...comparison.before.values()].filter(Number.isFinite) : [];
+    const sharedValues = [...values,...beforeValues];
+    const low = sharedValues.length ? Math.min(...sharedValues) : 0;
+    const high = sharedValues.length ? Math.max(...sharedValues) : 1;
+    const beforeLow = low, beforeHigh = high;
     const categorical = ['#a43e50','#416a8b','#507850','#a75332','#6b4d8a','#277d79'];
     const railLayout = (stateMode || boundaryLayer) && !focus && ['callouts','dashboard','briefing','election','seats'].includes(layout);
-    const legendSpace = values.length ? 77 : 8;
+    const legendSpace = values.length ? (categoryLegend.size ? 170 : 77) : categoryLegend.size ? 95 : 8;
     const railWidth = railLayout ? 520 : 0;
     const rightRail = layout === 'briefing' || layout === 'election';
     const mapScale = Number(get('mapScale').value)/100;
-    const defaultFrame = railLayout ? {x:rightRail ? 64 : railWidth,y:top,width:500,height:bottom-top-legendSpace} : {x:90,y:top,width:900,height:bottom-top-legendSpace};
+    const defaultFrame = railLayout ? {x:rightRail ? 64 : railWidth,y:top,width:500,height:bottom-top-legendSpace}
+      : isComparison ? {x:570,y:top+54,width:440,height:bottom-top-legendSpace-62}
+      : {x:90,y:top,width:900,height:bottom-top-legendSpace};
     const scaledFrame = {width:defaultFrame.width*mapScale,height:(defaultFrame.height)*mapScale};
     scaledFrame.x = defaultFrame.x+(defaultFrame.width-scaledFrame.width)/2+mapPositions.map.x;
     scaledFrame.y = defaultFrame.y+(defaultFrame.height-scaledFrame.height)/2+mapPositions.map.y;
     const map = projector(view,top,bottom-legendSpace,scaledFrame);
+    const beforeFrame = isComparison ? {
+      x:70+mapPositions.map.x,
+      y:top+54+mapPositions.map.y,
+      width:440*mapScale,
+      height:(bottom-top-legendSpace-62)*mapScale,
+    } : null;
+    const beforeMap = beforeFrame ? projector(view,top,bottom-legendSpace,beforeFrame) : null;
     dragAreas = [
-      {key:'title',x:42+mapPositions.title.x,y:38+mapPositions.title.y,w:996,h:170},
-      {key:'deck',x:42+mapPositions.deck.x,y:140+mapPositions.deck.y,w:996,h:115},
+      titleArea,
+      deckArea,
       {key:'map',x:map.x-22,y:map.y-22,w:map.width+44,h:map.height+44},
     ];
+    if (beforeMap) dragAreas.push({key:'map',x:beforeMap.x-22,y:beforeMap.y-46,w:beforeMap.width+44,h:beforeMap.height+90});
     const labelBoxes = [];
+    const pendingBoundaryLabels = [];
     const boundaryRows = [];
     block(ctx,map.x-13,map.y-13,map.width+26,map.height+26,18,theme.bg);
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(map.x,map.y,map.width,map.height);
-    ctx.clip();
     ctx.lineJoin = 'round';
 
     function labelAt(label,x,y,color) {
@@ -692,13 +911,50 @@
       }
     }
 
-    function featureColor(id,index) {
-      const value = fills.get(id);
-      if (!fills.has(id)) return mixColor(theme.card,theme.ink,.18);
-      if (markStyles.has(id)) return markStyles.get(id);
+    function featureColor(id,index,sourceFills=fills,sourceStyles=markStyles,sourceLow=low,sourceHigh=high) {
+      const value = sourceFills.get(id);
+      if (!sourceFills.has(id)) return mixColor(theme.card,theme.ink,.18);
+      if (sourceStyles.has(id)) return sourceStyles.get(id);
       if (value===null) return stateMode ? categorical[index%categorical.length] : theme.accent;
-      return mixColor(theme.card,theme.accent,high===low ? .9 : .28 + .72*((value-low)/(high-low)));
+      return mixColor(theme.card,theme.accent,sourceHigh===sourceLow ? .9 : .28 + .72*((value-sourceLow)/(sourceHigh-sourceLow)));
     }
+
+    if (beforeMap && comparison) {
+      block(ctx,beforeMap.x-13,beforeMap.y-13,beforeMap.width+26,beforeMap.height+26,18,theme.bg);
+      ctx.fillStyle = theme.secondary;
+      font(ctx,20,850);
+      text(ctx,'BEFORE',beforeMap.x,beforeMap.y-26,beforeMap.width);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(beforeMap.x,beforeMap.y,beforeMap.width,beforeMap.height);
+      ctx.clip();
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 1.25;
+      for (const [index,feature] of scopedFeatures.entries()) {
+        const {geometry,properties} = feature;
+        if (!geometry || !['Polygon','MultiPolygon'].includes(geometry.type)) continue;
+        const path = polygonPath(geometry,beforeMap.point);
+        const id = featureIdentity(properties);
+        ctx.fillStyle = featureColor(id,index,comparison.before,comparison.beforeStyles,beforeLow,beforeHigh);
+        ctx.strokeStyle = theme.bg;
+        ctx.fill(path,'evenodd');
+        ctx.stroke(path);
+      }
+      ctx.restore();
+      ctx.fillStyle = theme.soft;
+      font(ctx,18,650);
+      text(ctx,comparison.matched ? comparison.matched+' places compared' : 'Paste matching comparison data',beforeMap.x,beforeMap.y+beforeMap.height+30,beforeMap.width);
+    }
+    if (isComparison) {
+      ctx.fillStyle = theme.accent;
+      font(ctx,20,850);
+      text(ctx,'AFTER',map.x,map.y-26,map.width);
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(map.x,map.y,map.width,map.height);
+    ctx.clip();
 
     if (india && !boundaryLayer) {
       const outline = polygonPath(data.outline,map.point);
@@ -750,28 +1006,15 @@
           const [lon,lat] = featureAnchor(feature);
           const [x,y] = map.point([lon,lat]);
           const label = featureLabel(properties);
-          boundaryRows.push({id,label,color:markStyles.get(id) || theme.accent,note:'Marked on the map',anchor:[lon,lat]});
-          labelAt(label,x,y,theme.ink);
+          boundaryRows.push({id,label,value:fills.get(id),color:markStyles.get(id) || theme.accent,note:markNotes.get(id) || (Number.isFinite(fills.get(id)) ? number(fills.get(id)) : 'Marked on the map'),anchor:[lon,lat]});
+          pendingBoundaryLabels.push({label,x,y});
         }
       }
     }
 
-    const editorialMarkers = isDistricts() && data.editorialMarkers
-      ? [...data.editorialMarkers.values()].filter(marker=>scopeKey==='all' || marker.stateKey===scopeKey)
-      : [];
-    for (const marker of editorialMarkers) {
-      const [x,y] = map.point([marker.lon,marker.lat]);
-      const radius = 11*Number(get('mapMarkerSize').value)/100;
-      ctx.beginPath();
-      ctx.arc(x,y,radius,0,Math.PI*2);
-      ctx.fillStyle = theme.accent;
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = theme.bg;
-      ctx.stroke();
-      labelAt(marker.label,x+radius+18,y+radius+10,theme.ink);
-      dragAreas.push({key:'pins',x:x-radius-14,y:y-radius-14,w:radius*2+28,h:radius*2+28});
-    }
+    // Labels must be painted after every polygon; adjacent seats would
+    // otherwise paint over labels that were drawn earlier in the loop.
+    for (const {label,x,y} of pendingBoundaryLabels) labelAt(label,x,y,theme.ink);
 
     let pinCount = 0;
     for (const line of get('mapPins').value.split('\n').filter(value => value.trim())) {
@@ -798,6 +1041,7 @@
       labelAt(label,x+marker+20,y+marker+12,theme.ink);
       dragAreas.push({key:'pins',x:x-marker-14,y:y-marker-14,w:marker*2+28,h:marker*2+28});
     }
+    ctx.restore();
     if (mapOverlayImage) {
       const ratio = mapOverlayImage.naturalWidth / mapOverlayImage.naturalHeight || 1;
       const maxWidth = Math.min(250,map.width*.36), maxHeight = Math.min(210,map.height*.30);
@@ -812,7 +1056,6 @@
       ctx.strokeRect(x,y,width,height);
       dragAreas.push({key:'image',x:x-12,y:y-12,w:width+24,h:height+24});
     }
-    ctx.restore();
 
     if (railLayout) {
       if (boundaryLayer) drawBoundaryStoryRail(ctx,boundaryRows,theme,top,bottom-legendSpace,map,layout,scopeName,scopedFeatures.length,mapPositions.rail);
@@ -836,10 +1079,18 @@
         ctx.textAlign = 'left';
       }
     }
+    if (categoryLegend.size) {
+      [...categoryLegend].slice(0,8).forEach(([label,color],index)=>{
+        const x = 70+(index%4)*250, y = bottom-(values.length ? 132 : 57)+Math.floor(index/4)*37;
+        block(ctx,x,y-17,18,18,5,color);
+        ctx.fillStyle = theme.ink;
+        font(ctx,21,700);
+        text(ctx,label,x+29,y,210);
+      });
+    }
     const scopedMessage = boundaryLayer ? 'Showing ' + scopedFeatures.length.toLocaleString('en-IN') + ' ' + (isDistricts() ? 'district' : isPC() ? 'Lok Sabha constituency' : 'Assembly constituency') + (scopeKey==='all' ? ' boundaries across India.' : ' boundaries in ' + scopeName + '.') + ' ' : '';
-    const markerMessage = editorialMarkers.length ? 'Vijayanagara is marked at its district headquarters; the supplied boundary layer predates its 2021 creation, so no boundary has been invented. ' : '';
     const markMessage = boundaryLayer && boundaryRows.length ? boundaryRows.length + (boundaryRows.length===1 ? ' boundary marked. ' : ' boundaries marked. ') : boundaryLayer ? 'Choose a boundary above to colour and label it. ' : '';
-    mapStatus.textContent = (skipped ? skippedRows(skipped) + ' Add a supported place name or Label | latitude | longitude. ' : '') + scopedMessage + markMessage + markerMessage + 'Drag headline, map, pins, story cards, or an uploaded photo to arrange this composition.';
+    mapStatus.textContent = (skipped ? skippedRows(skipped) + ' Add a supported place name or Label | latitude | longitude. ' : '') + scopedMessage + markMessage + 'Drag headline, map, pins, story cards, or an uploaded photo to arrange this composition.';
     const subject = stateMode ? (focus ? focus.name : 'India, 36 states and union territories') : boundaryLayer ? scopeName + ' boundary map' : india ? 'India national outline' : 'Regional map';
     mapCanvas.setAttribute('aria-label',subject + '. ' + boundaryRows.length + ' marked boundaries and ' + pinCount + ' visible pins.');
     enableMap(true);
@@ -889,14 +1140,6 @@
           const p = feature.properties || {};
           for (const value of [p.district,p.code]) if (value) data.names.set(mapKey(value),p.code || p.district);
         }
-        // The supplied Survey of India display layer predates the 2021
-        // Vijayanagara split. Keep the update visible and searchable without
-        // inventing a district boundary that the source does not contain.
-        const vijayanagara = {id:'editorial-vijayanagara',label:'Vijayanagara · Karnataka',stateKey:'karnataka',lon:76.391,lat:15.267};
-        data.editorialMarkers = new Map([[vijayanagara.id,vijayanagara]]);
-        data.names.set(mapKey('Vijayanagara'),vijayanagara.id);
-        data.names.set(mapKey('Vijayanagara District'),vijayanagara.id);
-        data.names.set(mapKey('Vijayanagar'),vijayanagara.id);
         data.bounds = featureBounds(data.features);
         dataSets.districts = data;
         refreshMapScopes(data);
@@ -939,15 +1182,20 @@
     } finally { inflight.delete(key); }
   }
 
-  const saveMap = editable(['mapRegion','mapScope','mapDesign','mapTheme','mapLayout','mapTitle','mapDeck','mapValues','mapPins','mapSource','mapShape','mapStateValues','mapLabels','mapFont','mapCustomFont','mapTitleSize','mapBodySize','mapScale','mapMarkerSize','mapUseCustomColors','mapTextColor','mapAccentColor','mapPanelColor','mapMarkColor'],'app_mapGraphic',renderMap);
+  const saveMap = editable(['mapRegion','mapScope','mapDesign','mapTheme','mapLayout','mapTitle','mapDeck','mapValues','mapBulkData','mapComparisonData','mapPins','mapSource','mapShape','mapStateValues','mapLabels','mapFont','mapCustomFont','mapTitleSize','mapBodySize','mapScale','mapMarkerSize','mapUseCustomColors','mapTextColor','mapAccentColor','mapPanelColor','mapMarkColor'],'app_mapGraphic',renderMap);
   const syncMapControls = () => {
     get('mapCustomColors').hidden = !get('mapUseCustomColors').checked;
     for (const [id,suffix] of [['mapTitleSize',''],['mapBodySize',''],['mapScale','%'],['mapMarkerSize','%']]) get(id+'Out').textContent = get(id).value+suffix;
   };
-  try { mapPositions = safePositions(JSON.parse(lsGet('app_mapPositions') || 'null')); } catch {}
+  // Fresh position store prevents an old drag offset from covering a new
+  // composition after the canvas was redesigned.
+  try { mapPositions = safePositions(JSON.parse(lsGet('app_mapPositions_v4') || 'null')); } catch {}
   for (const id of ['mapTitleSize','mapBodySize','mapScale','mapMarkerSize','mapUseCustomColors']) get(id).addEventListener('input',syncMapControls);
   get('mapUseCustomColors').addEventListener('change',syncMapControls);
-  get('mapResetPositions').addEventListener('click',()=>{ mapPositions = safePositions(); lsSet('app_mapPositions',JSON.stringify(mapPositions)); renderMap(); });
+  const resetMapPositions = () => { mapPositions = safePositions(); lsSet('app_mapPositions_v4',JSON.stringify(mapPositions)); renderMap(); };
+  get('mapResetPositions').addEventListener('click',resetMapPositions);
+  get('mapResetVisual').addEventListener('click',resetMapPositions);
+  get('mapLayout').addEventListener('change',resetMapPositions);
   function selectedBoundaryFeature() {
     const data = dataSets[mapDataKey()];
     if (!data || !isBoundaryLayer() || !featurePick.value) return null;
@@ -959,9 +1207,10 @@
     const label = featureLabel(feature.properties);
     const data = dataSets[mapDataKey()];
     const id = featureIdentity(feature.properties);
+    const features = scopedBoundaryFeatures(data);
     const lines = get('mapValues').value.split('\n').filter(Boolean)
-      .filter(line=>data.names.get(mapKey(line.split('|')[0]))!==id);
-    lines.push(label + ' | ' + markColor.value);
+      .filter(line=>featureIdentity(resolveBoundaryFeature(line.split('|')[0],data,features)?.properties)!==id);
+    lines.push(id + ' | ' + markColor.value);
     get('mapValues').value = lines.join('\n');
     if (addPin) {
       const [lon,lat] = featureAnchor(feature);
@@ -971,16 +1220,79 @@
     }
     saveMap();
   }
+  function scopedBoundaryFeatures(data) {
+    if (isStates()) return data.states.map(state=>({geometry:state.geometry,properties:{code:state.code,NAME:state.name}}));
+    const scope = mapKey(mapScope.value);
+    return !isBoundaryLayer() || scope==='all' ? data.features : data.features.filter(feature=>mapKey(featureState(feature.properties))===scope);
+  }
+  // Accept spreadsheet rows as well as the simple Name | Value format.
+  function mapDataRows(raw) {
+    return raw.split(/\r?\n/).filter(line=>line.trim()).map(line=>{
+      const separator = line.includes('|') ? '|' : line.includes('\t') ? '\t' : ',';
+      const fields = []; let value = '', quoted = false;
+      for (let i=0;i<line.length;i++) {
+        const char = line[i];
+        if (char==='"') {
+          if (quoted && line[i+1]==='"') { value += '"'; i++; }
+          else quoted = !quoted;
+        } else if (char===separator && !quoted) { fields.push(value.trim()); value = ''; }
+        else value += char;
+      }
+      fields.push(value.trim());
+      return fields.map((field,index)=>index>0 && /^[+-]?\d{1,3}(,\d{3})+(\.\d+)?$/.test(field) ? field.replace(/,/g,'') : field);
+    }).filter(([name,value])=>!(/^(name|state|district|constituency|seat|country)$/i.test(name) && /^(value|number|party|winning party|before)$/i.test(value || '')));
+  }
+  function applyBulkData(raw,mode='bulk') {
+    const data = dataSets[mapDataKey()];
+    if (!data || (isIndia() && !isStates() && !isBoundaryLayer())) return;
+    const features = scopedBoundaryFeatures(data);
+    const output = [];
+    const seen = new Set();
+    let matched=0, skipped=0;
+    for (const [rawName,rawValue='',rawNote=''] of mapDataRows(raw)) {
+      const feature = resolveBoundaryFeature(rawName,data,features);
+      const id = feature ? featureIdentity(feature.properties) : '';
+      if (!rawName || !feature || seen.has(id)) { skipped++; continue; }
+      const value = rawValue || markColor.value;
+      if (value && !validNumber(value) && !colorToken(value)) { skipped++; continue; }
+      seen.add(id);
+      output.push(id + ' | ' + value + (rawNote ? ' | ' + rawNote : ''));
+      matched++;
+    }
+    (isStates() ? stateValues : get('mapValues')).value = output.join('\n');
+    const label = mode==='comparison' ? 'comparison after-values' : 'map marks';
+    get(mode==='comparison' ? 'mapComparisonStatus' : 'mapBulkStatus').textContent = matched
+      ? matched + ' ' + label + ' applied.' + (skipped ? ' ' + skippedRows(skipped) : '')
+      : 'No rows matched the selected map. Check the place names or choose the matching State / UT.';
+    saveMap();
+  }
   get('mapFeatureMark').addEventListener('click',()=>markBoundary(false));
   get('mapFeaturePin').addEventListener('click',()=>markBoundary(true));
   get('mapFeatureClear').addEventListener('click',()=>{ get('mapValues').value = ''; saveMap(); });
+  get('mapBulkApply').addEventListener('click',()=>applyBulkData(get('mapBulkData').value));
+  get('mapBulkSample').addEventListener('click',()=>{
+    const data = dataSets[mapDataKey()];
+    const features = data ? scopedBoundaryFeatures(data).slice(0,4) : [];
+    get('mapBulkData').value = features.map((feature,index)=>featureLabel(feature.properties)+' | '+(isAC() || isPC() ? ['BJP','INC','JD(S)','BJP'][index] : [42,31,18,27][index])+' | Illustrative data').join('\n');
+    applyBulkData(get('mapBulkData').value);
+  });
+  get('mapComparisonApply').addEventListener('click',()=>applyBulkData(mapDataRows(get('mapComparisonData').value).map(([name,before,after])=>{
+    return [name,after,before ? 'Before: '+before : ''].join(' | ');
+  }).join('\n'),'comparison'));
+  get('mapComparisonSample').addEventListener('click',()=>{
+    const data = dataSets[mapDataKey()];
+    const features = data ? scopedBoundaryFeatures(data).slice(0,4) : [];
+    get('mapComparisonData').value = features.map((feature,index)=>featureLabel(feature.properties)+' | '+(isAC() || isPC() ? ['BJP | INC','INC | BJP','JD(S) | BJP','INC | JD(S)'][index] : ['22 | 42','31 | 19','18 | 37','12 | 28'][index])).join('\n');
+    get('mapComparisonStatus').textContent = 'Illustrative example loaded for the selected map.';
+    saveMap();
+  });
   for (const button of document.querySelectorAll('[data-map-nudge]')) button.addEventListener('click',()=>{
     const target = get('mapNudgeTarget').value;
     const delta = {left:[-12,0],right:[12,0],up:[0,-12],down:[0,12]}[button.dataset.mapNudge];
     if (!mapPositions[target] || !delta) return;
     mapPositions[target] = {x:mapPositions[target].x+delta[0],y:mapPositions[target].y+delta[1]};
     mapPositions = safePositions(mapPositions);
-    lsSet('app_mapPositions',JSON.stringify(mapPositions));
+    lsSet('app_mapPositions_v4',JSON.stringify(mapPositions));
     renderMap();
   });
   get('mapOverlayFile').addEventListener('change',async event=>{
@@ -1020,7 +1332,7 @@
     if (!dragState) return;
     if (dragState.moving) {
       mapPositions = safePositions(mapPositions);
-      lsSet('app_mapPositions',JSON.stringify(mapPositions));
+      lsSet('app_mapPositions_v4',JSON.stringify(mapPositions));
       suppressMapClick = true;
     }
     dragState = null;
@@ -1071,5 +1383,8 @@
     toggleState(hit.code);
   });
   get('mapGraphicsLab').addEventListener('creator-tool-open',()=>{ open = true; renderMap(); });
+  // Map data is independent of the current visible tab and web-font loading.
+  // Begin immediately so Map graphics is ready as soon as it is opened.
+  renderMap();
   document.fonts.ready.then(() => { renderInfo(); if(open) renderMap(); });
 })();

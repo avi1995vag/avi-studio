@@ -568,17 +568,24 @@ canvas.preview.selected { border-color: var(--accent); outline: 2px solid var(--
 .map-boundary-tools .field { min-width: 0; }
 .map-boundary-actions .lab-actions { flex-wrap: wrap; }
 .map-boundary-actions button { flex: 1 1 128px; }
+.map-story-actions { margin-top: 9px; }
+.map-story-actions button { width: 100%; }
 .map-nudge-controls .lab-actions { gap: 6px; }
 .map-nudge-controls .lab-actions button { min-width: 42px; padding-inline: 11px; }
 .map-overlay-actions { align-self: end; }
 .map-overlay-actions button { width: 100%; }
 #mapGraphicsLab .lab-output { align-self: start; }
 #mapGraphicsLab .graphic-stage { padding: 0; border: 0; border-radius: 0; background: transparent; }
-#mapGraphicsLab .graphic-stage canvas { box-shadow: none; }
+#mapGraphicsLab .graphic-stage canvas { max-height: min(78dvh,900px); box-shadow: none; }
+@media (min-width: 1000px) { #mapGraphicsLab .lab-grid { grid-template-columns: minmax(280px,340px) minmax(0,1fr); gap: 20px; } }
 @media (min-width: 761px) { #mapGraphicsLab .lab-output { position: sticky; top: 16px; } }
 #mapGraphicsLab:has(#mapStateOptions:not([hidden])) #mapCanvas { cursor: pointer; }
 .map-style-panel, .map-data-panel { padding: 11px; border: 1px solid var(--border); border-radius: var(--r); background: color-mix(in srgb, var(--bg2) 68%, transparent); }
 .map-style-panel summary, .map-data-panel summary { cursor: pointer; font-weight: 750; color: var(--accent); }
+.map-manual-tools { margin-top: 12px; padding: 10px 11px; border: 1px solid var(--border); border-radius: var(--r); background: color-mix(in srgb, var(--bg2) 52%, transparent); }
+.map-manual-tools summary { cursor: pointer; color: var(--text2); font-weight: 750; }
+.map-manual-tools[open] summary { margin-bottom: 11px; color: var(--accent); }
+.map-manual-tools .field:last-child { margin-bottom: 0; }
 .map-style-panel[open], .map-data-panel[open] { display: grid; gap: 11px; }
 .map-range-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px 12px; }
 .map-range-grid label { display: grid; grid-template-columns: 1fr auto; gap: 5px 8px; font-size: 13px; font-weight: 700; color: var(--ink); }
