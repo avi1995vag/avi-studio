@@ -16,11 +16,12 @@
     const found=[];let page='';
     for(let i=0;i<5;i++){
       const data=await request('https://generativelanguage.googleapis.com/v1beta/models?pageSize=100'+(page?'&pageToken='+encodeURIComponent(page):''),{headers:{'x-goog-api-key':key},signal},key);
-      found.push(...(data.models||[]).filter(model=>model.supportedGenerationMethods?.includes('generateContent')&&!/(image|audio|live|tts|robotics|computer-use|deep-research)/i.test(model.name)).map(model=>({id:model.name.replace(/^models\//,''),name:model.displayName||model.name})));
+      found.push(...(data.models||[]).filter(model=>model.supportedGenerationMethods?.includes('generateContent')&&!/(image|audio|live|tts|robotics|computer-use|deep-research|transcrib|lyria|banana|antigravity)/i.test(model.name)).map(model=>({id:model.name.replace(/^models\//,''),name:model.displayName||model.name})));
       page=data.nextPageToken;if(!page)break;
     }
     const rank=model=>/flash-lite/.test(model.id)?0:/flash/.test(model.id)?1:/pro/.test(model.id)?2:3;
-    return found.sort((a,b)=>rank(a)-rank(b)||a.name.localeCompare(b.name));
+    const version=model=>Number(model.id.match(/gemini-(\d+(?:\.\d+)?)/)?.[1]||0);
+    return found.sort((a,b)=>rank(a)-rank(b)||version(b)-version(a)||Number(/preview/.test(a.id))-Number(/preview/.test(b.id))||a.name.localeCompare(b.name));
   }
   async function readEvents(response,onEvent){
     if(!response.body?.getReader)throw new Error('Streaming responses are unavailable in this browser. Use a current Chrome, Edge or Firefox version.');
