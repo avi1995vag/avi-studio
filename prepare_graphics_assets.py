@@ -6,7 +6,7 @@ import sys
 
 
 ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/'
-ORT_REPO = 'https://raw.githubusercontent.com/microsoft/onnxruntime/v1.22.0/'
+ORT_REPO = 'https://cdn.jsdelivr.net/gh/microsoft/onnxruntime@v1.22.0/'
 ASSETS = {
     'world.geojson': (
         'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_110m_admin_0_countries.geojson',
