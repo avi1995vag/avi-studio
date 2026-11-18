@@ -2,6 +2,8 @@
 (() => {
   'use strict';
   const studios={'infographic-studio':'Infographic Studio','motion-studio':'Motion Studio','india-motion':'India Motion','ai-workspace':'AI Workspace'};
+  // Bumping the loader version also refreshes embedded HTML and its versioned dependencies.
+  const revision=document.currentScript?.src?new URL(document.currentScript.src).searchParams.get('v')||'1':'1';
   const panel=document.getElementById('studioPanel'),frames=new Map();
   let selected='',prepared=[],preparing=false,wasActive=false,publishTarget='';
   const captions={};
@@ -14,7 +16,7 @@
     if(active())captions[selected]=field.value;else draftCaptions[draftKind]=field.value;
     selected=id;prepared=[];wasActive=true;switchMode('studio');field.value=captions[id]||'';
     if(!frames.has(id)){
-      const child=document.createElement('iframe');child.title=studios[id]+' editor';child.src='./assets/apps/'+id+'/?embedded=1';child.allow='fullscreen; clipboard-write';child.addEventListener('load',()=>{status.textContent='';sync();});panel.append(child);frames.set(id,child);
+      const child=document.createElement('iframe');child.title=studios[id]+' editor';child.src='./assets/apps/'+id+'/?embedded=1&shell='+encodeURIComponent(revision);child.allow='fullscreen; clipboard-write';child.addEventListener('load',()=>{status.textContent='';sync();});panel.append(child);frames.set(id,child);
     }
     for(const [key,child] of frames)child.hidden=key!==id;
     document.getElementById('topWorkspace').textContent=studios[id];
