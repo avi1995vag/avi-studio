@@ -3,7 +3,7 @@ const draftCaptions = {carousel: '', poster: ''};
 const draftSources = {carousel: null, poster: null};
 const persistedImages = new WeakMap();
 const frameLayouts = new Set(['brief','cover','cta','split','text-focus','magazine','minimal','tweet','stats','timeline','news-card','chart-bar','hero-split','minimal-quote','dateline','spotlight','world-update','breaking-banner','editorial',...Object.keys(CREATIVE_TEMPLATES),...Object.keys(CAROUSEL_LAYOUTS)]);
-const independentWorkspaces = new Set(['scheduler','imageGenerator','tools']);
+const independentWorkspaces = new Set(['scheduler','imageGenerator','tools','studio']);
 let draftKind = 'carousel';
 let draftDB;
 let draftTimer;
@@ -175,7 +175,7 @@ function queueDraftSave() {
 }
 
 function saveWorkspaceDraft(){
-  return workspaceRecord({carousel:captureDraft('carousel'),poster:captureDraft('poster'),mode:currentMode,activeDraft:draftKind});
+  return workspaceRecord({carousel:captureDraft('carousel'),poster:captureDraft('poster'),mode:currentMode,activeDraft:draftKind,studio:window.AviStudioHost?.snapshot()});
 }
 
 function downloadBlob(blob, name) {
@@ -357,6 +357,7 @@ async function downloadSinglePoster(){
 }
 
 async function downloadCurrentDesign() {
+  if(window.AviStudioHost?.usesArtwork())return window.AviStudioHost.download();
   if(draftKind === 'poster') return downloadSinglePoster();
   if(!slides.length) return log('Add a frame first.', 'err');
   const caption = document.getElementById('caption').value;
@@ -381,6 +382,7 @@ function syncArtworkDownload(){
   const button = document.getElementById('artworkDownload');
   button.hidden = ['imageGenerator','tools'].includes(currentMode);
   button.disabled = draftKind === 'poster' ? !posterSlide : !slides.length;
+  window.AviStudioHost?.sync();
 }
 
 async function configureWorkflowLinks() {
@@ -620,6 +622,7 @@ async function initWorkspace() {
   }
   if(studioUrl.href!==location.href) history.replaceState(null,'',studioUrl);
   studioReady = true;
+  window.dispatchEvent(new Event('avi-workspace-ready'));
   configureWorkflowLinks();
   document.fonts.ready.then(() => {
     updateCreativeGallery(true);

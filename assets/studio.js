@@ -119,6 +119,7 @@ function log(msg,type='info'){
 function setStatus(t){document.getElementById('sysStatus').textContent=t;}
 
 const WORKSPACE_VIEWS = {
+  studio: ['Studio', ''],
   carousel: ['Carousel Studio', 'Turn a topic or source into a set of editable frames.'],
   news: ['News Desk', 'Browse headlines and build a news brief or explainer.'],
   breaking: ['Breaking Stories', 'Build a story from the latest coverage.'],

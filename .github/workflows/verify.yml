@@ -30,6 +30,6 @@ jobs:
       - run: node --check assets/graphics-tools.js && node --check assets/photo-studio.js && node --check assets/cutout-brush.js && node --check assets/vision-worker.js
       - run: node --test tests/map-graphics.test.mjs
       - run: node --test tests/imported-studios.test.mjs
-      - run: node --check assets/apps/ai-workspace/client.js && node --test tests/ai-workspace.test.cjs
+      - run: node --check assets/apps/ai-workspace/client.js && node --check assets/studio-host.js && node --test tests/ai-workspace.test.cjs tests/studio-host.test.cjs
       - run: python build_site.py --offline
       - run: python main.py --sample

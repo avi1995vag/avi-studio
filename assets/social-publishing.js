@@ -38,6 +38,7 @@ const configureSocialPublishing = (() => {
   }
 
   function draftSize(){
+    if(window.AviStudioHost?.usesArtwork())return window.AviStudioHost.artwork().length;
     return draftKind==='poster' ? Number(Boolean(posterSlide)) : slides.length;
   }
 
@@ -55,7 +56,8 @@ const configureSocialPublishing = (() => {
     empty.hidden = size>0;
     if(!size) return;
     let source;
-    if(draftKind==='poster') source = posterForPublishing();
+    if(window.AviStudioHost?.usesArtwork())source=window.AviStudioHost.artwork()[0];
+    else if(draftKind==='poster') source = posterForPublishing();
     else {
       source = document.createElement('canvas');
       source.width = CANVAS_W;
@@ -64,7 +66,7 @@ const configureSocialPublishing = (() => {
     }
     preview.height = Math.round(preview.width * source.height / source.width);
     preview.getContext('2d').drawImage(source,0,0,preview.width,preview.height);
-    count.textContent = draftKind==='poster' ? 'Single poster' : `Carousel · ${size} ${size===1 ? 'slide' : 'slides'}`;
+    count.textContent = window.AviStudioHost?.usesArtwork()?window.AviStudioHost.label():draftKind==='poster' ? 'Single poster' : `Carousel · ${size} ${size===1 ? 'slide' : 'slides'}`;
     captionEditor.value = caption.value;
     updateCaptionCount();
   }
@@ -212,6 +214,9 @@ const configureSocialPublishing = (() => {
   }
 
   function artwork(){
+    if(window.AviStudioHost?.usesArtwork()){
+      const result=window.AviStudioHost.artwork();if(!result.length)throw new Error('Prepare the current studio artwork first.');return result;
+    }
     if(draftKind==='poster'){
       if(!posterSlide) throw new Error('Create a poster first.');
       if(draftSources.poster?.kind==='link-draft') throw new Error('Check the source before publishing this headline-only draft.');
@@ -312,7 +317,8 @@ const configureSocialPublishing = (() => {
 
   connect.addEventListener('click',startSignIn);
   for(const button of document.querySelectorAll('[data-open-publishing]')){
-    button.addEventListener('click', () => {
+    button.addEventListener('click', async () => {
+      try{await window.AviStudioHost?.preparePublish();}catch(error){log(error.message,'err');return;}
       openDialog();
       if(ready && token && !batchId) void loadChannels();
     });
