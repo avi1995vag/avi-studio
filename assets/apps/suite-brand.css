@@ -29,4 +29,6 @@ body[data-avi-app=motion-studio] .media-slot-btns .btn.upload-trig{background:#e
 body[data-avi-app=motion-studio] :is(.timestamp,.status,.inlineSelect){color:#526f95}
 body[data-avi-app=motion-studio] .inlineSelect select{background:white;color:#23466e;border-color:#cfddf4}
 body[data-avi-app=motion-studio] :is(.range,.sliderr input,.toggle input,.colorcheck input){accent-color:#0647ff}
+.avi-embedded{--avi-shell-height:0px!important}.avi-embedded .avi-suite{display:none}.avi-embedded body[data-avi-app=motion-studio] .app{min-height:0}.avi-embedded body[data-avi-app=motion-studio] .stageInner canvas{max-height:calc(100dvh - 280px)}
+.avi-embedded body[data-avi-app=ai-workspace] .ai-page{padding-top:25px}.avi-embedded body[data-avi-app=ai-workspace] .ai-page-heading h1{font-size:34px}
 @media(prefers-reduced-motion:reduce){.avi-suite a{transition:none}}
