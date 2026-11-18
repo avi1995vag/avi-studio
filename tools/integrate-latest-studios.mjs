@@ -33,6 +33,9 @@ for(const source of sources){
     for(const path of ['assets/world.js','assets/studio.js','assets/cloud-ai.js','assets/ai-studio.js','assets/studio.css','assets/ai-studio.css'])files[path]=digest(await readFile(join(dirname(source.file),path)));
   }
   if(source.data){const path='india-official-data.js';await cp(join(dirname(source.file),path),join(destination,path));files[path]=digest(await readFile(join(destination,path)));}
+  // Integration hooks leave default native exports unchanged.
+  if(source.id==='infographic-studio')html=html.replace('async function exportPNG(){','async function exportPNG(options){').replace(" H('a',{href:c.toDataURL(EX.f,.95)"," if(options?.aviCapture)return c;\n H('a',{href:c.toDataURL(EX.f,.95)");
+  html=html.replace('</head>','<script src="../suite-embed.js?v=1"></script></head>').replace('suite-brand.css?v=2','suite-brand.css?v=3');
   await writeFile(join(destination,'index.html'),html);
   manifest.apps.push({id:source.id,version:source.version,sourceSha256:digest(bytes),scripts:originalScripts.map(digest),originalElementIds:ids(original).length,files});
   console.log(`${source.name} ${source.version}: ${originalScripts.length} original script tags and ${ids(original).length} element IDs preserved.`);
