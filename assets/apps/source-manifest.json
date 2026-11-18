@@ -1,32 +1,49 @@
 {
-  "version": 1,
+  "version": 2,
   "apps": [
     {
       "id": "infographic-studio",
-      "sourceSha256": "515d78e060f02c4bcf680ad142fcf89a6393a000d34ca4dbc9c760be6d23a284",
+      "version": "V4",
+      "sourceSha256": "c25d6dfece8d67e01a422b2c43a8ed053e222840d7bfb51e18c4ce65cdc8de8f",
       "scripts": [
         "dada89aa64e6fda87e7277ed6be0c7405ebea7c2e125dbc323b84878bc0359ca",
-        "d8f64a0f7d379ae0efc22804a15fbed1e6b478f4fbf92649c21def972be6af26"
+        "e60fa96c9401589d1bc8b5f442b8ec1e735c6517b15e3ac80a7e5a6812251f3c"
       ],
-      "originalElementIds": 36
+      "originalElementIds": 45,
+      "files": {}
     },
     {
       "id": "motion-studio",
-      "sourceSha256": "7e01c2217dcd6d7251ffc3912bb740d64eb74d74eb8ffc8fd092ad6c762a6172",
+      "version": "V12.5",
+      "sourceSha256": "51002a96f8f538d39b072112416a31e15e9a0a0eb390de8515c16313c93547e9",
       "scripts": [
-        "a9d28d521ababeaab95c482c4d582ff273b2c42566472fa69b74a3246a136e33",
-        "e98854aaa48c4bd8a6d47f37ba222675754bcc08c748bdc9608fe3b214ac2302"
+        "103254f74496736e6d770796d289fe5008e0faa260cba1c64bb1a547726f5ba1",
+        "cab549ced3db38865a9f3ade81f9dba9b01533e874b85376b66f69e1be3ad991",
+        "8a7ce994523725cafcb09ff77d1ca8e8fccc90cd17f3aa5512066fb83c63b0bc",
+        "22c0bd2deec04cde226b8e6f649a38625c4cd819fe9009e41bd8fe8bb27c9403"
       ],
-      "originalElementIds": 61
+      "originalElementIds": 120,
+      "files": {
+        "assets/world.js": "d42750158693ff4b4fb85e976462d183ac9a37a569ccf3238356a0da2492b4cb",
+        "assets/studio.js": "f00646f3d3d2e775203cbe0de2199b19f22f52d3a4e0475c82ed6eb190a49c1d",
+        "assets/cloud-ai.js": "233d6e89a6d397d27c4785f879c9d80c3d47b0048dab5d770490d268a4a6bf87",
+        "assets/ai-studio.js": "04b2a0b394c23ac7cd7b9a51d62d7a2c9840d355c40755d65b4a2dce63b4ddd7",
+        "assets/studio.css": "e7796636aa295303f65be24d8e4450eac14d32f596a7d645f7fb29b4ae1ca2e1",
+        "assets/ai-studio.css": "22858524f0c141dbfab62b5cc681a33fc36f7ecc6ee936484af95d553ce06fc5"
+      }
     },
     {
       "id": "india-motion",
-      "sourceSha256": "7db8a04aeaba7937148aefa9191ec924ed076c1c3ea2b6c5666ba4548843619d",
+      "version": "V28",
+      "sourceSha256": "5d24238c29a0ade4d139fa86c54edf32ab267ceefe351da08a9e09f4773eca51",
       "scripts": [
         "68406d9051c2db5d4ece0d4da8c66055ebd9ed69ad3257d2f9224f9f2c6aa2ef",
-        "c613f1b17dff16da1ea9bd3350b26337f5fb530edb5388a0ad2fedb408da808e"
+        "3311c06fb612e38729ff0ad87de1a555703d01d87de233a353f16d2f5b333034"
       ],
-      "originalElementIds": 106
+      "originalElementIds": 91,
+      "files": {
+        "india-official-data.js": "fb06dc01088b68922d7062cf39d053cb81f2bd8e0934b195cde82aae13c215f1"
+      }
     }
   ]
 }
