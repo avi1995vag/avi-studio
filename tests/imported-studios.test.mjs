@@ -17,10 +17,11 @@ for (const app of manifest.apps) test(app.id+' retains the original application 
     await access(new URL(match[1].split('?')[0],url));
   }
   for (const path of ['../../../index.html','../../../studio.html']) assert.ok(html.includes(path), 'suite/home navigation remains available');
+  for(const [path,hash] of Object.entries(app.files||{})) assert.equal(sha(await readFile(new URL('assets/apps/'+app.id+'/'+path,root))),hash,'Supplied dependency is unchanged: '+path);
 });
 test('India Motion keeps the supplied map data exactly',async()=>{
   const data=await readFile(new URL('assets/apps/india-motion/india-official-data.js',root));
-  assert.equal(sha(data),'fb06dc01088b68922d7062cf39d053cb81f2bd8e0934b195cde82aae13c215f1');
+  assert.equal(sha(data),manifest.apps.find(app=>app.id==='india-motion').files['india-official-data.js']);
 });
 test('workspace navigation exposes all three new standalone studios',async()=>{
   const html=await readFile(new URL('index.html',root),'utf8');

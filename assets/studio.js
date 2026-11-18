@@ -129,6 +129,7 @@ const WORKSPACE_VIEWS = {
 };
 
 function switchMode(mode){
+  if(mode==='scheduler') mode='carousel'; // Automation is unavailable until the replacement is supplied.
   if(!Object.hasOwn(WORKSPACE_VIEWS, mode)) return;
   const previousMode = currentMode;
   currentMode = mode;
