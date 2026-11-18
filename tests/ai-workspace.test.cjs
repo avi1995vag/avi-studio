@@ -46,3 +46,9 @@ test('no Automation entry remains and AI workspace is linked',async()=>{
  const fs=require('node:fs');const landing=fs.readFileSync('landing.html','utf8'),workspace=fs.readFileSync('index.html','utf8');
  assert.doesNotMatch(landing,/view=scheduler/);assert.doesNotMatch(workspace,/data-mode="scheduler"/);assert.match(workspace,/ai-workspace/);assert.match(landing,/215 layouts/);
 });
+test('model recommendations prefer newer stable Flash-Lite text models and exclude specialist media models',async t=>{
+ const original=global.fetch;t.after(()=>global.fetch=original);
+ const names=['gemini-2.5-flash-lite','gemini-3.1-flash-lite','gemini-3.5-flash-lite-preview','gemini-3.5-flash-lite','gemini-3.8-flash','gemini-3.5-transcribe','lyria-3-pro-preview','nano-banana-pro'];
+ global.fetch=async()=>new Response(JSON.stringify({models:names.map(id=>({name:'models/'+id,supportedGenerationMethods:['generateContent']}))}));
+ const models=await provider.models('gemini','test-only-key');assert.equal(models[0].id,'gemini-3.5-flash-lite');assert.ok(models.every(model=>!/(transcrib|lyria|banana)/.test(model.id)));
+});
