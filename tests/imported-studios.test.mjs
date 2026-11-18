@@ -9,7 +9,7 @@ const sha=value=>createHash('sha256').update(value).digest('hex');
 for (const app of manifest.apps) test(app.id+' retains the original application scripts and local assets',async()=>{
   const url=new URL('assets/apps/'+app.id+'/index.html',root);
   const html=await readFile(url,'utf8');
-  const original=html.replace(/<script src="\.\.\/suite-embed\.js\?v=1"><\/script>/,'').replace('async function exportPNG(options){','async function exportPNG(){').replace(' if(options?.aviCapture)return c;\n','');
+  const original=html.replace(/<script src="\.\.\/suite-embed\.js\?v=1"><\/script>/,'').replace(/<script src="photo-(?:core|editor)\.js\?v=2"><\/script>/g,'').replace('async function exportPNG(options){','async function exportPNG(){').replace(' if(options?.aviCapture)return c;\n','');
   assert.deepEqual([...original.matchAll(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi)].map(match=>sha(match[0])),app.scripts);
   assert.equal([...html.matchAll(/\bid=["'][^"']+["']/gi)].length,app.originalElementIds);
   assert.ok(!/<iframe\b/i.test(html),'each editor is a standalone page');
