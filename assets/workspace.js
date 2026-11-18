@@ -419,7 +419,7 @@ function configureAppearance(){
     toggle.title = action;
     document.querySelector('meta[name="theme-color"]').content = appearance==='light' ? '#faf6ee' : '#181920';
   };
-  apply(lsGet('app_studioAppearance')==='light' ? 'light' : 'dark');
+  apply(lsGet('app_studioAppearance')==='dark' ? 'dark' : 'light');
   toggle.addEventListener('click',() => {
     const appearance = root.dataset.appearance==='light' ? 'dark' : 'light';
     lsSet('app_studioAppearance',appearance);
