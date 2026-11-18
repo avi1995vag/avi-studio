@@ -39,6 +39,7 @@
   function download(){
     if(active()){
       const doc=frame()?.contentDocument;if(!doc)return;
+      if(frame().contentWindow.AviPhotoEditor?.isOpen()){status.textContent='Apply or cancel the photo edits before downloading the infographic.';return;}
       const ids={'infographic-studio':'exp','motion-studio':'exportFrame','india-motion':'png','ai-workspace':'download-output'};
       const button=doc.getElementById(ids[selected]);
       if(selected==='ai-workspace'&&doc.getElementById('result')?.hidden){status.textContent='Create a brief first, then download it.';return;}
@@ -63,6 +64,7 @@
       let source,caption='';
       if(active()){
         const win=frame()?.contentWindow,doc=frame()?.contentDocument;if(!doc)throw new Error('Wait for the studio to finish loading.');
+        if(win.AviPhotoEditor?.isOpen())throw new Error('Apply or cancel the photo edits before opening the publishing preview.');
         if(selected==='infographic-studio')source=await win.exportPNG({aviCapture:true});
         else if(selected==='ai-workspace'){
           const brief=win.AviWorkspace?.getBrief();if(!brief)throw new Error('Create an AI brief before opening its publishing preview.');source=briefArtwork(brief);caption=brief.caption;
